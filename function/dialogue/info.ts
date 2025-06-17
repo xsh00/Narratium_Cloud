@@ -8,13 +8,7 @@ export async function getCharacterDialogue(characterId: string, language: "en" |
   }
 
   try {
-    console.log(1);
     const characterRecord = await LocalCharacterRecordOperations.getCharacterById(characterId);
-    console.log(2);
-    
-    if (!characterRecord) {
-      throw new Error(`Character with ID ${characterId} not found`);
-    }
     
     const character = new Character(characterRecord);
     console.log(3);

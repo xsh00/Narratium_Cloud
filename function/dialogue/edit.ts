@@ -40,6 +40,9 @@ export async function editDialaogueNodeContent(input: EditDialogueNodeRequest) {
     }
 
     const characterRecord = await LocalCharacterRecordOperations.getCharacterById(characterId);
+    if (!characterRecord) {
+      throw new Error(`Character with ID ${characterId} not found`);
+    }
     const character = new Character(characterRecord);
     
     const dialogue = new CharacterDialogue(character);
