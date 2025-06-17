@@ -1,68 +1,87 @@
-<div align="center">
-
-<h1 style="border-bottom: none">
-    <b><a href=https://narratium.org/">Narratium.ai</a></b><br />
-    创建、游玩和与AI角色扮演
-    <br>
+<h1 style="border-bottom: none" align="center">
+  <a href="https://narratium.org/">Narratium.ai</a>
+  <br />
+  <p>创建、游玩和与AI角色扮演</p>
 </h1>
 
-> <em>**The world is vast, let imagination lead, but human hearts remain forever inscrutable**</em> </br>
-> <em>**世界广阔无垠，让想象力引领前行，但人心永远不可直视**</em>
+<div align="center">
+  <blockquote>
+    <em><strong>世界广阔无垠，让想象力引领前行，但人心永远不可直视</strong></em><br>
+    <em><strong>The world is vast, let imagination lead, but human hearts remain forever inscrutable</strong></em>
+  </blockquote>
+</div>
 
-![Narratium.ai](https://socialify.git.ci/Narratium/Narratium.ai/image?custom_description=Character.AI%2C+MidReal和AI+Dungeon的开源替代品&description=1&font=Rokkitt&forks=1&language=1&logo=https%3A%2F%2Fraw.githubusercontent.com%2FNarratium%2FResource%2Fmain%2Flogo.svg&name=1&owner=0&pattern=Circuit+Board&stargazers=1&theme=Dark)
+<br>
+
+![Narratium.ai](/public/banner.png)
 
 <p align="center">
-  <em>一个开源AI角色平台，用于构建、定制和与虚拟角色聊天</em><br />
-  <em>为构建互动世界的作家、开发者和故事讲述者打造</em>
+  <em>一个开源的AI角色平台，用于构建、定制和与虚拟角色聊天</em>
+  <br>
+  <em>为构建互动世界的作家、开发者和故事讲述者而设计</em>
 </p>
 
-<p align="center">
+<div align="center">
   <a href="https://narratium.org">🔗 Live Demo</a> &nbsp;|&nbsp;
   <a href="https://deepwiki.com/Narratium/Narratium.ai/">📖 DeepWiki Docs</a> &nbsp;|&nbsp;
   <a href="https://github.com/Narratium/Narratium.ai/stargazers">⭐ Star Us</a> &nbsp;|&nbsp;
   <a href="https://discord.gg/PP7EpSzDfU">💬 Discord Community</a> &nbsp;|&nbsp;
-  <a href="https://github.com/Narratium/Narratium.ai/releases">💾 Download</a>
-</p>
+  <a href="https://github.com/Narratium/Narratium.ai/releases">💾 Download</a> &nbsp;|&nbsp;
+  <a href="./README_ZH.md">🇨🇳 中文文档</a>
+</div>
+
+<br>
+
+<div align="center">
 
 ![GitHub stars](https://img.shields.io/github/stars/Narratium/Narratium.ai?style=social)
 ![GitHub forks](https://img.shields.io/github/forks/Narratium/Narratium.ai?style=social)
 ![GitHub commits](https://img.shields.io/github/commit-activity/m/Narratium/Narratium.ai)
 ![GitHub Downloads](https://img.shields.io/github/downloads/Narratium/Narratium.ai/total)
 
-<div align="center">
-<em><strong>角色、世界和对话 — 在Narratium中完美统一</strong></em>
 </div>
-</br>
 
 <div align="center">
-<img src="./assets/demo_show.gif" style="width: 80%"/>
+  <em><strong>角色、世界和对话 — 在Narratium中完美统一</strong></em>
 </div>
 
+<br>
+
+<img src="./assets/demo_show.gif" style="width: 100%"/>
+
+## 开始使用并关注我们
+
+<div align="center">
+  <strong>给我们星标，您将及时收到GitHub的所有发布通知！</strong>
 </div>
 
-## 开始使用与关注我们
-
-<em>**给我们星标，你将第一时间收到GitHub的所有发布通知！**</em>
+<br>
 
 <img src="./assets/welcome_star.gif" style="width: 100%"/>
 
-## 什么是Narratium
+| 什么是Narratium |
+| :---------------- |
 
-[Narratium.ai](https://narratium.org/) 是一个用于创建AI角色、沉浸式世界和动态对话的开源平台。它是你构建个性化角色扮演冒险的创意工作室 — 从情感之旅到史诗传奇。
+[Narratium.ai](https://narratium.org/) 是一个用于创建AI角色、沉浸式世界和动态对话的开源平台。它是您构建个性化角色扮演冒险的创意工作室 — 从情感旅程到史诗传奇。
 
-## 快速开始
+| 快速开始 |
+| :---------- |
 
-详细的安装和设置说明，请参考我们的:[入门指南](./docs/GETTING_STARTED.md)
+详细的安装和设置说明，请参考我们的 [入门指南](./docs/GETTING_STARTED.md)
 
-[Mac、Windows、Linux下载](https://github.com/Narratium/Narratium.ai/releases)
+[下载适用于Mac、Windows、Linux](https://github.com/Narratium/Narratium.ai/releases)
 
-## 功能特点
+| 功能特性 |
+| :------- |
 
-- **沉浸式冒险模式**：创建个性化世界，做出重要的决定。
-- **可视化记忆管理**：基于React Flow的会话追踪和分支。
-- **角色卡片与背景故事**：兼容SillyTavern卡片，一站式管理所有内容。
+- **沉浸式冒险模式**: 创建个性化世界并做出重要的决策。
+- **可视化记忆管理**: 基于React Flow的会话追踪和分支。
+- **角色卡片与背景**: 兼容SillyTavern卡片，在一处管理所有内容。
 
-<h2>Narratium与其他AI角色扮演平台对比</h2>
+详细的安装和设置说明，请参考我们的 [入门指南](./docs/GETTING_STARTED.md)。
+
+| Narratium与其他AI角色扮演平台对比 |
+| :---------------------------------------- |
 
 <table style="width: 100%;">
   <tr>
@@ -108,42 +127,48 @@
     <td align="center">❌</td>
   </tr>
   <tr>
-    <td><strong>视觉界面/UI优化</strong></td>
+    <td><strong>可视化界面/UI精美</strong></td>
     <td align="center">✅</td>
     <td align="center">❌ (极简)</td>
     <td align="center">✅</td>
   </tr>
   <tr>
-    <td><strong>无限分支剧情</strong></td>
+    <td><strong>无限分支故事情节</strong></td>
     <td align="center">✅</td>
-    <td align="center">⚠️ (需手动)</td>
+    <td align="center">⚠️ (需要手动努力)</td>
     <td align="center">✅ (但不稳定)</td>
   </tr>
 </table>
 
-## 许可证概述
+| 许可证概览 |
+| :--------------- |
 
-本项目包含两个具有独立许可证的部分：
+本项目由两个具有独立许可证的不同部分组成：
 
-- ✅ 代码：MIT许可证 — 开放用于商业和非商业用途，需注明出处。
-- 🔒 内容：CC BY-NC-SA 4.0 — 仅限非商业用途，需注明出处并采用相同许可证分享。
+- ✅ 代码: MIT许可证 — 开放用于商业和非商业用途，需要署名。
+- 🔒 内容: CC BY-NC-SA 4.0 — 仅限非商业用途，需要署名和相同许可证共享。
 
-> 完整的许可证详情，请参阅[LICENSE.txt](./LICENSE.txt)。
+> 有关完整许可证详情，请参阅 [LICENSE](./LICENSE)。
 
-## 联系与支持
+| 联系与支持 |
+| :---------------- |
 
 * 如果你喜欢这个项目，我们非常欢迎你加入
 * If you like this project, we warmly welcome you to join us
-[Discord 社区](https://discord.gg/PP7EpSzDfU)
+[Discord社区](https://discord.gg/PP7EpSzDfU)
 
-## 代码贡献者
+| 代码贡献者 |
+| :--------------- |
 
 [![Contributors](https://contrib.rocks/image?repo=Narratium/Narratium.ai)](https://github.com/Narratium/Narratium.ai/graphs/contributors)
 
-## 其他
+| 其他 |
+| :----- |
 
-感谢官方网站测试API赞助商
+感谢所有官方网站测试API赞助商
 
-## 星标增长
+| 星标增长 |
+| :---------- |
 
 [![Stargazers over time](https://starchart.cc/Narratium/Narratium.ai.svg?variant=adaptive)](https://starchart.cc/Narratium/Narratium.ai)
+

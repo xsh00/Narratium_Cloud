@@ -6,8 +6,8 @@
 
 <div align="center">
   <blockquote>
-    <strong>The world is vast, let imagination lead, but human hearts remain forever inscrutable</strong><br>
-    <strong>世界广阔无垠，让想象力引领前行，但人心永远不可直视</strong>
+    <em><strong>The world is vast, let imagination lead, but human hearts remain forever inscrutable</strong></em><br>
+    <em><strong>世界广阔无垠，让想象力引领前行，但人心永远不可直视</strong></em>
   </blockquote>
 </div>
 
@@ -42,7 +42,7 @@
 </div>
 
 <div align="center">
-  <strong>Characters, worlds, and conversations — beautifully unified in Narratium</strong>
+  <em><strong>Characters, worlds, and conversations — beautifully unified in Narratium</strong></em>
 </div>
 
 <br>
