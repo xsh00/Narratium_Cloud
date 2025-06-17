@@ -257,7 +257,11 @@ export default function CharacterPage() {
   
   useEffect(() => {
     const loadCharacterAndDialogue = async () => {
-      if (!characterId) return;
+      if (!characterId) {
+        setError("Character ID is missing from URL");
+        setIsLoading(false);
+        return;
+      }
       
       setIsLoading(true);
       setError("");
@@ -297,7 +301,10 @@ export default function CharacterPage() {
         }
       } catch (err) {
         console.error("Error loading character or dialogue:", err);
-        setError(typeof err === "object" && err !== null && "message" in err ? (err as Error).message : "Failed to load character");
+        const errorMessage = typeof err === "object" && err !== null && "message" in err 
+          ? (err as Error).message 
+          : "Failed to load character";
+        setError(errorMessage);
       } finally {
         setIsLoading(false);
       }

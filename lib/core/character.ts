@@ -10,21 +10,39 @@ export class Character {
   imagePath: string;
   
   constructor(characterRecord: CharacterRecord) {
+    console.log("Character constructor called with:", characterRecord);
+    
+    if (!characterRecord) {
+      throw new Error("Character record is required");
+    }
+    
+    if (!characterRecord.data) {
+      throw new Error("Character data is missing");
+    }
+    
+    console.log("Character data structure:", {
+      id: characterRecord.id,
+      hasData: !!characterRecord.data,
+      hasNestedData: !!characterRecord.data.data,
+      topLevelName: characterRecord.data.name,
+      nestedName: characterRecord.data.data?.name,
+    });
+    
     this.id = characterRecord.id;
     this.imagePath = characterRecord.imagePath;
     this.characterData = {
-      name: characterRecord.data.data.name ,
-      description: characterRecord.data.data.description,
-      personality: characterRecord.data.data.personality,
-      first_mes: characterRecord.data.data.first_mes,
-      scenario: characterRecord.data.data.scenario,
-      mes_example: characterRecord.data.data.mes_example,
-      creatorcomment: characterRecord.data.creatorcomment,
-      avatar: characterRecord.data.avatar,
-      creator_notes: characterRecord.data.data.creator_notes,
-      alternate_greetings:characterRecord.data.data.alternate_greetings,
+      name: characterRecord.data.data?.name || characterRecord.data.name || "Unknown Character",
+      description: characterRecord.data.data?.description || characterRecord.data.description || "",
+      personality: characterRecord.data.data?.personality || characterRecord.data.personality || "",
+      first_mes: characterRecord.data.data?.first_mes || characterRecord.data.first_mes || "",
+      scenario: characterRecord.data.data?.scenario || characterRecord.data.scenario || "",
+      mes_example: characterRecord.data.data?.mes_example || characterRecord.data.mes_example || "",
+      creatorcomment: characterRecord.data.creatorcomment || "",
+      avatar: characterRecord.data.avatar || "",
+      creator_notes: characterRecord.data.data?.creator_notes || "",
+      alternate_greetings: characterRecord.data.data?.alternate_greetings || [],
     }; 
-    this.worldBook = this.processCharacterBook(characterRecord.data.data.character_book);
+    this.worldBook = this.processCharacterBook(characterRecord.data.data?.character_book);
   }
     
   private processCharacterBook(characterBook: any): WorldBookEntry[] | Record<string, WorldBookEntry> {

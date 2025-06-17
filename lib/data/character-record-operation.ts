@@ -31,7 +31,7 @@ export class LocalCharacterRecordOperations {
     return await readData(CHARACTERS_RECORD_FILE);
   }
   
-  static async getCharacterById(characterId: string): Promise<CharacterRecord> {
+  static async getCharacterById(characterId: string): Promise<CharacterRecord | undefined> {
     const characterRecords = await readData(CHARACTERS_RECORD_FILE);
   
     const characterRecord = characterRecords.find(
