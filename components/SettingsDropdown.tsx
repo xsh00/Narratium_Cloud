@@ -75,51 +75,51 @@ export default function SettingsDropdown({ toggleModelSidebar }: SettingsDropdow
   };
 
   async function handleImportDataFromGoogle() {
-    const token = localStorage.getItem('google_drive_token')
+    const token = localStorage.getItem("google_drive_token");
     if(token) {
-      const res = await getFolderList()
+      const res = await getFolderList();
       if(res?.id) {
-        const file = await getBackUpFile(res.id)
+        const file = await getBackUpFile(res.id);
         if(file) {
           await importDataFromFile(file);
           setIsOpen(false);
-          alert('导入成功！')
+          alert("导入成功！");
           window.location.reload();
         }
       }
     } else {
       const url = getGoogleLoginUrl();
-      window.location.href = url
+      window.location.href = url;
     }
   }
 
   async function handleExportDataToGoogle() {
-    const token = localStorage.getItem('google_drive_token')
+    const token = localStorage.getItem("google_drive_token");
     if(token) {
       const blob = await exportDataToFile();
       const filename = generateExportFilename();
-      const res = await getFolderList()
+      const res = await getFolderList();
       if(res?.id) {
         await backupToGoogle({
           blob,
           filename,
-          folderId: res.id
-        })
+          folderId: res.id,
+        });
         // todo
-        alert('上传成功')
+        alert("上传成功");
       } 
     } else {
       const url = getGoogleLoginUrl();
-      window.location.href = url
+      window.location.href = url;
     }
   }
 
   const useFirst = useRef(false);
   useEffect(() => {
-    if(useFirst.current) return
-    useFirst.current = true
+    if(useFirst.current) return;
+    useFirst.current = true;
     getGoogleCodeByUrl(window.location);
-  }, [])
+  }, []);
 
   return (
     <div className="relative" ref={dropdownRef}>
