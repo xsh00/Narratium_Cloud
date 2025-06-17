@@ -711,7 +711,8 @@
     "importErrors": "导入错误",
     "noGlobalRegexScripts": "暂无全局正则脚本",
     "createGlobalRegexScriptFirst": "请先创建全局正则脚本",
-    "selectGlobalRegexScript": "选择全局正则脚本"
+    "selectGlobalRegexScript": "选择全局正则脚本",
+    "willUseEachFileName": "将使用每个文件的名称作为脚本名称"
   },
   "tour": {
     "welcome": "欢迎使用 Narratium",

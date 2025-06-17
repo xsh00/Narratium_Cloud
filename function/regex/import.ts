@@ -9,6 +9,8 @@ export interface ImportRegexScriptResult {
   skippedCount: number;
   errors: string[];
   globalId?: string;
+  successfulFiles?: string[];
+  failedFiles?: string[];
 }
 
 export async function importRegexScriptFromJson(
@@ -250,4 +252,4 @@ export function validateRegexScriptJson(jsonData: any): { valid: boolean; errors
 
   errors.push("Unsupported JSON format: Expected array or object with scripts/regexScripts array");
   return { valid: false, errors };
-} 
+}

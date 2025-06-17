@@ -24,8 +24,6 @@ export default function ImportRegexScriptModal({
   const [isImporting, setIsImporting] = useState(false);
   const [importResult, setImportResult] = useState<any>(null);
   const [saveAsGlobal, setSaveAsGlobal] = useState(false);
-  const [globalName, setGlobalName] = useState("");
-  const [globalDescription, setGlobalDescription] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [activeTab, setActiveTab] = useState<"file" | "global">("file");
@@ -88,41 +86,92 @@ export default function ImportRegexScriptModal({
     }
   };
 
-  const handleFileSelect = async (file: File) => {
-    if (!file.type.includes("json")) {
-      toast.error("Please select a JSON file");
+  const handleFilesSelect = async (files: File[]) => {
+    const jsonFiles = files.filter(file => file.type.includes("json"));
+    
+    if (jsonFiles.length === 0) {
+      toast.error("Please select at least one JSON file");
       return;
+    }
+
+    if (jsonFiles.length !== files.length) {
+      toast.error(`${files.length - jsonFiles.length} non-JSON files were skipped`);
     }
 
     setIsImporting(true);
     setImportResult(null);
 
+    let totalImported = 0;
+    let totalSkipped = 0;
+    let allErrors: string[] = [];
+    let successfulFiles: string[] = [];
+    let failedFiles: string[] = [];
+
     try {
-      const text = await file.text();
-      const jsonData = JSON.parse(text);
+      for (let i = 0; i < jsonFiles.length; i++) {
+        const file = jsonFiles[i];
+        try {
+          const text = await file.text();
+          const jsonData = JSON.parse(text);
 
-      const options = saveAsGlobal ? {
-        saveAsGlobal: true,
-        globalName: globalName.trim() || file.name.replace(".json", ""),
-        globalDescription: globalDescription.trim(),
-        sourceCharacterName: undefined,
-      } : undefined;
+          const options = saveAsGlobal ? {
+            saveAsGlobal: true,
+            globalName: file.name.replace(".json", ""),
+            globalDescription: "",
+            sourceCharacterName: undefined,
+          } : undefined;
 
-      const result = await importRegexScriptFromJson(characterId, jsonData, options);
-      setImportResult(result);
+          const result = await importRegexScriptFromJson(characterId, jsonData, options);
+          
+          if (result.success) {
+            totalImported += result.importedCount;
+            totalSkipped += result.skippedCount;
+            successfulFiles.push(file.name);
+            if (result.errors && result.errors.length > 0) {
+              allErrors.push(...result.errors.map(err => `${file.name}: ${err}`));
+            }
+          } else {
+            failedFiles.push(file.name);
+            allErrors.push(`${file.name}: ${result.message}`);
+            if (result.errors && result.errors.length > 0) {
+              allErrors.push(...result.errors.map(err => `${file.name}: ${err}`));
+            }
+          }
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : "Unknown error";
+          failedFiles.push(file.name);
+          allErrors.push(`${file.name}: Failed to parse - ${errorMessage}`);
+        }
+      }
 
-      if (result.success) {
-        toast.success(result.message);
+      const finalResult = {
+        success: successfulFiles.length > 0,
+        message: `Processed ${jsonFiles.length} files: ${successfulFiles.length} successful, ${failedFiles.length} failed`,
+        importedCount: totalImported,
+        skippedCount: totalSkipped,
+        errors: allErrors,
+        successfulFiles,
+        failedFiles,
+      };
+
+      setImportResult(finalResult);
+
+      if (finalResult.success) {
+        if (failedFiles.length > 0) {
+          toast.success(`Successfully imported from ${successfulFiles.length} files (${failedFiles.length} failed)`);
+        } else {
+          toast.success(`Successfully imported from all ${successfulFiles.length} files`);
+        }
         onImportSuccess();
       } else {
-        toast.error(result.message);
+        toast.error(`Failed to import from all ${jsonFiles.length} files`);
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Unknown error";
-      toast.error(`Failed to import: ${errorMessage}`);
+      toast.error(`Batch import failed: ${errorMessage}`);
       setImportResult({
         success: false,
-        message: `Failed to import: ${errorMessage}`,
+        message: `Batch import failed: ${errorMessage}`,
         errors: [errorMessage],
         importedCount: 0,
         skippedCount: 0,
@@ -148,22 +197,20 @@ export default function ImportRegexScriptModal({
     
     const files = Array.from(e.dataTransfer.files);
     if (files.length > 0) {
-      handleFileSelect(files[0]);
+      handleFilesSelect(files);
     }
   };
 
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) {
-      handleFileSelect(files[0]);
+      handleFilesSelect(Array.from(files));
     }
   };
 
   const handleClose = () => {
     setImportResult(null);
     setSaveAsGlobal(false);
-    setGlobalName("");
-    setGlobalDescription("");
     setActiveTab("file");
     setSelectedGlobalId("");
     onClose();
@@ -287,12 +334,14 @@ export default function ImportRegexScriptModal({
                   <div>
                     <p className={`text-[#eae6db] font-medium text-sm ${serifFontClass}`}>{t("regexScriptEditor.dragDropJson")}</p>
                     <p className="text-[#a18d6f] text-xs mt-0.5">{t("regexScriptEditor.jsonFileOnly")}</p>
+                    <p className="text-[#a18d6f] text-xs mt-0.5 font-medium">✨ Supports multiple files selection</p>
                   </div>
                 </div>
                 <input
                   ref={fileInputRef}
                   type="file"
                   accept=".json"
+                  multiple
                   onChange={handleFileInputChange}
                   className="hidden"
                 />
@@ -325,33 +374,13 @@ export default function ImportRegexScriptModal({
                 </label>
                 
                 {saveAsGlobal && (
-                  <div className="mt-2 space-y-2 animate-in slide-in-from-top-2 duration-300">
-                    <div>
-                      <label className={`block text-xs font-medium text-[#a18d6f] mb-1 ${serifFontClass}`}>
-                        {t("regexScriptEditor.globalName")}
-                      </label>
-                      <input
-                        type="text"
-                        value={globalName}
-                        onChange={(e) => setGlobalName(e.target.value)}
-                        placeholder={t("regexScriptEditor.enterGlobalRegexScriptName")}
-                        className="w-full px-2 py-1.5 text-sm bg-[#1a1816]/60 backdrop-blur-sm border border-[#534741]/60 rounded-md text-[#eae6db] placeholder-[#a18d6f]/60 focus:border-amber-500/60 focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition-all duration-300"
-                      />
-                    </div>
-                    <div>
-                      <label className={`block text-xs font-medium text-[#a18d6f] mb-1 ${serifFontClass}`}>
-                        {t("regexScriptEditor.description")}
-                      </label>
-                      <textarea
-                        value={globalDescription}
-                        onChange={(e) => setGlobalDescription(e.target.value)}
-                        placeholder={t("regexScriptEditor.enterDescriptionForThisGlobalRegexScript")}
-                        rows={2}
-                        className="w-full px-2 py-1.5 text-sm bg-[#1a1816]/60 backdrop-blur-sm border border-[#534741]/60 rounded-md text-[#eae6db] placeholder-[#a18d6f]/60 focus:border-amber-500/60 focus:outline-none focus:ring-2 focus:ring-amber-500/20 resize-none transition-all duration-300"
-                      />
-                    </div>
+                  <div className="mt-2 animate-in slide-in-from-top-2 duration-300">
+                    <p className="text-xs text-[#a18d6f]">
+                      {t("regexScriptEditor.willUseEachFileName")}
+                    </p>
                   </div>
                 )}
+
               </div>
             </div>
           ) : (
@@ -477,17 +506,54 @@ export default function ImportRegexScriptModal({
                     {t("regexScriptEditor.skippedScripts").replace("{count}", importResult.skippedCount.toString())}
                   </p>
                 )}
+                
+                {/* Show successful files */}
+                {importResult.successfulFiles && importResult.successfulFiles.length > 0 && (
+                  <div>
+                    <p className="text-green-400 font-medium flex items-center mt-2">
+                      <span className="w-1.5 h-1.5 bg-green-400 rounded-full mr-2"></span>
+                      Successful files ({importResult.successfulFiles.length}):
+                    </p>
+                    <ul className="list-none text-green-400/80 ml-3 space-y-0.5 max-h-20 overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-green-400/30">
+                      {importResult.successfulFiles.map((fileName: string, index: number) => (
+                        <li key={index} className="flex items-start">
+                          <span className="w-1 h-1 bg-green-400/60 rounded-full mr-2 mt-1.5 flex-shrink-0"></span>
+                          <span className="text-xs truncate">{fileName}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                
+                {/* Show failed files */}
+                {importResult.failedFiles && importResult.failedFiles.length > 0 && (
+                  <div>
+                    <p className="text-red-400 font-medium flex items-center mt-2">
+                      <span className="w-1.5 h-1.5 bg-red-400 rounded-full mr-2"></span>
+                      Failed files ({importResult.failedFiles.length}):
+                    </p>
+                    <ul className="list-none text-red-400/80 ml-3 space-y-0.5 max-h-20 overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-red-400/30">
+                      {importResult.failedFiles.map((fileName: string, index: number) => (
+                        <li key={index} className="flex items-start">
+                          <span className="w-1 h-1 bg-red-400/60 rounded-full mr-2 mt-1.5 flex-shrink-0"></span>
+                          <span className="text-xs truncate">{fileName}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                
                 {importResult.errors && importResult.errors.length > 0 && (
                   <div>
-                    <p className="text-red-400 font-medium flex items-center">
+                    <p className="text-red-400 font-medium flex items-center mt-2">
                       <span className="w-1.5 h-1.5 bg-red-400 rounded-full mr-2"></span>
                       {t("regexScriptEditor.importErrors")}:
                     </p>
-                    <ul className="list-none text-red-400/80 ml-3 space-y-0.5">
+                    <ul className="list-none text-red-400/80 ml-3 space-y-0.5 max-h-24 overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-red-400/30">
                       {importResult.errors.map((error: string, index: number) => (
                         <li key={index} className="flex items-start">
                           <span className="w-1 h-1 bg-red-400/60 rounded-full mr-2 mt-1.5 flex-shrink-0"></span>
-                          <span className="text-xs">{error}</span>
+                          <span className="text-xs break-words">{error}</span>
                         </li>
                       ))}
                     </ul>
@@ -521,4 +587,4 @@ export default function ImportRegexScriptModal({
       </div>
     </div>
   );
-} 
+}

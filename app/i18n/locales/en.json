@@ -668,7 +668,8 @@
     "importErrors": "Import Errors",
     "noGlobalRegexScripts": "No global regex scripts available",
     "createGlobalRegexScriptFirst": "Create a global regex script first",
-    "selectGlobalRegexScript": "Select Global Regex Script"
+    "selectGlobalRegexScript": "Select Global Regex Script",
+    "willUseEachFileName": "Each file's name will be used as the script name"
   },
   "dialogue": {
     "treeVisualization": "Context Manager",
