@@ -326,7 +326,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                 </div>
               </div>
 
-              <div className="flex justify-center mt-6 sm:mt-8">
+              {/* <div className="flex justify-center mt-6 sm:mt-8">
                 <div className="flex space-x-3 sm:space-x-4">
                   <button type="button" className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center border border-[#333333] bg-[#1a1a1a] hover:bg-[#252525] transition-colors">
                     <svg className="w-4 h-4 sm:w-5 sm:h-5" aria-hidden="true" fill="currentColor" viewBox="0 0 24 24">
@@ -344,7 +344,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                     </svg>
                   </button>
                 </div>
-              </div>
+              </div> */}
             </form>
           </motion.div>
         </div>
