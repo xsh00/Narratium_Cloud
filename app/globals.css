@@ -120,3 +120,17 @@ select:focus {
   animation: gradient-x 8s ease infinite;
 }
 
+/* Safe area support for mobile devices */
+@supports (padding: max(0px)) {
+  .h-safe-area-inset-bottom {
+    height: max(0px, env(safe-area-inset-bottom));
+  }
+}
+
+/* Mobile bottom navigation styles */
+@media (max-width: 767px) {
+  .mobile-bottom-nav {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
