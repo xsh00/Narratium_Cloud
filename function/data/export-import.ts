@@ -36,7 +36,7 @@ export async function importDataFromFile(file: File): Promise<void> {
  * @returns {string} The generated filename
  */
 export function generateExportFilename(): string {
-  const date = new Date()
+  const date = new Date();
   return `narratium-backup-${date.toISOString().split("T")[0]}_${date.getTime()}.json`;
 }
 

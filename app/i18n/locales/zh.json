@@ -232,6 +232,7 @@
     "importFirstCharacter": "导入你的第一个角色",
     "noCharacters": "你还没有任何角色",
     "loading": "加载中...",
+    "downloadingPresets": "正在下载预设角色...",
     "fetchError": "获取角色失败",
     "deleteFailed": "删除角色失败",
     "delete": "删除",

@@ -33,6 +33,7 @@ import CharacterCardGrid from "@/components/CharacterCardGrid";
 import CharacterCardCarousel from "@/components/CharacterCardCarousel";
 import { getAllCharacters } from "@/function/character/list";
 import { deleteCharacter } from "@/function/character/delete";
+import { handleCharacterUpload } from "@/function/character/import";
 import { trackButtonClick } from "@/utils/google-analytics";
 
 /**
@@ -72,6 +73,7 @@ export default function CharacterCards() {
   const [mounted, setMounted] = useState(false);
   const [imagesLoaded, setImagesLoaded] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [isDownloadingPresets, setIsDownloadingPresets] = useState(false);
 
   useEffect(() => {
     const savedViewMode = localStorage.getItem("characterCardsViewMode");
@@ -155,9 +157,89 @@ export default function CharacterCards() {
     setCurrentCharacter(null);
   };
 
+  /**
+   * Downloads preset character cards for first-time users or when character list is empty
+   * Fetches available characters from GitHub and downloads specific preset characters
+   */
+  const downloadPresetCharacters = async () => {
+    setIsDownloadingPresets(true);
+    try {
+      // Fetch available character files from GitHub
+      const response = await fetch("https://api.github.com/repos/Narratium/Character-Card/contents");
+      const data = await response.json();
+      
+      if (!Array.isArray(data)) {
+        console.error("Failed to fetch character files from GitHub");
+        return;
+      }
+
+      // Define specific preset character files to download
+      const presetCharacterNames = [
+        "全球冰封，我重生了！还觉醒了无限物资系统和超强安全屋！.png",
+        "一代大侠 .png", 
+        "doro.png",
+      ];
+
+      // Filter and find the specific preset characters
+      const pngFiles = data.filter((item: any) => 
+        item.name.endsWith(".png") && presetCharacterNames.includes(item.name),
+      );
+      
+      if (pngFiles.length === 0) {
+        console.log("No preset character files found");
+        return;
+      }
+
+      // Download and import each preset character
+      for (const file of pngFiles) {
+        try {
+          const fileResponse = await fetch(file.download_url || `https://raw.githubusercontent.com/Narratium/Character-Card/main/${file.name}`);
+          if (!fileResponse.ok) {
+            console.error(`Failed to download ${file.name}`);
+            continue;
+          }
+          
+          const blob = await fileResponse.blob();
+          const fileObj = new File([blob], file.name, { type: blob.type });
+          
+          await handleCharacterUpload(fileObj);
+          console.log(`Successfully imported ${file.name}`);
+        } catch (error) {
+          console.error(`Failed to import ${file.name}:`, error);
+        }
+      }
+
+      // Refresh character list after importing
+      await fetchCharacters();
+      
+      // Only mark as not first time if it was actually the first visit
+      const isFirstVisit = localStorage.getItem("characterCardsFirstVisit") !== "false";
+      if (isFirstVisit) {
+        localStorage.setItem("characterCardsFirstVisit", "false");
+      }
+      
+    } catch (error) {
+      console.error("Error downloading preset characters:", error);
+    } finally {
+      setIsDownloadingPresets(false);
+    }
+  };
+
   useEffect(() => {
     fetchCharacters();
   }, []);
+
+  // Check if this is the first visit and auto-download preset characters
+  useEffect(() => {
+    const isFirstVisit = localStorage.getItem("characterCardsFirstVisit") !== "false";
+    
+    // Auto-download preset characters if:
+    // 1. It's the first visit, OR
+    // 2. Character list is empty (regardless of first visit status)
+    if ((isFirstVisit || characters.length === 0) && characters.length === 0 && !isLoading && !isDownloadingPresets) {
+      downloadPresetCharacters();
+    }
+  }, [characters.length, isLoading, isDownloadingPresets]);
 
   if (!mounted) return null;
 
@@ -288,7 +370,9 @@ export default function CharacterCards() {
                 <div className="relative w-16 h-16">
                   <div className="absolute inset-0 rounded-full border-2 border-t-[#f9c86d] border-r-[#c0a480] border-b-[#a18d6f] border-l-transparent animate-spin"></div>
                   <div className="absolute inset-2 rounded-full border-2 border-t-[#a18d6f] border-r-[#f9c86d] border-b-[#c0a480] border-l-transparent animate-spin-slow"></div>
-                  <div className={`absolute w-full text-center top-20 text-[#c0a480] ${fontClass}`}>{t("characterCardsPage.loading")}</div>
+                  <div className={`absolute w-full text-center top-20 text-[#c0a480] ${fontClass}`}>
+                    {isDownloadingPresets ? t("characterCardsPage.downloadingPresets") : t("characterCardsPage.loading")}
+                  </div>
                 </div>
               </motion.div>
             ) : characters.length === 0 ? (

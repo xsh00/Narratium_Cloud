@@ -232,6 +232,7 @@
     "importFirstCharacter": "Import Your First Character",
     "noCharacters": "You don't have any characters yet",
     "loading": "Loading...",
+    "downloadingPresets": "Downloading preset characters...",
     "fetchError": "Failed to fetch characters",
     "deleteFailed": "Failed to delete character",
     "delete": "Delete",
