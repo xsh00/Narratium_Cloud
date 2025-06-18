@@ -187,9 +187,9 @@ export default function CharacterCards() {
               className="flex justify-between items-center mb-8"
             >
               <div className="flex items-center gap-3">
-                <h1 className={`text-2xl magical-login-text ${serifFontClass}`}>{t("sidebar.characterCards")}</h1>
+                <h1 className={`text-xl sm:text-2xl magical-login-text ${serifFontClass}`}>{t("sidebar.characterCards")}</h1>
                 <motion.button
-                  className={`portal-button text-[#c0a480] hover:text-[#ffd475] p-2 border border-[#534741] rounded-lg cursor-pointer ${fontClass} translate-y-[1px]`}
+                  className={`portal-button text-[#c0a480] hover:text-[#ffd475] p-1.5 sm:p-2 border border-[#534741] rounded-lg cursor-pointer ${fontClass} translate-y-[1px]`}
                   whileHover={{ scale: 1.05 }}
                   transition={{ type: "spring", stiffness: 400, damping: 10 }}
                   onClick={() => {
@@ -200,23 +200,23 @@ export default function CharacterCards() {
                   }}
                 >
                   {viewMode === "grid" ? (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="sm:w-5 sm:h-5">
                       <rect x="3" y="3" width="7" height="7"></rect>
                       <rect x="14" y="3" width="7" height="7"></rect>
                       <rect x="14" y="14" width="7" height="7"></rect>
                       <rect x="3" y="14" width="7" height="7"></rect>
                     </svg>
                   ) : (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="sm:w-5 sm:h-5">
                       <circle cx="12" cy="12" r="10"></circle>
                       <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
                     </svg>
                   )}
                 </motion.button>
               </div>
-              <div className="flex gap-3">
+              <div className="flex gap-2 sm:gap-3">
                 <motion.div
-                  className={`portal-button relative overflow-hidden px-4 py-2 rounded-lg cursor-pointer ${fontClass}
+                  className={`portal-button relative overflow-hidden px-2 py-1.5 sm:px-4 sm:py-2 rounded-lg cursor-pointer ${fontClass}
                     bg-gradient-to-b from-[#2a231c] to-[#1a1510]
                     border border-[#534741]
                     shadow-[0_0_15px_rgba(192,164,128,0.1)]
@@ -236,12 +236,12 @@ export default function CharacterCards() {
                   }}
                   onClick={() => setIsImportModalOpen(true)}
                 >
-                  <span className="relative z-10 text-[#c0a480] group-hover:text-[#ffd475] transition-colors duration-300">
+                  <span className="relative z-10 text-[#c0a480] group-hover:text-[#ffd475] transition-colors duration-300 text-xs sm:text-base">
                     {t("characterCardsPage.importCharacter")}
                   </span>
                 </motion.div>
                 <motion.div
-                  className={`portal-button relative overflow-hidden px-4 py-2 rounded-lg cursor-pointer ${fontClass}
+                  className={`portal-button relative overflow-hidden px-2 py-1.5 sm:px-4 sm:py-2 rounded-lg cursor-pointer ${fontClass}
                     bg-gradient-to-b from-[#2a231c] to-[#1a1510]
                     border border-[#534741]
                     shadow-[0_0_15px_rgba(192,164,128,0.1)]
@@ -261,7 +261,7 @@ export default function CharacterCards() {
                   }}
                   onClick={() => setIsDownloadModalOpen(true)}
                 >
-                  <span className="relative z-10 text-[#c0a480] group-hover:text-[#ffd475] transition-colors duration-300">
+                  <span className="relative z-10 text-[#c0a480] group-hover:text-[#ffd475] transition-colors duration-300 text-xs sm:text-base">
                     {t("characterCardsPage.downloadCharacter")}
                   </span>
                 </motion.div>

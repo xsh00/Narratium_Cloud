@@ -471,7 +471,7 @@ export default function CharacterChatPanel({
             )}
           </div>
 
-          <div className="mt-5 flex justify-start gap-3 max-w-4xl mx-auto">
+          <div className="mt-5 flex justify-start gap-2 sm:gap-3 max-w-4xl mx-auto">
             <button
               type="button"
               onClick={() => {
@@ -481,7 +481,7 @@ export default function CharacterChatPanel({
                   "story-progress": !prev["story-progress"],
                 }));
               }}
-              className={`px-4 py-1.5 text-xs rounded-full border transition-all duration-300 ${
+              className={`px-2 py-1.5 sm:px-4 text-xs rounded-full border transition-all duration-300 ${
                 activeModes["story-progress"]
                   ? "bg-[#d1a35c] text-[#2a261f] border-[#d1a35c] shadow-[0_0_8px_rgba(209,163,92,0.5)]"
                   : "bg-[#2a261f] text-[#d1a35c] border-[#534741] hover:border-[#d1a35c] shadow-sm hover:shadow-md"
@@ -498,12 +498,12 @@ export default function CharacterChatPanel({
                   strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  className="mr-1"
+                  className="mr-1 sm:mr-1"
                 >
                   <path d="M5 12h14"></path>
                   <path d="m12 5 7 7-7 7"></path>
                 </svg>
-                {t("characterChat.storyProgress") || "剧情推进"}
+                <span className="hidden sm:inline">{t("characterChat.storyProgress") || "剧情推进"}</span>
               </span>
             </button>
 
@@ -543,7 +543,7 @@ export default function CharacterChatPanel({
                   };
                 });
               }}
-              className={`px-4 py-1.5 text-xs rounded-full border transition-all duration-300 ${
+              className={`px-2 py-1.5 sm:px-4 text-xs rounded-full border transition-all duration-300 ${
                 !activeModes["perspective"].active
                   ? "bg-[#2a261f] text-[#56b3b4] border-[#534741] hover:border-[#56b3b4] shadow-sm hover:shadow-md"
                   : activeModes["perspective"].mode === "novel"
@@ -562,17 +562,19 @@ export default function CharacterChatPanel({
                   strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  className="mr-1"
+                  className="mr-1 sm:mr-1"
                 >
                   <circle cx="12" cy="12" r="10"></circle>
                   <line x1="2" y1="12" x2="22" y2="12"></line>
                   <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
                 </svg>
-                {!activeModes["perspective"].active
-                  ? t("characterChat.perspective") || "视角设计"
-                  : activeModes["perspective"].mode === "novel"
-                    ? t("characterChat.novelPerspective") || "小说视角"
-                    : t("characterChat.protagonistPerspective") || "主角视角"}
+                <span className="hidden sm:inline">
+                  {!activeModes["perspective"].active
+                    ? t("characterChat.perspective") || "视角设计"
+                    : activeModes["perspective"].mode === "novel"
+                      ? t("characterChat.novelPerspective") || "小说视角"
+                      : t("characterChat.protagonistPerspective") || "主角视角"}
+                </span>
               </span>
             </button>
 
@@ -585,7 +587,7 @@ export default function CharacterChatPanel({
                   "scene-setting": !prev["scene-setting"],
                 }));
               }}
-              className={`px-4 py-1.5 text-xs rounded-full border transition-all duration-300 ${
+              className={`px-2 py-1.5 sm:px-4 text-xs rounded-full border transition-all duration-300 ${
                 activeModes["scene-setting"]
                   ? "bg-[#c093ff] text-[#2a261f] border-[#c093ff] shadow-[0_0_8px_rgba(192,147,255,0.5)]"
                   : "bg-[#2a261f] text-[#c093ff] border-[#534741] hover:border-[#c093ff] shadow-sm hover:shadow-md"
@@ -602,7 +604,7 @@ export default function CharacterChatPanel({
                   strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  className="mr-1"
+                  className="mr-1 sm:mr-1"
                 >
                   <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
                   <line x1="3" y1="9" x2="21" y2="9"></line>
@@ -610,7 +612,7 @@ export default function CharacterChatPanel({
                   <line x1="9" y1="3" x2="9" y2="21"></line>
                   <line x1="15" y1="3" x2="15" y2="21"></line>
                 </svg>
-                {t("characterChat.sceneTransition")}
+                <span className="hidden sm:inline">{t("characterChat.sceneTransition")}</span>
               </span>
             </button>
           </div>

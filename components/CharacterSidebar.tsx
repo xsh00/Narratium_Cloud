@@ -143,7 +143,7 @@ const CharacterSidebar: React.FC<CharacterSidebarProps> = ({
           magic-border transition-all duration-300 ease-in-out`}
       >
 
-        <div className="px-2 py-1 flex justify-between items-center text-xs text-[#8a8a8a] uppercase tracking-wider font-medium text-[10px] transition-all duration-300 ease-in-out overflow-hidden mt-4 mx-4" style={{ opacity: isCollapsed ? 0 : 1 }}>
+        <div className="px-2 py-1 flex justify-between items-center text-xs text-[#8a8a8a] uppercase tracking-wider font-medium text-[8px] md:text-[10px] transition-all duration-300 ease-in-out overflow-hidden mt-4 mx-4" style={{ opacity: isCollapsed ? 0 : 1 }}>
           <span>{t("characterChat.navigation")}</span>
         </div>
 
@@ -195,7 +195,7 @@ const CharacterSidebar: React.FC<CharacterSidebarProps> = ({
                       </svg>
                     </div>
                     <div className="ml-2 transition-all duration-300 ease-in-out overflow-hidden">
-                      <span className={`magical-text whitespace-nowrap block text-sm group-hover:text-amber-400 transition-colors duration-300 ${fontClass}`}>
+                      <span className={`magical-text whitespace-nowrap block text-xs md:text-sm group-hover:text-amber-400 transition-colors duration-300 ${fontClass}`}>
                         {t("characterChat.backToCharacters")}
                       </span>
                     </div>
@@ -220,7 +220,7 @@ const CharacterSidebar: React.FC<CharacterSidebarProps> = ({
                       </svg>
                     </div>
                     <div className="ml-2 transition-all duration-300 ease-in-out overflow-hidden">
-                      <span className={`magical-text whitespace-nowrap block text-sm group-hover:text-amber-400 transition-colors duration-300 ${fontClass}`}>
+                      <span className={`magical-text whitespace-nowrap block text-xs md:text-sm group-hover:text-amber-400 transition-colors duration-300 ${fontClass}`}>
                         {t("characterChat.collapseSidebar")}
                       </span>
                     </div>
@@ -291,7 +291,7 @@ const CharacterSidebar: React.FC<CharacterSidebarProps> = ({
 
         <div className="mx-4 menu-divider my-2"></div>
 
-        <div className="px-2 py-1 flex justify-between items-center text-xs text-[#8a8a8a] uppercase tracking-wider font-medium text-[10px] transition-all duration-300 ease-in-out overflow-hidden mx-4" style={{ opacity: isCollapsed ? 0 : 1 }}>
+        <div className="px-2 py-1 flex justify-between items-center text-xs text-[#8a8a8a] uppercase tracking-wider font-medium text-[8px] md:text-[10px] transition-all duration-300 ease-in-out overflow-hidden mx-4" style={{ opacity: isCollapsed ? 0 : 1 }}>
           <span>{t("characterChat.characterInfo")}</span>
         </div>
 
@@ -299,32 +299,33 @@ const CharacterSidebar: React.FC<CharacterSidebarProps> = ({
           <div className="space-y-1 my-2">
             {!isCollapsed ? (
               <div className={"menu-item flex p-2 rounded-md hover:bg-[#252525] overflow-hidden transition-all duration-300 group"}>
-                <div className="w-12 h-12 flex-shrink-0 mr-3 flex items-center justify-center text-[#f4e8c1] bg-[#1c1c1c] rounded-lg border border-[#333333] shadow-inner transition-all duration-300 group-hover:border-[#444444] group-hover:text-amber-400 group-hover:shadow-[0_0_8px_rgba(251,146,60,0.4)]">
+                <div className="w-10 h-10 md:w-12 md:h-12 flex-shrink-0 mr-3 flex items-center justify-center text-[#f4e8c1] bg-[#1c1c1c] rounded-lg border border-[#333333] shadow-inner transition-all duration-300 group-hover:border-[#444444] group-hover:text-amber-400 group-hover:shadow-[0_0_8px_rgba(251,146,60,0.4)]">
                   {character.avatar_path ? (
                     <CharacterAvatarBackground avatarPath={character.avatar_path} />
                   ) : (
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      width="24" height="24"
+                      width="20" height="20"
                       viewBox="0 0 24 24"
                       fill="none"
                       stroke="currentColor"
                       strokeWidth="2"
                       strokeLinecap="round"
                       strokeLinejoin="round"
+                      className="md:w-6 md:h-6"
                     >
                       <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
                   )}
                 </div>
                 <div className="flex flex-col justify-center">
-                  <span className={`magical-text whitespace-nowrap overflow-hidden text-ellipsis block text-sm text-[#f4e8c1] group-hover:text-amber-400 transition-colors duration-300 ${serifFontClass}`}>
-                    {character.name ? (character.name.length > 20 ? `${character.name.substring(0, 20)}...` : character.name) : ""}
+                  <span className={`magical-text whitespace-nowrap overflow-hidden text-ellipsis block text-xs md:text-sm text-[#f4e8c1] group-hover:text-amber-400 transition-colors duration-300 ${serifFontClass}`}>
+                    {character.name ? (character.name.length > (isMobile ? 15 : 20) ? `${character.name.substring(0, isMobile ? 15 : 20)}...` : character.name) : ""}
                   </span>
-                  <p className={`text-[#a18d6f] text-xs ${fontClass} whitespace-nowrap overflow-hidden text-ellipsis mt-1`}>
+                  <p className={`text-[#a18d6f] text-[10px] md:text-xs ${fontClass} whitespace-nowrap overflow-hidden text-ellipsis mt-1`}>
                     {character.personality ? (
-                      character.personality.length > 25
-                        ? `${character.personality.substring(0, 25)}...`
+                      character.personality.length > (isMobile ? 20 : 25)
+                        ? `${character.personality.substring(0, isMobile ? 20 : 25)}...`
                         : character.personality
                     ) : t("characterChat.noPersonality")}
                   </p>
@@ -335,7 +336,7 @@ const CharacterSidebar: React.FC<CharacterSidebarProps> = ({
         </div>
 
         <div className="mx-4 menu-divider my-2"></div>
-        <div className="px-2 py-1 flex justify-between items-center text-xs text-[#8a8a8a] uppercase tracking-wider font-medium text-[10px] transition-all duration-300 ease-in-out overflow-hidden mx-4" style={{ opacity: isCollapsed ? 0 : 1 }}>
+        <div className="px-2 py-1 flex justify-between items-center text-xs text-[#8a8a8a] uppercase tracking-wider font-medium text-[8px] md:text-[10px] transition-all duration-300 ease-in-out overflow-hidden mx-4" style={{ opacity: isCollapsed ? 0 : 1 }}>
           <span>{t("characterChat.actions")}</span>
         </div>
 
@@ -356,7 +357,7 @@ const CharacterSidebar: React.FC<CharacterSidebarProps> = ({
                     </svg>
                   </div>
                   <div className="ml-2 transition-all duration-300 ease-in-out overflow-hidden">
-                    <p className={`text-[#f4e8c1] text-sm transition-colors duration-300 ${fontClass}`}>
+                    <p className={`text-[#f4e8c1] text-xs md:text-sm transition-colors duration-300 ${fontClass}`}>
                       {t("characterChat.Conversation")}
                     </p>
                   </div>
@@ -381,7 +382,7 @@ const CharacterSidebar: React.FC<CharacterSidebarProps> = ({
             
         {!isCollapsed && (
           <>
-            <div className="px-2 py-1 flex justify-between items-center text-xs text-[#8a8a8a] uppercase tracking-wider font-medium text-[10px] transition-all duration-300 ease-in-out overflow-hidden mx-4" style={{ opacity: isCollapsed ? 0 : 1 }}>
+            <div className="px-2 py-1 flex justify-between items-center text-xs text-[#8a8a8a] uppercase tracking-wider font-medium text-[8px] md:text-[10px] transition-all duration-300 ease-in-out overflow-hidden mx-4" style={{ opacity: isCollapsed ? 0 : 1 }}>
               <span>{t("characterChat.presets") || "预设"}</span>
             </div>
             <div 
@@ -399,7 +400,7 @@ const CharacterSidebar: React.FC<CharacterSidebarProps> = ({
                   </svg>
                 </div>
                 <div className="ml-2 transition-all duration-300 ease-in-out overflow-hidden">
-                  <span className={`magical-text whitespace-nowrap block text-sm group-hover:text-amber-400 transition-colors duration-300 ${fontClass}`}>
+                  <span className={`magical-text whitespace-nowrap block text-xs md:text-sm group-hover:text-amber-400 transition-colors duration-300 ${fontClass}`}>
                     {t("characterChat.presetEditor")}
                   </span>
                 </div>
@@ -422,7 +423,7 @@ const CharacterSidebar: React.FC<CharacterSidebarProps> = ({
                       </svg>
                     </div>
                     <div className="ml-2 transition-all duration-300 ease-in-out overflow-hidden">
-                      <span className={`magical-text whitespace-nowrap block text-sm group-hover:text-purple-400 transition-colors duration-300 ${fontClass}`}>
+                      <span className={`magical-text whitespace-nowrap block text-xs md:text-sm group-hover:text-purple-400 transition-colors duration-300 ${fontClass}`}>
                         {t("characterChat.githubPresets")}
                       </span>
                     </div>
@@ -439,7 +440,7 @@ const CharacterSidebar: React.FC<CharacterSidebarProps> = ({
                 <div className="absolute left-0 right-0 mt-1 mx-6 bg-[#1c1c1c] border border-[#333333] rounded-md shadow-lg z-10 overflow-hidden">
                   {githubPresets.length === 0 ? (
                     <div className="p-3 text-center text-[#a18d6f]">
-                      <span className={`text-xs ${fontClass}`}>{t("characterChat.noPresets") || "没有可用的预设"}</span>
+                      <span className={`text-[10px] md:text-xs ${fontClass}`}>{t("characterChat.noPresets") || "没有可用的预设"}</span>
                     </div>
                   ) : (
                     githubPresets.map((preset) => (
@@ -450,10 +451,10 @@ const CharacterSidebar: React.FC<CharacterSidebarProps> = ({
                       >
                         <div className="flex items-center justify-between">
                           <div>
-                            <span className={`text-sm text-[#f4e8c1] ${fontClass}`}>
+                            <span className={`text-xs md:text-sm text-[#f4e8c1] ${fontClass}`}>
                               {getPresetDisplayName(preset.name, language as "zh" | "en")}
                             </span>
-                            <p className={`text-xs text-[#a18d6f] mt-1 ${fontClass}`}>
+                            <p className={`text-[10px] md:text-xs text-[#a18d6f] mt-1 ${fontClass}`}>
                               {getPresetDescription(preset.name, language as "zh" | "en")}
                             </p>
                           </div>
@@ -487,7 +488,7 @@ const CharacterSidebar: React.FC<CharacterSidebarProps> = ({
             
         <div className="mx-4 menu-divider my-2"></div>
             
-        <div className="px-2 py-1 flex justify-between items-center text-xs text-[#8a8a8a] uppercase tracking-wider font-medium text-[10px] transition-all duration-300 ease-in-out overflow-hidden mx-4" style={{ opacity: isCollapsed ? 0 : 1 }}>
+        <div className="px-2 py-1 flex justify-between items-center text-xs text-[#8a8a8a] uppercase tracking-wider font-medium text-[8px] md:text-[10px] transition-all duration-300 ease-in-out overflow-hidden mx-4" style={{ opacity: isCollapsed ? 0 : 1 }}>
           <span>{t("characterChat.advancedSettings")}</span>
         </div>
         <div className="transition-all duration-300 ease-in-out px-6 max-h-[500px] opacity-100">
@@ -512,7 +513,7 @@ const CharacterSidebar: React.FC<CharacterSidebarProps> = ({
                     </svg>
                   </div>
                   <div className="ml-2 transition-all duration-300 ease-in-out overflow-hidden">
-                    <span className={`magical-text whitespace-nowrap block text-sm group-hover:text-blue-400 transition-colors duration-300 ${fontClass}`}>
+                    <span className={`magical-text whitespace-nowrap block text-xs md:text-sm group-hover:text-blue-400 transition-colors duration-300 ${fontClass}`}>
                       {t("characterChat.advancedSettings")}
                     </span>
                   </div>
@@ -524,7 +525,7 @@ const CharacterSidebar: React.FC<CharacterSidebarProps> = ({
             
         <div className="mx-4 menu-divider my-2"></div>
             
-        <div className="px-2 py-1 flex justify-between items-center text-xs text-[#8a8a8a] uppercase tracking-wider font-medium text-[10px] transition-all duration-300 ease-in-out overflow-hidden mx-4" style={{ opacity: isCollapsed ? 0 : 1 }}>
+        <div className="px-2 py-1 flex justify-between items-center text-xs text-[#8a8a8a] uppercase tracking-wider font-medium text-[8px] md:text-[10px] transition-all duration-300 ease-in-out overflow-hidden mx-4" style={{ opacity: isCollapsed ? 0 : 1 }}>
           <span>{t("characterChat.responseLength")}</span>
         </div>
         <div className="transition-all duration-300 ease-in-out px-6 max-h-[500px] opacity-100">
@@ -555,12 +556,12 @@ const CharacterSidebar: React.FC<CharacterSidebarProps> = ({
                 </div>
               </div>
               <div className="flex justify-between mt-3 px-0.5">
-                <span className={`text-xs font-medium ${fontClass} text-[#9ca3af]`}>100</span>
+                <span className={`text-[10px] md:text-xs font-medium ${fontClass} text-[#9ca3af]`}>100</span>
                 <div className="flex items-center">
-                  <span className="text-xs font-medium bg-gradient-to-r from-amber-400 to-amber-300 bg-clip-text text-transparent">
+                  <span className="text-[10px] md:text-xs font-medium bg-gradient-to-r from-amber-400 to-amber-300 bg-clip-text text-transparent">
                     {currentResponseLength}
                   </span>
-                  <span className="text-xs font-medium text-[#9ca3af] ml-1">/ 3000</span>
+                  <span className="text-[10px] md:text-xs font-medium text-[#9ca3af] ml-1">/ 3000</span>
                 </div>
               </div>
             </div>

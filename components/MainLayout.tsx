@@ -7,6 +7,7 @@
  * - Login modal integration
  * - Settings dropdown
  * - Mobile responsiveness handling
+ * - Mobile bottom navigation
  * 
  * The layout uses a fantasy-themed UI with dynamic sidebar states
  * and responsive design considerations.
@@ -16,6 +17,7 @@
  * - ModelSidebar: Model settings panel
  * - SettingsDropdown: Global settings menu
  * - LoginModal: Authentication modal
+ * - MobileBottomNav: Mobile bottom navigation
  */
 
 "use client";
@@ -25,6 +27,7 @@ import Sidebar from "@/components/Sidebar";
 import ModelSidebar from "@/components/ModelSidebar";
 import SettingsDropdown from "@/components/SettingsDropdown";
 import LoginModal from "@/components/LoginModal";
+import MobileBottomNav from "@/components/MobileBottomNav";
 import "@/app/styles/fantasy-ui.css";
 
 /**
@@ -84,6 +87,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         className={`flex-1 h-full overflow-auto transition-all duration-300
             ${isMobile ? "ml-0" : (sidebarOpen ? "ml-72" : "ml-0")}
             ${modelSidebarOpen ? "mr-64" : "mr-0"}
+            ${isMobile ? "pb-20" : ""}
           `}
       >
         <div className="h-full relative">
@@ -98,6 +102,9 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
       <div className="fixed right-0 top-0 h-full z-40">
         <ModelSidebar isOpen={modelSidebarOpen} toggleSidebar={toggleModelSidebar} />
       </div>
+
+      {/* Mobile Bottom Navigation */}
+      <MobileBottomNav openLoginModal={() => setIsLoginModalOpen(true)} />
     </div>
   );
 }
