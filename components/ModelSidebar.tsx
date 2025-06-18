@@ -539,7 +539,7 @@ export default function ModelSidebar({ isOpen, toggleSidebar }: ModelSidebarProp
                     </div>
                     <button 
                       onClick={(e) => { trackButtonClick("ModelSidebar", "删除配置"); e.stopPropagation(); handleDeleteConfig(config.id); }}
-                      className="text-red-400 hover:text-red-300 text-xs p-1 opacity-0 group-hover:opacity-100 transition-opacity ml-1 flex-shrink-0"
+                      className="text-red-400 hover:text-red-300 text-xs p-1 transition-colors ml-1 flex-shrink-0"
                     >
                       ×
                     </button>
