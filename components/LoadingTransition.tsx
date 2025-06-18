@@ -299,8 +299,20 @@ export default function LoadingTransition({
         preload="auto"
         playsInline
       />
-      <div className="loading" style={{ position: "relative", width: "35rem", height: "35rem", display: "flex", justifyContent: "center", alignItems: "center", transform: "translateY(-10%)" }}>
-        <svg viewBox="0 0 100 50" className="loading_icon" style={{ position: "absolute", width: "60%" }}>
+      <div className="loading" style={{ 
+        position: "relative", 
+        width: "min(35rem, 90vw)", 
+        height: "min(35rem, 90vw)", 
+        display: "flex", 
+        justifyContent: "center", 
+        alignItems: "center", 
+        transform: "translateY(-5%)", 
+      }}>
+        <svg viewBox="0 0 100 50" className="loading_icon" style={{ 
+          position: "absolute", 
+          width: "60%",
+          maxWidth: "300px",
+        }}>
           <path 
             d="M50,25c0-12.14,9.84-21.99,21.99-21.99S93.98,12.86,93.98,25s-9.84,21.99-21.99,21.99S50,37.21,50,25.06
             S40.16,3.01,28.01,3.01S6.02,12.86,6.02,25s9.84,21.99,21.99,21.99S50,37.14,50,25c0-8.14,4.42-15.24,10.99-19.05
@@ -334,8 +346,8 @@ export default function LoadingTransition({
           className="loading_circle"
           style={{
             position: "absolute",
-            width: "10rem",
-            height: "10rem",
+            width: "min(10rem, 25vw)",
+            height: "min(10rem, 25vw)",
             borderRadius: "100%",
             background: "rgba(251, 165, 61, 0.1)",
             border: "2px solid #fba53d",
@@ -353,7 +365,7 @@ export default function LoadingTransition({
           alt="Narratium Logo"
           style={{
             position: "absolute",
-            width: "10rem",
+            width: "min(10rem, 25vw)",
             opacity: 0,
             zIndex: 10,
             left: "50%",
@@ -367,7 +379,7 @@ export default function LoadingTransition({
             position: "absolute",
             bottom: "25%",
             width: "70%",
-            height: "8px",
+            height: "min(8px, 2vw)",
             background: "rgba(251, 165, 61, 0.2)",
             borderRadius: "4px",
             overflow: "hidden",
@@ -393,7 +405,7 @@ export default function LoadingTransition({
             position: "absolute",
             bottom: "5%",
             color: "#ffd76a",
-            fontSize: "1.2rem",
+            fontSize: "clamp(0.8rem, 3vw, 1.2rem)",
             fontFamily: "var(--font-cinzel)",
             textAlign: "center",
             opacity: 0,
@@ -402,6 +414,10 @@ export default function LoadingTransition({
             transform: "translate(-50%, -50%)",
             whiteSpace: "nowrap",
             textShadow: "0 0 5px rgba(255,215,0,0.7)",
+            padding: "0 1rem",
+            maxWidth: "90vw",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
           }}
         >
           To build a time machine takes only two steps: dream it, then do it.
