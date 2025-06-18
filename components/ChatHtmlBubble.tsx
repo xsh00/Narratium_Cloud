@@ -95,7 +95,7 @@ function convertMarkdown(str: string): string {
   str = str.replace(/!\[\]\(([^)]+)\)/g, "<img src=\"$1\" alt=\"Image\" />");
   str = str.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
   str = str.replace(/\*([^*]+)\*/g, "<em>$1</em>");
-  str = str.replace(/(<[^>]+>)|(["“”][^"“”]+["“”])/g, (_match, tag, quote) => {
+  str = str.replace(/(<[^>]+>)|(["""][^""]+["""])/g, (_match, tag, quote) => {
     if (tag) return tag;
     return `<talk>${quote}</talk>`;
   });
@@ -702,7 +702,7 @@ window.addEventListener('message', function(e) {
       ) {
         // Use virtual queue for height updates
         batchedUpdate(() => {
-          frameRef.current!.style.height = `${e.data.__chatBubbleHeight}px`;
+          frameRef.current!.style.height = `${e.data.__chatBubbleHeight + 30}px`; // Add extra space for padding
           onContentChange?.();
         });
         
@@ -818,19 +818,25 @@ window.addEventListener('message', function(e) {
             max-width: 100%;
           }
         }
+        .iframe-wrapper {
+          padding-bottom: 20px;
+          margin-bottom: 10px;
+        }
       `}</style>
-      <iframe
-        ref={frameRef}
-        sandbox="allow-scripts allow-same-origin"
-        srcDoc={srcDoc}
-        style={{ 
-          width: "100%", 
-          border: 0, 
-          overflow: "hidden", 
-          height: "150px", 
-          background: "transparent",
-        }}
-      />
+      <div className="iframe-wrapper">
+        <iframe
+          ref={frameRef}
+          sandbox="allow-scripts allow-same-origin"
+          srcDoc={srcDoc}
+          style={{ 
+            width: "100%", 
+            border: 0, 
+            overflow: "hidden", 
+            height: "150px",
+            background: "transparent",
+          }}
+        />
+      </div>
     </div>
   );
 });
