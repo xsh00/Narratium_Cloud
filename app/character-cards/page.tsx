@@ -71,6 +71,7 @@ export default function CharacterCards() {
   const [viewMode, setViewMode] = useState<"grid" | "carousel">("grid");
   const [mounted, setMounted] = useState(false);
   const [imagesLoaded, setImagesLoaded] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     const savedViewMode = localStorage.getItem("characterCardsViewMode");
@@ -81,6 +82,14 @@ export default function CharacterCards() {
 
   useEffect(() => {
     setMounted(true);
+    
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    
     const yellowImg = new Image();
     const redImg = new Image();
     
@@ -93,6 +102,8 @@ export default function CharacterCards() {
     ]).then(() => {
       setImagesLoaded(true);
     });
+    
+    return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
   const fetchCharacters = async () => {
@@ -189,7 +200,7 @@ export default function CharacterCards() {
               <div className="flex items-center gap-3">
                 <h1 className={`text-xl sm:text-2xl magical-login-text ${serifFontClass}`}>{t("sidebar.characterCards")}</h1>
                 <motion.button
-                  className={`portal-button text-[#c0a480] hover:text-[#ffd475] p-1.5 sm:p-2 border border-[#534741] rounded-lg cursor-pointer ${fontClass} translate-y-[1px]`}
+                  className={`hidden md:block portal-button text-[#c0a480] hover:text-[#ffd475] p-1.5 sm:p-2 border border-[#534741] rounded-lg cursor-pointer ${fontClass} translate-y-[1px]`}
                   whileHover={{ scale: 1.05 }}
                   transition={{ type: "spring", stiffness: 400, damping: 10 }}
                   onClick={() => {
@@ -302,7 +313,7 @@ export default function CharacterCards() {
                   {t("characterCardsPage.importFirstCharacter")}
                 </motion.div>
               </motion.div>
-            ) : viewMode === "grid" ? (
+            ) : viewMode === "grid" || isMobile ? (
               <CharacterCardGrid
                 characters={characters}
                 onEditClick={handleEditClick}
