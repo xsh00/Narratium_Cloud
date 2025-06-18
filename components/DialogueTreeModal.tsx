@@ -346,9 +346,8 @@ export default function DialogueTreeModal({ isOpen, onClose, characterId, onDial
         await onDialogueEdit();
       }
       
-      setTimeout(() => {
-        onClose();
-      }, 300);
+      // Refresh dialogue data to update current path colors
+      await fetchDialogueData(characterId);
       
       return true;
     } catch (error) {
@@ -357,7 +356,7 @@ export default function DialogueTreeModal({ isOpen, onClose, characterId, onDial
     } finally {
       setIsJumpingToNode(false);
     }
-  }, [characterId, onClose, onDialogueEdit, isJumpingToNode]);
+  }, [characterId, onDialogueEdit, isJumpingToNode]);
 
   useEffect(() => {
     nodesRef.current = nodes;
