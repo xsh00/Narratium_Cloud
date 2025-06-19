@@ -1,5 +1,5 @@
 const DB_NAME = "CharacterAppDB";
-const DB_VERSION = 6; // Updated for Agent support
+const DB_VERSION = 8; // Updated for Agent support
 
 export const CHARACTERS_RECORD_FILE = "characters_record";
 export const CHARACTER_DIALOGUES_FILE = "character_dialogues";
