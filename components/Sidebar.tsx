@@ -9,7 +9,7 @@ import { isUpdateAvailable, fetchLatestRelease } from "@/utils/version-compare";
 import "@/app/styles/fantasy-ui.css";
 
 // Current app version from package.json
-const CURRENT_VERSION = "1.1.5";
+const CURRENT_VERSION = "1.1.6";
 
 interface SidebarProps {
   isOpen: boolean;
