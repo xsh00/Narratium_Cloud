@@ -691,7 +691,9 @@
     "startingPoint": "Opening Scene",
     "rootNodeCannotJump": "Root node is the starting point of the dialogue and cannot be jumped to",
     "response": "Response Content",
-    "responsePlaceholder": "Edit the response content..."
+    "responsePlaceholder": "Edit the response content...",
+    "resetLayout": "Reset Layout",
+    "manualPositions": "Manual Positions"
   },
   "downloadModal": {
       "title": "Download Character from Community Repository",
