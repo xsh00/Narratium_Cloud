@@ -36,7 +36,10 @@
     "collapseCreation": "Collapse Game Area",
     "expandCreation": "Expand Game Area",
     "collapseCreator": "Collapse Creation Area",
-    "expandCreator": "Expand Creation Area"
+    "expandCreator": "Expand Creation Area",
+    "goToUpdate": "Go to Update",
+    "newVersionAvailable": "New Version Available",
+    "currentVersion": "Current: v{version}"
   },
   "modelSettings": {
     "title": "Model Settings",
