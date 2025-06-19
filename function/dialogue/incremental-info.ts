@@ -119,3 +119,4 @@ export async function hasNewDialogueNodes(characterId: string, lastKnownNodeCoun
     return false;
   }
 } 
+ 

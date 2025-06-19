@@ -867,7 +867,7 @@ export default function DialogueTreeModal({ isOpen, onClose, characterId, onDial
           
           if (nodeMap[sourceId] && nodeMap[targetId]) {
             const isCurrentPathEdge = currentPathNodeIds.includes(sourceId) && currentPathNodeIds.includes(targetId);
-            
+        
             const isRootSource = sourceId === "root";
             let edgeStroke, edgeLabelStroke, edgeLabelFill;
             
