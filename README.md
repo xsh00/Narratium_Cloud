@@ -80,8 +80,6 @@ For Download Version: please refer to the [Download for Mac, Windows, Linux](htt
 - **Visual Memory Management**: React Flow-powered session tracing and branching.
 - **Character Cards & Lore**: Compatible with SillyTavern cards, manage everything in one place.
 
-For detailed installation and setup instructions, please refer to our [Getting Started Guide](./docs/GETTING_STARTED.md).
-
 | Narratium vs. Other AI Roleplay Platforms |
 | :---------------------------------------- |
 
