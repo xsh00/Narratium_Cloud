@@ -24,6 +24,7 @@ export default function Sidebar({ isOpen, toggleSidebar, openLoginModal }: Sideb
   const [isHomeOpen, setIsHomeOpen] = useState(true);
   const [isGameOpen, setIsGameOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
+  const [isMobileDetected, setIsMobileDetected] = useState(false);
   const { t, language, fontClass } = useLanguage();
   const [animationComplete, setAnimationComplete] = useState(false);
   const [isCreatorOpen, setIsCreatorOpen] = useState(true);
@@ -53,6 +54,7 @@ export default function Sidebar({ isOpen, toggleSidebar, openLoginModal }: Sideb
     const checkIfMobile = () => {
       const mobile = window.innerWidth < 768;
       setIsMobile(mobile);
+      setIsMobileDetected(true);
     };
 
     checkIfMobile();
@@ -84,7 +86,11 @@ export default function Sidebar({ isOpen, toggleSidebar, openLoginModal }: Sideb
     return () => clearTimeout(timer);
   }, [hasCheckedUpdate]);
 
-  if (isMobile) {
+  if (isMobileDetected && isMobile) {
+    return null;
+  }
+
+  if (!isMobileDetected) {
     return null;
   }
 
