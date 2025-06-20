@@ -23,8 +23,7 @@ export default function Sidebar({ isOpen, toggleSidebar, openLoginModal }: Sideb
   const [username, setUsername] = useState("");
   const [isHomeOpen, setIsHomeOpen] = useState(true);
   const [isGameOpen, setIsGameOpen] = useState(true);
-  const [isMobile, setIsMobile] = useState(false);
-  const [isMobileDetected, setIsMobileDetected] = useState(false);
+
   const { t, language, fontClass } = useLanguage();
   const [animationComplete, setAnimationComplete] = useState(false);
   const [isCreatorOpen, setIsCreatorOpen] = useState(true);
@@ -50,20 +49,6 @@ export default function Sidebar({ isOpen, toggleSidebar, openLoginModal }: Sideb
     }
   }, [isOpen]);
 
-  useEffect(() => {
-    const checkIfMobile = () => {
-      const mobile = window.innerWidth < 768;
-      setIsMobile(mobile);
-      setIsMobileDetected(true);
-    };
-
-    checkIfMobile();
-    
-    window.addEventListener("resize", checkIfMobile);
-    
-    return () => window.removeEventListener("resize", checkIfMobile);
-  }, []);
-
   // Check for updates on component mount
   useEffect(() => {
     const checkForUpdates = async () => {
@@ -85,14 +70,6 @@ export default function Sidebar({ isOpen, toggleSidebar, openLoginModal }: Sideb
     const timer = setTimeout(checkForUpdates, 2000);
     return () => clearTimeout(timer);
   }, [hasCheckedUpdate]);
-
-  if (isMobileDetected && isMobile) {
-    return null;
-  }
-
-  if (!isMobileDetected) {
-    return null;
-  }
 
   const handleLogout = () => {
     localStorage.removeItem("isLoggedIn");
