@@ -1,4 +1,4 @@
-import { LocalCharacterDialogueOperations } from "@/lib/data/character-dialogue-operation";
+import { LocalCharacterDialogueOperations } from "@/lib/data/roleplay/character-dialogue-operation";
 import { PromptType } from "@/lib/models/character-prompts-model";
 import { ParsedResponse } from "@/lib/models/parsed-response";
 import { DialogueWorkflow, DialogueWorkflowParams } from "@/lib/workflow/examples/DialogueWorkflow";

@@ -14,7 +14,8 @@
     "pake-linux": "pake out/index.html --name narratium --use-local-file --icon ./public/icon.png"
   },
   "dependencies": {
-    "@langchain/core": "^0.3.44",
+    "@langchain/core": "^0.3.61",
+    "@langchain/langgraph": "^0.3.4",
     "@langchain/ollama": "^0.2.0",
     "@langchain/openai": "^0.5.5",
     "@supabase/supabase-js": "^2.50.0",

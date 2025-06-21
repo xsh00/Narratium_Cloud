@@ -1,5 +1,5 @@
 import { NodeTool } from "@/lib/nodeflow/NodeTool";
-import { LocalCharacterDialogueOperations } from "@/lib/data/character-dialogue-operation";
+import { LocalCharacterDialogueOperations } from "@/lib/data/roleplay/character-dialogue-operation";
 import { DialogueMessage } from "@/lib/models/character-dialogue-model";
 
 export class DialogueStory {
