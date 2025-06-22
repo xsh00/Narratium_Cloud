@@ -1,10 +1,10 @@
 import { ToolType, ToolExecutionContext, ToolExecutionResult, PlanTask } from "@/lib/models/agent-model";
-import { BaseTool } from "./base-tool";
-import { PlanTool } from "./plan-tool";
-import { AskUserTool } from "./ask-user-tool";
-import { SearchTool } from "./search-tool";
-import { OutputTool } from "./output-tool";
-import { UpdatePlanTool } from "./update-plan-tool";
+import { BaseTool } from "@/lib/tools/base-tool";
+import { PlanTool } from "@/lib/tools/plan-tool";
+import { AskUserTool } from "@/lib/tools/ask-user-tool";
+import { SearchTool } from "@/lib/tools/search-tool";
+import { OutputTool } from "@/lib/tools/output-tool";
+import { UpdatePlanTool } from "@/lib/tools/update-plan-tool";
 
 /**
  * Tool Registry - manages all available tools

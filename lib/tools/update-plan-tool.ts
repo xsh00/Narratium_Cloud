@@ -1,5 +1,5 @@
 import { BaseTool } from "./base-tool";
-import { ToolType, ToolExecutionContext, ToolExecutionResult, PlanTask } from "@/lib/models/agent-model";
+import { ToolType, ToolExecutionContext, ToolExecutionResult, PlanTask } from "../models/agent-model";
 
 /**
  * Update Plan Tool - Update the current plan

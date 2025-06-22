@@ -1,4 +1,4 @@
-import { AgentEngine } from "./agent-engine";
+import { AgentEngine } from "@/lib/core/agent-engine";
 import { AgentConversationOperations } from "@/lib/data/agent/agent-conversation-operations";
 import { AgentConversation, AgentStatus } from "@/lib/models/agent-model";
 

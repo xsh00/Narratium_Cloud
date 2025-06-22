@@ -6,7 +6,7 @@ import {
   ToolExecutionResult,
   PlanTask,
   AgentConversation,
-} from "@/lib/models/agent-model";
+} from "../models/agent-model";
 import { ThoughtBufferOperations } from "@/lib/data/agent/thought-buffer-operations";
 import { AgentConversationOperations } from "@/lib/data/agent/agent-conversation-operations";
 

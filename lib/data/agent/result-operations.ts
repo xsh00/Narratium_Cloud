@@ -1,4 +1,4 @@
-import { AgentConversationOperations } from "./agent-conversation-operations";
+import { AgentConversationOperations } from "@/lib/data/agent/agent-conversation-operations";
 import { AgentResult, ToolType } from "@/lib/models/agent-model";
 
 /**

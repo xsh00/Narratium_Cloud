@@ -1,4 +1,4 @@
-import { AgentConversationOperations } from "./agent-conversation-operations";
+import { AgentConversationOperations } from "@/lib/data/agent/agent-conversation-operations";
 import { PlanTask, GoalNode, PlanPool } from "@/lib/models/agent-model";
 import { v4 as uuidv4 } from "uuid";
 

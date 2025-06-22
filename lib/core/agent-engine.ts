@@ -1,8 +1,4 @@
-import { ChatOpenAI } from "@langchain/openai";
-import { ChatOllama } from "@langchain/ollama";
-
 import {
-  AgentConversation,
   AgentStatus,
   PlanTask,
   ToolType,
@@ -313,33 +309,5 @@ export class AgentEngine {
     const completion = await this.checkCompletion();
     return !completion.completed;
   }
-
-  /**
-   * Create LLM instance
-   */
-  private createLLM(config: AgentConversation["llm_config"]) {
-    if (config.llm_type === "openai") {
-      return new ChatOpenAI({
-        modelName: config.model_name,
-        openAIApiKey: config.api_key,
-        configuration: {
-          baseURL: config.base_url,
-        },
-        temperature: config.temperature,
-        maxTokens: config.max_tokens,
-        streaming: false,
-      });
-    } else if (config.llm_type === "ollama") {
-      return new ChatOllama({
-        model: config.model_name,
-        baseUrl: config.base_url || "http://localhost:11434",
-        temperature: config.temperature,
-        streaming: false,
-      });
-    }
-
-    throw new Error(`Unsupported LLM type: ${config.llm_type}`);
-  }
-
 } 
  
