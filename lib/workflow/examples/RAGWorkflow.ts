@@ -9,7 +9,6 @@ import { LLMNode } from "@/lib/nodeflow/LLMNode/LLMNode";
 import { RegexNode } from "@/lib/nodeflow/RegexNode/RegexNode";
 import { OutputNode } from "@/lib/nodeflow/OutputNode/OutputNode";
 import { MemoryStorageNode } from "@/lib/nodeflow/MemoryNode/MemoryStorageNode";
-import { PromptType } from "@/lib/models/character-prompts-model";
 
 /**
  * CorrectRAGWorkflow - Enhanced execution architecture with AFTER nodes
@@ -38,7 +37,6 @@ export interface CorrectRAGWorkflowParams {
   characterId: string;
   userInput: string;
   number?: number;
-  promptType?: PromptType;
   language?: "zh" | "en";
   username?: string;
   modelName: string;
@@ -108,7 +106,6 @@ export class CorrectRAGWorkflow extends BaseWorkflow {
             "characterId", 
             "userInput", 
             "number", 
-            "promptType", 
             "language", 
             "username", 
             "modelName", 
@@ -125,7 +122,6 @@ export class CorrectRAGWorkflow extends BaseWorkflow {
             "characterId", 
             "userInput", 
             "number", 
-            "promptType", 
             "language", 
             "username", 
             "modelName", 

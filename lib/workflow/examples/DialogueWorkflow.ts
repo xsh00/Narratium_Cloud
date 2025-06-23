@@ -7,13 +7,11 @@ import { PresetNode } from "@/lib/nodeflow/PresetNode/PresetNode";
 import { LLMNode } from "@/lib/nodeflow/LLMNode/LLMNode";
 import { RegexNode } from "@/lib/nodeflow/RegexNode/RegexNode";
 import { OutputNode } from "@/lib/nodeflow/OutputNode/OutputNode";
-import { PromptType } from "@/lib/models/character-prompts-model";
 
 export interface DialogueWorkflowParams {
   characterId: string;
   userInput: string;
   number?: number;
-  promptType?: PromptType;
   language?: "zh" | "en";
   username?: string;
   modelName: string;
@@ -70,9 +68,9 @@ export class DialogueWorkflow extends BaseWorkflow {
           name: "userInput",
           category: NodeCategory.ENTRY,
           next: ["preset-1"],
-          initParams: ["characterId", "userInput", "number", "promptType", "language", "username", "modelName", "apiKey", "baseUrl", "llmType", "temperature", "fastModel"],
+          initParams: ["characterId", "userInput", "number", "language", "username", "modelName", "apiKey", "baseUrl", "llmType", "temperature", "fastModel"],
           inputFields: [],
-          outputFields: ["characterId", "userInput", "number", "promptType", "language", "username", "modelName", "apiKey", "baseUrl", "llmType", "temperature", "fastModel"],
+          outputFields: ["characterId", "userInput", "number", "language", "username", "modelName", "apiKey", "baseUrl", "llmType", "temperature", "fastModel"],
         },
         {
           id: "preset-1",
