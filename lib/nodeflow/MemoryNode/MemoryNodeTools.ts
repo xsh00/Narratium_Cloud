@@ -31,90 +31,6 @@ export class MemoryNodeTools extends NodeTool {
   }
 
   /**
-   * Process and retrieve relevant memories for the current context
-   */
-  static async processMemoryContext(
-    characterId: string,
-    currentUserInput: string,
-    systemMessage: string,
-    conversationContext: string = "",
-    apiKey: string,
-    baseUrl?: string,
-    language: "zh" | "en" = "zh",
-    maxMemories: number = 5,
-    autoExtract: boolean = true,
-  ): Promise<{
-    memoryContext: MemoryContext;
-    enhancedSystemMessage: string;
-    extractedMemories?: MemoryExtractionResult;
-  }> {
-    try {
-      const memoryManager = new MemoryManager(apiKey, baseUrl);
-
-      // Auto-extract memories from previous conversation if enabled
-      let extractedMemories: MemoryExtractionResult | undefined;
-      if (autoExtract && conversationContext) {
-        extractedMemories = await this.extractMemoriesFromContext(
-          memoryManager,
-          characterId,
-          conversationContext,
-        );
-      }
-
-      // Generate memory context for current input
-      const ragOptions: RAGGenerationOptions = {
-        characterId,
-        currentUserInput,
-        conversationContext,
-        maxMemories,
-        language,
-      };
-
-      const memoryContext = await memoryManager.generateMemoryContext(ragOptions);
-
-      // Enhance system message with memory context
-      const enhancedSystemMessage = this.enhanceSystemMessageWithMemory(
-        systemMessage,
-        memoryContext,
-        language,
-      );
-
-      console.log(`Memory processing complete for character ${characterId}:`);
-      console.log(`- Retrieved ${memoryContext.activeMemories.length} relevant memories`);
-      console.log(`- Total memories: ${memoryContext.totalMemoryCount}`);
-      if (extractedMemories) {
-        console.log(`- Extracted ${extractedMemories.memories.length} new memories`);
-      }
-
-      return {
-        memoryContext,
-        enhancedSystemMessage,
-        extractedMemories,
-      };
-    } catch (error) {
-      this.handleError(error as Error, "processMemoryContext");
-      
-      // Return fallback result
-      return {
-        memoryContext: {
-          activeMemories: [],
-          memoryPrompt: language === "zh" ? "无相关记忆" : "No relevant memories",
-          totalMemoryCount: 0,
-          config: {
-            embeddingModel: "text-embedding-3-small",
-            chunkSize: 512,
-            chunkOverlap: 50,
-            topK: 5,
-            similarityThreshold: 0.7,
-            enableHybridSearch: true,
-          },
-        },
-        enhancedSystemMessage: systemMessage,
-      };
-    }
-  }
-
-  /**
    * Search memories based on query
    */
   static async searchMemories(
@@ -229,57 +145,6 @@ export class MemoryNodeTools extends NodeTool {
   }
 
   /**
-   * Get memory analytics for a character
-   */
-  static async getMemoryAnalytics(characterId: string): Promise<any> {
-    try {
-      const analytics = await LocalMemoryOperations.getMemoryAnalytics(characterId);
-      
-      return {
-        success: true,
-        analytics: {
-          totalEntries: analytics.totalEntries,
-          entriesByType: analytics.entriesByType,
-          averageImportance: analytics.averageImportance,
-          memoryDensity: analytics.memoryDensity,
-          mostAccessedCount: analytics.mostAccessedEntries.length,
-          hasOldestEntry: !!analytics.oldestEntry,
-          hasNewestEntry: !!analytics.newestEntry,
-        },
-      };
-    } catch (error) {
-      this.handleError(error as Error, "getMemoryAnalytics");
-      return {
-        success: false,
-        error: error instanceof Error ? (error as Error).message : "Unknown error",
-      };
-    }
-  }
-
-  /**
-   * Update RAG configuration for a character
-   */
-  static async updateRAGConfig(
-    characterId: string,
-    config: any,
-  ): Promise<any> {
-    try {
-      const updatedConfig = await LocalMemoryOperations.updateRAGConfig(characterId, config);
-      
-      return {
-        success: true,
-        config: updatedConfig,
-      };
-    } catch (error) {
-      this.handleError(error as Error, "updateRAGConfig");
-      return {
-        success: false,
-        error: error instanceof Error ? (error as Error).message : "Unknown error",
-      };
-    }
-  }
-
-  /**
    * Clear all memories for a character
    */
   static async clearMemories(characterId: string): Promise<any> {
@@ -300,41 +165,207 @@ export class MemoryNodeTools extends NodeTool {
   }
 
   /**
-   * Private helper: Extract memories from conversation context
+   * Retrieve memories and enhance system message for MemoryRetrievalNode
    */
-  private static async extractMemoriesFromContext(
-    memoryManager: MemoryManager,
+  static async retrieveAndEnhanceSystemMessage(
     characterId: string,
-    conversationContext: string,
-  ): Promise<MemoryExtractionResult> {
+    userInput: string,
+    systemMessage: string,
+    apiKey: string,
+    baseUrl?: string,
+    language: "zh" | "en" = "zh",
+    maxMemories: number = 5,
+  ): Promise<{
+    enhancedSystemMessage: string;
+    memoryPrompt: string;
+    retrievedMemories: any[];
+    memoryCount: number;
+  }> {
     try {
-      // Parse conversation context to extract user and assistant messages
-      const lines = conversationContext.split("\n").filter(line => line.trim());
-      let userMessage = "";
-      let assistantMessage = "";
-      
-      for (const line of lines) {
-        if (line.startsWith("User:") || line.startsWith("用户:")) {
-          userMessage = line.substring(line.indexOf(":") + 1).trim();
-        } else if (line.startsWith("Assistant:") || line.startsWith("助手:") || line.startsWith("Character:")) {
-          assistantMessage = line.substring(line.indexOf(":") + 1).trim();
+      // Search for relevant memories
+      const searchResult = await this.searchMemories(
+        characterId,
+        userInput,
+        apiKey,
+        baseUrl,
+        maxMemories,
+        undefined, // includeTypes
+        true, // useSemanticSearch
+      );
+
+      if (!searchResult.success) {
+        return this.createFallbackResult(systemMessage, language);
+      }
+
+      // Format memories for prompt injection
+      const memoryPrompt = this.formatMemoriesForPrompt(searchResult.results, language);
+
+      // Inject memories into system message
+      const enhancedSystemMessage = this.injectMemoriesIntoSystemMessage(systemMessage, memoryPrompt);
+
+      console.log(`Retrieved ${searchResult.count} memories for character ${characterId}`);
+
+      return {
+        enhancedSystemMessage,
+        memoryPrompt,
+        retrievedMemories: searchResult.results,
+        memoryCount: searchResult.count,
+      };
+    } catch (error) {
+      this.handleError(error as Error, "retrieveAndEnhanceSystemMessage");
+      return this.createFallbackResult(systemMessage, language);
+    }
+  }
+
+  /**
+   * Extract and store memories from conversation for MemoryStorageNode
+   */
+  static async extractAndStoreMemories(
+    characterId: string,
+    userInput: string,
+    assistantResponse: string,
+    conversationContext: string,
+    apiKey: string,
+    baseUrl?: string,
+    language: "zh" | "en" = "zh",
+  ): Promise<{
+    success: boolean;
+    extractedCount: number;
+    extractedMemories?: any[];
+    confidence?: number;
+    reasoning?: string;
+    error?: string;
+  }> {
+    try {
+      const memories = [];
+      let extractedCount = 0;
+
+      // Check if user mentioned their name
+      const nameMatch = userInput.match(/我叫(.+)|my name is (.+)|I'm (.+)/i);
+      if (nameMatch) {
+        const name = nameMatch[1] || nameMatch[2] || nameMatch[3];
+        const result = await this.createMemory(
+          characterId,
+          "fact" as any,
+          `用户的名字是 ${name.trim()}`,
+          apiKey,
+          baseUrl,
+          ["name", "user", "identity"],
+          0.9,
+          {
+            source: "conversation_extraction",
+            context: conversationContext,
+          },
+        );
+        
+        if (result.success) {
+          memories.push(result.memory);
+          extractedCount++;
         }
       }
 
-      if (userMessage && assistantMessage) {
-        return await memoryManager.extractMemoriesFromDialogue(
+      // Check for preferences mentioned in conversation
+      const preferenceKeywords = ["喜欢", "不喜欢", "爱好", "兴趣", "prefer", "like", "dislike", "hobby"];
+      const hasPreference = preferenceKeywords.some(keyword => 
+        userInput.toLowerCase().includes(keyword) || assistantResponse.toLowerCase().includes(keyword),
+      );
+
+      if (hasPreference) {
+        const result = await this.createMemory(
           characterId,
-          userMessage,
-          assistantMessage,
-          conversationContext,
+          "preference" as any,
+          `对话中提到了用户偏好相关内容: ${userInput.substring(0, 100)}...`,
+          apiKey,
+          baseUrl,
+          ["preference", "likes", "interests"],
+          0.7,
+          {
+            source: "conversation_extraction",
+            context: conversationContext,
+          },
         );
+        
+        if (result.success) {
+          memories.push(result.memory);
+          extractedCount++;
+        }
       }
 
-      return { memories: [], confidence: 0, reasoning: "No valid conversation found" };
+      return {
+        success: true,
+        extractedCount,
+        extractedMemories: memories,
+        confidence: extractedCount > 0 ? 0.8 : 0,
+        reasoning: `Extracted ${extractedCount} memories using basic pattern matching`,
+      };
+
     } catch (error) {
-      console.warn("Failed to extract memories from context:", error);
-      return { memories: [], confidence: 0, reasoning: "Extraction failed" };
+      this.handleError(error as Error, "extractAndStoreMemories");
+      return {
+        success: false,
+        extractedCount: 0,
+        error: error instanceof Error ? (error as Error).message : "Unknown error",
+      };
     }
+  }
+
+  /**
+   * Private helper: Format retrieved memories for prompt injection
+   */
+  private static formatMemoriesForPrompt(memories: any[], language: "zh" | "en"): string {
+    if (!memories || memories.length === 0) {
+      return language === "zh" ? "无相关记忆" : "No relevant memories";
+    }
+
+    const header = language === "zh" ? "相关记忆：" : "Relevant memories:";
+    const memoryTexts = memories.map((memory, index) => {
+      const typeLabel = language === "zh" ? this.getChineseTypeLabel(memory.type) : memory.type;
+      return `${index + 1}. [${typeLabel}] ${memory.content}`;
+    });
+
+    return `${header}\n${memoryTexts.join("\n")}`;
+  }
+
+  /**
+   * Private helper: Inject memories into system message
+   */
+  private static injectMemoriesIntoSystemMessage(systemMessage: string, memoryPrompt: string): string {
+    // Replace {{memory}} placeholder if exists
+    if (systemMessage.includes("{{memory}}")) {
+      return systemMessage.replace("{{memory}}", memoryPrompt);
+    }
+
+    // If no placeholder, append memory section
+    return `${systemMessage}\n\n<memory>\n${memoryPrompt}\n</memory>`;
+  }
+
+  /**
+   * Private helper: Get Chinese labels for memory types
+   */
+  private static getChineseTypeLabel(type: string): string {
+    const labels: Record<string, string> = {
+      "fact": "事实",
+      "relationship": "关系",
+      "event": "事件",
+      "preference": "偏好",
+      "emotion": "情感",
+      "geography": "地理",
+      "concept": "概念",
+      "dialogue": "对话",
+    };
+    return labels[type] || type;
+  }
+
+  /**
+   * Private helper: Create fallback result for memory retrieval
+   */
+  private static createFallbackResult(systemMessage: string, language: "zh" | "en") {
+    return {
+      enhancedSystemMessage: systemMessage,
+      memoryPrompt: language === "zh" ? "无相关记忆" : "No relevant memories",
+      retrievedMemories: [],
+      memoryCount: 0,
+    };
   }
 
   /**

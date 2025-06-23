@@ -114,6 +114,13 @@ export class PresetAssembler {
       finalUserMessageParts.push("{{userInput}}");
       finalUserMessageParts.push("</userInput>");
     }
+    
+    // Add memory section after userInput
+    finalUserMessageParts.push("");
+    finalUserMessageParts.push("<memory>");
+    finalUserMessageParts.push("{{memory}}");
+    finalUserMessageParts.push("</memory>");
+    
     finalUserMessageParts.push(OUTPUT_STRUCTURE_SOFT_GUIDE);
     finalUserMessageParts.push("");
     finalUserMessageParts.push("<outputFormat>");
@@ -219,6 +226,12 @@ export class PresetAssembler {
       finalUserMessageParts.push("{{userInput}}");
       finalUserMessageParts.push("</userInput>");
     }
+    
+    // Add memory section after userInput
+    finalUserMessageParts.push("");
+    finalUserMessageParts.push("<memory>");
+    finalUserMessageParts.push("{{memory}}");
+    finalUserMessageParts.push("</memory>");
   
     finalUserMessageParts.push("");
     finalUserMessageParts.push("<outputFormat>");
@@ -275,7 +288,7 @@ export class PresetAssembler {
   ): string {
     let contentToAppend = "";
 
-    const isAlwaysMarked = (prompt.identifier === "worldInfoBefore" || prompt.identifier === "worldInfoAfter" || prompt.identifier === "chatHistory" || prompt.identifier === "userInput");
+    const isAlwaysMarked = (prompt.identifier === "worldInfoBefore" || prompt.identifier === "worldInfoAfter" || prompt.identifier === "chatHistory" || prompt.identifier === "userInput" || prompt.identifier === "memory");
 
     if (isAlwaysMarked) {
       contentToAppend += `{{${prompt.identifier}}}`;

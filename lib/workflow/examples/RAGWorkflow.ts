@@ -1,16 +1,40 @@
 import { BaseWorkflow, WorkflowConfig } from "@/lib/workflow/BaseWorkflow";
 import { NodeCategory } from "@/lib/nodeflow/types";
 import { UserInputNode } from "@/lib/nodeflow/UserInputNode/UserInputNode";
-import { ContextNode } from "@/lib/nodeflow/ContextNode/ContextNode";
-import { MemoryNode } from "@/lib/nodeflow/MemoryNode/MemoryNode";
-import { WorldBookNode } from "@/lib/nodeflow/WorldBookNode/WorldBookNode";
 import { PresetNode } from "@/lib/nodeflow/PresetNode/PresetNode";
+import { ContextNode } from "@/lib/nodeflow/ContextNode/ContextNode";
+import { MemoryRetrievalNode } from "@/lib/nodeflow/MemoryNode/MemoryRetrievalNode";
+import { WorldBookNode } from "@/lib/nodeflow/WorldBookNode/WorldBookNode";
 import { LLMNode } from "@/lib/nodeflow/LLMNode/LLMNode";
 import { RegexNode } from "@/lib/nodeflow/RegexNode/RegexNode";
 import { OutputNode } from "@/lib/nodeflow/OutputNode/OutputNode";
+import { MemoryStorageNode } from "@/lib/nodeflow/MemoryNode/MemoryStorageNode";
 import { PromptType } from "@/lib/models/character-prompts-model";
 
-export interface RAGDialogueWorkflowParams {
+/**
+ * CorrectRAGWorkflow - Enhanced execution architecture with AFTER nodes
+ * 
+ * Execution Flow:
+ * 1. ENTRY -> MIDDLE nodes execute sequentially (userInput -> preset -> context -> memoryRetrieval -> worldBook -> llm -> regex)
+ * 2. EXIT node (output) executes and workflow returns immediately to user
+ * 3. AFTER nodes (memoryStorage) execute in background asynchronously
+ * 
+ * Benefits:
+ * - User receives immediate response after output node
+ * - Memory storage happens asynchronously without blocking user experience
+ * - Maintains data consistency while improving response time
+ * 
+ * Usage:
+ * ```typescript
+ * const result = await workflowEngine.execute(params, context, {
+ *   executeAfterNodes: true,  // Execute memory storage in background (default: true)
+ *   awaitAfterNodes: false    // Don't wait for memory storage (default: false)
+ * });
+ * // User receives result immediately while memory storage continues in background
+ * ```
+ */
+
+export interface CorrectRAGWorkflowParams {
   characterId: string;
   userInput: string;
   number?: number;
@@ -34,28 +58,26 @@ export interface RAGDialogueWorkflowParams {
   fastModel?: boolean;
   // Memory-specific parameters
   maxMemories?: number;
-  autoExtractMemories?: boolean;
-  memoryTypes?: string[];
-  useSemanticSearch?: boolean;
+  enableMemoryStorage?: boolean;
 }
 
-export class RAGDialogueWorkflow extends BaseWorkflow {
+export class CorrectRAGWorkflow extends BaseWorkflow {
   protected getNodeRegistry() {
     return {
       "userInput": {
         nodeClass: UserInputNode,
       },
+      "preset": {
+        nodeClass: PresetNode,
+      },
       "context": {
         nodeClass: ContextNode,
       },
-      "memory": {
-        nodeClass: MemoryNode,
+      "memoryRetrieval": {
+        nodeClass: MemoryRetrievalNode,
       },
       "worldBook": {
         nodeClass: WorldBookNode,
-      },
-      "preset": {
-        nodeClass: PresetNode,
       },
       "llm": {
         nodeClass: LLMNode,
@@ -66,13 +88,16 @@ export class RAGDialogueWorkflow extends BaseWorkflow {
       "output": {
         nodeClass: OutputNode,
       },
+      "memoryStorage": {
+        nodeClass: MemoryStorageNode,
+      },
     };
   }
 
   protected getWorkflowConfig(): WorkflowConfig {
     return {
-      id: "rag-dialogue-workflow",
-      name: "RAG-Enhanced Dialogue Processing Workflow",
+      id: "correct-rag-workflow",
+      name: "Correct RAG Workflow - Early return with background AFTER nodes",
       nodes: [
         {
           id: "user-input-1",
@@ -93,9 +118,7 @@ export class RAGDialogueWorkflow extends BaseWorkflow {
             "temperature", 
             "fastModel",
             "maxMemories",
-            "autoExtractMemories",
-            "memoryTypes",
-            "useSemanticSearch",
+            "enableMemoryStorage",
           ],
           inputFields: [],
           outputFields: [
@@ -112,9 +135,7 @@ export class RAGDialogueWorkflow extends BaseWorkflow {
             "temperature", 
             "fastModel",
             "maxMemories",
-            "autoExtractMemories",
-            "memoryTypes",
-            "useSemanticSearch",
+            "enableMemoryStorage",
           ],
         },
         {
@@ -124,47 +145,25 @@ export class RAGDialogueWorkflow extends BaseWorkflow {
           next: ["context-1"],
           initParams: [],
           inputFields: ["characterId", "language", "username", "number", "fastModel"],
-          outputFields: ["systemMessage", "userMessage", "presetId", "characterId", "language", "username"],
+          outputFields: ["systemMessage", "userMessage", "presetId"],
         },
         {
           id: "context-1",
           name: "context",
           category: NodeCategory.MIDDLE,
-          next: ["memory-1"],
+          next: ["memory-retrieval-1"],
           initParams: [],
-          inputFields: ["userMessage", "characterId"],
-          outputFields: ["userMessage", "characterId", "conversationContext"],
+          inputFields: ["userMessage", "characterId", "userInput"],
+          outputFields: ["userMessage", "conversationContext"],
         },
         {
-          id: "memory-1",
-          name: "memory",
+          id: "memory-retrieval-1",
+          name: "memoryRetrieval",
           category: NodeCategory.MIDDLE,
           next: ["world-book-1"],
           initParams: [],
-          inputFields: [
-            "characterId", 
-            "systemMessage", 
-            "userInput", 
-            "conversationContext",
-            "apiKey", 
-            "baseUrl", 
-            "language",
-            "maxMemories",
-            "autoExtractMemories",
-          ],
-          outputFields: [
-            "systemMessage", 
-            "memoryContext", 
-            "extractedMemories", 
-            "characterId", 
-            "userInput",
-            "apiKey",
-            "baseUrl",
-            "language",
-          ],
-          inputMapping: {
-            "autoExtractMemories": "autoExtract",
-          },
+          inputFields: ["characterId", "userInput", "systemMessage", "apiKey", "baseUrl", "language", "maxMemories", "username"],
+          outputFields: ["systemMessage", "memoryPrompt"],
         },
         {
           id: "world-book-1",
@@ -194,13 +193,13 @@ export class RAGDialogueWorkflow extends BaseWorkflow {
           next: ["output-1"],
           initParams: [],
           inputFields: ["llmResponse", "characterId"],
-          outputFields: ["replacedText", "screenContent", "fullResponse", "nextPrompts", "event"],
+          outputFields: ["replacedText", "screenContent", "fullResponse", "nextPrompts", "event"], // 只输出处理后的内容
         },
         {
           id: "output-1",
           name: "output",
-          category: NodeCategory.EXIT,
-          next: [],
+          category: NodeCategory.EXIT, // EXIT: Workflow returns immediately after this node
+          next: [], // No next nodes - workflow completes here for user response
           initParams: [],
           inputFields: [
             "replacedText", 
@@ -209,8 +208,6 @@ export class RAGDialogueWorkflow extends BaseWorkflow {
             "nextPrompts", 
             "event", 
             "presetId",
-            "memoryContext",
-            "extractedMemories",
           ],
           outputFields: [
             "replacedText", 
@@ -219,8 +216,32 @@ export class RAGDialogueWorkflow extends BaseWorkflow {
             "nextPrompts", 
             "event", 
             "presetId",
-            "memoryContext",
-            "extractedMemories",
+          ], // User receives immediate response with these fields
+        },
+        {
+          id: "memory-storage-1",
+          name: "memoryStorage",
+          category: NodeCategory.AFTER, // AFTER: Executes in background after EXIT nodes complete
+          next: [], // Terminal node in background execution
+          initParams: [],
+          inputFields: [
+            // AFTER nodes have access to all data from the main workflow context
+            "characterId",
+            "userInput",
+            "fullResponse",
+            "conversationContext",
+            "apiKey",
+            "baseUrl",
+            "language",
+            "enableMemoryStorage",
+            "replacedText",
+            "screenContent", 
+            "nextPrompts",
+            "event",
+            "presetId",
+          ],
+          outputFields: [
+            // AFTER nodes don't need to output data since user already received response
           ],
         },
       ],

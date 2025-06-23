@@ -81,7 +81,7 @@ export class DialogueWorkflow extends BaseWorkflow {
           next: ["context-1"],
           initParams: [],
           inputFields: ["characterId", "language", "username", "number", "fastModel"],
-          outputFields: ["systemMessage", "userMessage", "presetId", "characterId", "language", "username"],
+          outputFields: ["systemMessage", "userMessage", "presetId"],
         },
         {
           id: "context-1",
@@ -89,8 +89,8 @@ export class DialogueWorkflow extends BaseWorkflow {
           category: NodeCategory.MIDDLE,
           next: ["world-book-1"],
           initParams: [],
-          inputFields: ["userMessage", "characterId"],
-          outputFields: ["userMessage", "characterId"],
+          inputFields: ["userMessage", "characterId", "userInput"],
+          outputFields: ["userMessage"],
         },
         {
           id: "world-book-1",

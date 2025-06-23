@@ -1,7 +1,6 @@
 import { 
   MemoryEntry, 
   MemoryType, 
-  MemorySearchQuery, 
   MemorySearchResult, 
   MemoryContext,
   MemoryRAGConfig,

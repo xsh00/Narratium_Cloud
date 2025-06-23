@@ -3,9 +3,9 @@ import { NodeConfig, NodeInput, NodeOutput, NodeCategory } from "@/lib/nodeflow/
 import { MemoryNodeTools } from "./MemoryNodeTools";
 import { NodeToolRegistry } from "../NodeTool";
 
-export class MemoryNode extends NodeBase {
-  static readonly nodeName = "memory";
-  static readonly description = "Advanced memory management with RAG capabilities for character AI";
+export class MemoryRetrievalNode extends NodeBase {
+  static readonly nodeName = "memoryRetrieval";
+  static readonly description = "Retrieve relevant memories for current conversation context";
   static readonly version = "1.0.0";
 
   constructor(config: NodeConfig) {
@@ -20,55 +20,52 @@ export class MemoryNode extends NodeBase {
 
   protected async _call(input: NodeInput): Promise<NodeOutput> {
     const characterId = input.characterId;
-    const systemMessage = input.systemMessage;
     const userInput = input.userInput || "";
-    const conversationContext = input.conversationContext || "";
+    const systemMessage = input.systemMessage || "";
     const apiKey = input.apiKey;
     const baseUrl = input.baseUrl;
     const language = input.language || "zh";
     const maxMemories = input.maxMemories || 5;
-    const autoExtract = input.autoExtract !== false; // Default to true
 
     if (!characterId) {
-      throw new Error("Character ID is required for MemoryNode");
-    }
-
-    if (!systemMessage) {
-      throw new Error("System message is required for MemoryNode");
+      throw new Error("Character ID is required for MemoryRetrievalNode");
     }
 
     if (!apiKey) {
-      throw new Error("API key is required for MemoryNode");
+      throw new Error("API key is required for MemoryRetrievalNode");
     }
 
-    // Process memory context using the tool
+    if (!systemMessage) {
+      throw new Error("System message is required for MemoryRetrievalNode");
+    }
+
+    // Use the memory tool to retrieve and enhance system message with memories
     const result = await this.executeTool(
-      "processMemoryContext",
+      "retrieveAndEnhanceSystemMessage",
       characterId,
       userInput,
       systemMessage,
-      conversationContext,
       apiKey,
       baseUrl,
       language,
       maxMemories,
-      autoExtract,
     ) as {
-      memoryContext: any;
       enhancedSystemMessage: string;
-      extractedMemories?: any;
+      memoryPrompt: string;
+      retrievedMemories: any[];
+      memoryCount: number;
     };
 
     return {
       systemMessage: result.enhancedSystemMessage,
-      memoryContext: result.memoryContext,
-      extractedMemories: result.extractedMemories,
+      memoryPrompt: result.memoryPrompt,
+      retrievedMemories: result.retrievedMemories,
+      memoryCount: result.memoryCount,
       characterId,
       userInput,
-      apiKey,
-      baseUrl,
       language,
-      maxMemories,
+      username: input.username,
     };
   }
 } 
+ 
