@@ -82,6 +82,7 @@ export default function ModelSidebar({ isOpen, toggleSidebar }: ModelSidebarProp
   const [editingConfigId, setEditingConfigId] = useState<string>("");
   const [editingName, setEditingName] = useState("");
   const [showEditHint, setShowEditHint] = useState(true);
+  const [isConfigHovered, setIsConfigHovered] = useState(false);
   
   const [llmType, setLlmType] = useState<LLMType>("openai");
   const [baseUrl, setBaseUrl] = useState("");
@@ -408,7 +409,6 @@ export default function ModelSidebar({ isOpen, toggleSidebar }: ModelSidebarProp
     e.stopPropagation();
     setEditingConfigId(config.id);
     setEditingName(config.name);
-    setShowEditHint(false);
   };
 
   /**
@@ -533,6 +533,14 @@ export default function ModelSidebar({ isOpen, toggleSidebar }: ModelSidebarProp
                   </button>
                 </div>
                 
+                {!showNewConfigForm && configs.length > 0 && (
+                  <div className="mb-2">
+                    <p className={`text-sm italic transition-colors duration-200 ${isConfigHovered ? "text-[#d1a35c]" : "text-[#8a8a8a]"}`}>
+                      {t("modelSettings.doubleClickToEditName") || "Double-click configuration name to edit"}
+                    </p>
+                  </div>
+                )}
+                
                 {configs.length > 0 && (
                   <div className="mb-4 space-y-2 max-h-48 overflow-y-auto fantasy-scrollbar">
                     {configs.map((config, idx) => (
@@ -544,6 +552,8 @@ export default function ModelSidebar({ isOpen, toggleSidebar }: ModelSidebarProp
                             : "bg-[#292929] hover:bg-[#333333] border border-transparent hover:border-[#534741]"
                         }`}
                         onClick={() => handleSwitchConfig(config.id)}
+                        onMouseEnter={() => setIsConfigHovered(true)}
+                        onMouseLeave={() => setIsConfigHovered(false)}
                       >
                         <div className="relative flex items-center flex-1 min-w-0 group/name">
                           {editingConfigId === config.id ? (
@@ -565,9 +575,9 @@ export default function ModelSidebar({ isOpen, toggleSidebar }: ModelSidebarProp
                               >
                                 {config.name}
                               </span>
-                              {showEditHint && (
+                              {showEditHint && configs.length > 1 && (
                                 <span
-                                  className={`absolute ${idx === 0 ? "top-full mt-1" : "-top-8"} left-0 z-20 bg-[#2a2522] text-[#d1a35c] text-xs px-2 py-1 rounded border border-[#d1a35c] whitespace-nowrap opacity-0 group-hover/name:opacity-100 transition-all duration-200 pointer-events-none shadow-[0_0_8px_rgba(209,163,92,0.2)]`}
+                                  className={`absolute ${idx === 0 ? "top-full mt-1" : "-top-8"} left-0 z-[9999] bg-[#2a2522] text-[#d1a35c] text-xs px-2 py-1 rounded border border-[#d1a35c] whitespace-nowrap opacity-0 group-hover/name:opacity-100 transition-all duration-200 pointer-events-none shadow-[0_0_8px_rgba(209,163,92,0.2)]`}
                                 >
                                   {t("modelSettings.doubleClickToEditName")}
                                 </span>
@@ -936,6 +946,14 @@ export default function ModelSidebar({ isOpen, toggleSidebar }: ModelSidebarProp
               </button>
             </div>
             
+            {!showNewConfigForm && configs.length > 0 && (
+              <div className="mb-1.5 sm:mb-1.5 mb-1">
+                <p className={`text-xs sm:text-xs text-[10px] italic transition-colors duration-200 ${isConfigHovered ? "text-[#d1a35c]" : "text-[#8a8a8a]"}`}>
+                  {t("modelSettings.doubleClickToEditName") || "Double-click configuration name to edit"}
+                </p>
+              </div>
+            )}
+            
             {configs.length > 0 && (
               <div className="mb-3 sm:mb-3 mb-2 flex flex-col gap-1.5 sm:gap-1.5 gap-1 max-h-50 overflow-y-auto fantasy-scrollbar pr-1">
                 {configs.map((config, idx) => (
@@ -947,6 +965,8 @@ export default function ModelSidebar({ isOpen, toggleSidebar }: ModelSidebarProp
                         : "bg-[#292929] hover:bg-[#333333] border border-transparent hover:border-[#534741]"
                     }`}
                     onClick={() => handleSwitchConfig(config.id)}
+                    onMouseEnter={() => setIsConfigHovered(true)}
+                    onMouseLeave={() => setIsConfigHovered(false)}
                   >
                     <div className="relative flex items-center flex-1 min-w-0 group/name">
                       {editingConfigId === config.id ? (
@@ -968,9 +988,9 @@ export default function ModelSidebar({ isOpen, toggleSidebar }: ModelSidebarProp
                           >
                             {config.name}
                           </span>
-                          {showEditHint && (
+                          {showEditHint && configs.length > 1 && (
                             <span
-                              className={`absolute ${idx === 0 ? "top-full mt-1" : "-top-6"} left-0 z-20 bg-[#2a2522] text-[#d1a35c] text-[10px] sm:text-[10px] text-[8px] px-2 py-1 sm:px-2 sm:py-1 px-1 py-0.5 rounded border border-[#d1a35c] whitespace-nowrap opacity-0 group-hover/name:opacity-100 transition-all duration-200 pointer-events-none shadow-[0_0_8px_rgba(209,163,92,0.2)]`}
+                              className={`absolute ${idx === 0 ? "top-full mt-1" : "-top-6"} left-0 z-[9999] bg-[#2a2522] text-[#d1a35c] text-[10px] sm:text-[10px] text-[8px] px-2 py-1 sm:px-2 sm:py-1 px-1 py-0.5 rounded border border-[#d1a35c] whitespace-nowrap opacity-0 group-hover/name:opacity-100 transition-all duration-200 pointer-events-none shadow-[0_0_8px_rgba(209,163,92,0.2)]`}
                             >
                               {t("modelSettings.doubleClickToEditName")}
                             </span>
