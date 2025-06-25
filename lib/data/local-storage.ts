@@ -1,4 +1,6 @@
 const DB_NAME = "CharacterAppDB";
+const DB_VERSION = 9;
+=======
 const DB_VERSION = 9; // Updated for Memory/RAG support
 
 export const CHARACTERS_RECORD_FILE = "characters_record";
