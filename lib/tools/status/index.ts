@@ -2,10 +2,10 @@ import {
   ToolType, 
   ExecutionContext, 
   ExecutionResult,
-  StatusEntry
+  StatusEntry,
 } from "../../models/agent-model";
 import { BaseTool, ToolParameter } from "../base-tool";
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from "uuid";
 
 /**
  * Status Tool - Creates the mandatory STATUS worldbook entry
@@ -21,30 +21,30 @@ export class StatusTool extends BaseTool {
       name: "content",
       type: "string",
       description: "Comprehensive STATUS entry content (500-1500 words) wrapped in <status></status> XML tags with professional visual formatting inside. Must include: decorative title headers with symbols/dividers, temporal context (current time/date/day/location), environmental data (temperatures, conditions), character interaction panels with structured data (basic info: name/age/affiliation/occupation/level/status effects, physical data: height/weight/measurements/experience, special attributes: traits/personality/preferences), dynamic statistics with numerical values and progress indicators, interactive elements (available actions list, special events/triggers), and professional visual organization using symbols, formatting, and clear data presentation that creates an immersive real-time game interface.",
-      required: true
+      required: true,
     },
     {
       name: "comment",
       type: "string", 
       description: "Must be exactly 'STATUS' to identify this as the status entry",
-      required: true
-    }
+      required: true,
+    },
   ];
 
   protected async doWork(parameters: Record<string, any>, context: ExecutionContext): Promise<ExecutionResult> {
     const content = parameters.content;
     const comment = parameters.comment;
     
-    if (!content || typeof content !== 'string') {
+    if (!content || typeof content !== "string") {
       return this.createFailureResult("STATUS tool requires 'content' parameter as a string.");
     }
 
-    if (!comment || comment.toUpperCase() !== 'STATUS') {
+    if (!comment || comment.toUpperCase() !== "STATUS") {
       return this.createFailureResult("STATUS tool requires 'comment' parameter to be exactly 'STATUS'.");
     }
 
     // Validate content has proper XML wrapper
-    if (!content.includes('<status>') || !content.includes('</status>')) {
+    if (!content.includes("<status>") || !content.includes("</status>")) {
       return this.createFailureResult("STATUS entry content must be wrapped in <status></status> XML tags.");
     }
 
@@ -68,7 +68,7 @@ export class StatusTool extends BaseTool {
       position: 0, // At story beginning
       disable: false,
       probability: 100,
-      useProbability: true
+      useProbability: true,
     };
 
     console.log(`✅ Created STATUS entry with ${content.length} characters, featuring professional game interface formatting`);

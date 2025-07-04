@@ -20,14 +20,14 @@ export class AskUserTool extends BaseTool {
       name: "question",
       type: "string",
       description: "The complete, well-formed question text to present to the user. Should be clear, specific, and actionable.",
-      required: true
+      required: true,
     },
     {
       name: "options",
       type: "array",
       description: "Optional array of predefined answer choices (typically 2-3 options). If provided, users can navigate with arrow keys to select, but can still choose to input custom text. Example: ['Fantasy adventure', 'Modern romance', 'Sci-fi thriller']",
-      required: false
-    }
+      required: false,
+    },
   ];
 
   getToolInfo(): DetailedToolInfo {
@@ -35,7 +35,7 @@ export class AskUserTool extends BaseTool {
       type: ToolType.ASK_USER,
       name: this.name,
       description: this.description,
-      parameters: this.parameters
+      parameters: this.parameters,
     };
   }
 
@@ -43,7 +43,7 @@ export class AskUserTool extends BaseTool {
     const questionText = parameters.question;
     const options = parameters.options;
     
-    if (!questionText || typeof questionText !== 'string') {
+    if (!questionText || typeof questionText !== "string") {
       return this.createFailureResult("ASK_USER tool requires a 'question' parameter of type string.");
     }
 
@@ -55,7 +55,7 @@ export class AskUserTool extends BaseTool {
       
       // Filter out empty/invalid options
       const validOptions = options.filter(option => 
-        option && typeof option === 'string' && option.trim().length > 0
+        option && typeof option === "string" && option.trim().length > 0,
       );
       
       if (validOptions.length === 0) {
@@ -64,7 +64,7 @@ export class AskUserTool extends BaseTool {
 
       return this.createSuccessResult({
         message: questionText,
-        options: validOptions
+        options: validOptions,
       });
     }
 
