@@ -42,6 +42,9 @@ export class PresetNodeTools extends NodeTool {
   ): Promise<{ systemMessage: string; userMessage: string; presetId?: string }> {
     try {
       const characterRecord = await LocalCharacterRecordOperations.getCharacterById(characterId);
+      if (!characterRecord) {
+        throw new Error(`Character record not found for id: ${characterId}`);
+      }
       const character = new Character(characterRecord);
       
       const allPresets = await PresetOperations.getAllPresets();
