@@ -1,5 +1,10 @@
 import { NodeBase } from "@/lib/nodeflow/NodeBase";
-import { NodeConfig, NodeInput, NodeOutput, NodeCategory } from "@/lib/nodeflow/types";
+import {
+  NodeConfig,
+  NodeInput,
+  NodeOutput,
+  NodeCategory,
+} from "@/lib/nodeflow/types";
 
 export class OutputNode extends NodeBase {
   static readonly nodeName = "output";
@@ -9,7 +14,7 @@ export class OutputNode extends NodeBase {
   constructor(config: NodeConfig) {
     super(config);
   }
-  
+
   protected getDefaultCategory(): NodeCategory {
     return NodeCategory.EXIT;
   }
@@ -17,4 +22,4 @@ export class OutputNode extends NodeBase {
   protected async _call(input: NodeInput): Promise<NodeOutput> {
     return await super._call(input);
   }
-} 
+}

@@ -1,8 +1,8 @@
 export enum NodeCategory {
   ENTRY = "entry",
-  MIDDLE = "middle", 
+  MIDDLE = "middle",
   EXIT = "exit",
-  AFTER = "after" // Background execution after main workflow completes
+  AFTER = "after", // Background execution after main workflow completes
 }
 
 export interface NodeConfig {
@@ -24,7 +24,7 @@ export enum NodeExecutionStatus {
   RUNNING = "running",
   COMPLETED = "completed",
   FAILED = "failed",
-  SKIPPED = "skipped"
+  SKIPPED = "skipped",
 }
 
 export interface NodeExecutionResult {

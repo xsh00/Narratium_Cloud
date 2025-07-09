@@ -9,20 +9,12 @@ interface FontWrapperProps {
 
 export function FontWrapper({ children }: FontWrapperProps) {
   const { fontClass } = useLanguage();
-  
-  return (
-    <div className={fontClass}>
-      {children}
-    </div>
-  );
+
+  return <div className={fontClass}>{children}</div>;
 }
 
 export function TitleFontWrapper({ children }: FontWrapperProps) {
   const { titleFontClass } = useLanguage();
-  
-  return (
-    <div className={titleFontClass}>
-      {children}
-    </div>
-  );
+
+  return <div className={titleFontClass}>{children}</div>;
 }

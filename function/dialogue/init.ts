@@ -15,15 +15,26 @@ interface InitCharacterDialogueOptions {
   llmType: "openai" | "ollama";
 }
 
-export async function initCharacterDialogue(options: InitCharacterDialogueOptions) {
-  const { username, characterId, language = "zh", modelName, baseUrl, apiKey, llmType } = options;
+export async function initCharacterDialogue(
+  options: InitCharacterDialogueOptions,
+) {
+  const {
+    username,
+    characterId,
+    language = "zh",
+    modelName,
+    baseUrl,
+    apiKey,
+    llmType,
+  } = options;
 
   if (!characterId) {
     throw new Error("Missing required parameters");
   }
 
   try {
-    const characterRecord = await LocalCharacterRecordOperations.getCharacterById(characterId);
+    const characterRecord =
+      await LocalCharacterRecordOperations.getCharacterById(characterId);
     if (!characterRecord) {
       throw new Error("Character not found");
     }
@@ -40,10 +51,12 @@ export async function initCharacterDialogue(options: InitCharacterDialogueOption
     });
 
     const firstAssistantMessage = await dialogue.getFirstMessage();
-    let dialogueTree = await LocalCharacterDialogueOperations.getDialogueTreeById(characterId);
+    let dialogueTree =
+      await LocalCharacterDialogueOperations.getDialogueTreeById(characterId);
 
     if (!dialogueTree) {
-      dialogueTree = await LocalCharacterDialogueOperations.createDialogueTree(characterId);
+      dialogueTree =
+        await LocalCharacterDialogueOperations.createDialogueTree(characterId);
     }
 
     let nodeIds: string[] = [];
@@ -56,14 +69,14 @@ export async function initCharacterDialogue(options: InitCharacterDialogueOption
       if (messagesToProcess.length > 0) {
         const firstMessage = messagesToProcess[0];
         const adaptedFirstMessage = adaptText(firstMessage, language, username);
-        
+
         const firstRegexResult = await RegexProcessor.processFullContext(
-          adaptedFirstMessage, 
-          { 
-            ownerId: characterId, 
+          adaptedFirstMessage,
+          {
+            ownerId: characterId,
           },
         );
-        
+
         firstProcessedMessage = firstRegexResult.replacedText;
         adaptedMessages.push(adaptedFirstMessage);
         processedMessages.push(firstProcessedMessage);
@@ -71,38 +84,39 @@ export async function initCharacterDialogue(options: InitCharacterDialogueOption
 
       for (const message of [...messagesToProcess].reverse()) {
         const adaptedMessage = adaptText(message, language, username);
-        
+
         const regexResult = await RegexProcessor.processFullContext(
-          adaptedMessage, 
-          { 
-            ownerId: characterId, 
+          adaptedMessage,
+          {
+            ownerId: characterId,
           },
         );
-        
+
         const processedMessage = regexResult.replacedText;
-        
+
         if (message !== messagesToProcess[messagesToProcess.length - 1]) {
           adaptedMessages.push(adaptedMessage);
           processedMessages.push(processedMessage);
         }
 
-        const nodeId = await LocalCharacterDialogueOperations.addNodeToDialogueTree(
-          characterId,
-          "root",
-          "",
-          adaptedMessage,
-          adaptedMessage,
-          "",
-          {
-            nextPrompts: [],
-            regexResult: processedMessage,
-            compressedContent: "",
-          },
-          undefined,
-        );
+        const nodeId =
+          await LocalCharacterDialogueOperations.addNodeToDialogueTree(
+            characterId,
+            "root",
+            "",
+            adaptedMessage,
+            adaptedMessage,
+            "",
+            {
+              nextPrompts: [],
+              regexResult: processedMessage,
+              compressedContent: "",
+            },
+            undefined,
+          );
         nodeIds.push(nodeId);
       }
-      
+
       return {
         success: true,
         characterId,

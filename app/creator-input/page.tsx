@@ -8,7 +8,7 @@ import { useLanguage } from "../i18n";
 
 export default function CreatorInputPage() {
   const router = useRouter();
-  const { t, fontClass,serifFontClass, titleFontClass } = useLanguage();
+  const { t, fontClass, serifFontClass, titleFontClass } = useLanguage();
   const [mounted, setMounted] = useState(false);
   const [imagesLoaded, setImagesLoaded] = useState(false);
   const [inputValue, setInputValue] = useState("");
@@ -18,13 +18,13 @@ export default function CreatorInputPage() {
     setMounted(true);
     const yellowImg = new Image();
     const redImg = new Image();
-    
+
     yellowImg.src = "/background_yellow.png";
     redImg.src = "/background_red.png";
-    
+
     Promise.all([
-      new Promise(resolve => yellowImg.onload = resolve),
-      new Promise(resolve => redImg.onload = resolve),
+      new Promise((resolve) => (yellowImg.onload = resolve)),
+      new Promise((resolve) => (redImg.onload = resolve)),
     ]).then(() => {
       setImagesLoaded(true);
     });
@@ -33,9 +33,9 @@ export default function CreatorInputPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputValue.trim() || isLoading) return;
-    
+
     setIsLoading(true);
-    
+
     setTimeout(() => {
       router.push("/creator-area");
     }, 1000);
@@ -84,10 +84,16 @@ export default function CreatorInputPage() {
           transition={{ duration: 0.8 }}
           className="text-center mb-12"
         >
-          <h1 className={"text-3xl md:text-5xl font-bold mb-4 font-cinzel bg-clip-text text-transparent bg-gradient-to-r from-amber-500 via-orange-400 to-yellow-300 drop-shadow-[0_0_10px_rgba(251,146,60,0.5)]"}>
+          <h1
+            className={
+              "text-3xl md:text-5xl font-bold mb-4 font-cinzel bg-clip-text text-transparent bg-gradient-to-r from-amber-500 via-orange-400 to-yellow-300 drop-shadow-[0_0_10px_rgba(251,146,60,0.5)]"
+            }
+          >
             {t("creatorInput.title")}
           </h1>
-          <p className={`text-[#c0a480] text-sm md:text-base ${serifFontClass} italic`}>
+          <p
+            className={`text-[#c0a480] text-sm md:text-base ${serifFontClass} italic`}
+          >
             {t("creatorInput.subtitle")}
           </p>
         </motion.div>
@@ -108,7 +114,7 @@ export default function CreatorInputPage() {
                 className={`w-full bg-transparent text-[#c0a480] placeholder-[#c0a480]/60 ${serifFontClass} resize-none border-0 outline-none p-4 pr-16 min-h-[60px] max-h-[200px] text-sm md:text-base`}
                 disabled={isLoading}
               />
-              
+
               <button
                 type="submit"
                 disabled={!inputValue.trim() || isLoading}

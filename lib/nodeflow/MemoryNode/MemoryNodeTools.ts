@@ -1,5 +1,9 @@
 import { NodeTool } from "@/lib/nodeflow/NodeTool";
-import { MemoryManager, RAGGenerationOptions, MemoryExtractionResult } from "@/lib/core/memory-manager";
+import {
+  MemoryManager,
+  RAGGenerationOptions,
+  MemoryExtractionResult,
+} from "@/lib/core/memory-manager";
 import { MemoryType, MemoryContext } from "@/lib/models/memory-model";
 import { LocalMemoryOperations } from "@/lib/data/roleplay/memory-operation";
 
@@ -11,15 +15,26 @@ export class MemoryNodeTools extends NodeTool {
     return this.toolType;
   }
 
-  static async executeMethod(methodName: string, ...params: any[]): Promise<any> {
+  static async executeMethod(
+    methodName: string,
+    ...params: any[]
+  ): Promise<any> {
     const method = (this as any)[methodName];
-    
+
     if (typeof method !== "function") {
-      console.error(`Method lookup failed: ${methodName} not found in MemoryNodeTools`);
-      console.log("Available methods:", Object.getOwnPropertyNames(this).filter(name => 
-        typeof (this as any)[name] === "function" && !name.startsWith("_"),
-      ));
-      throw new Error(`Method ${methodName} not found in ${this.getToolType()}Tool`);
+      console.error(
+        `Method lookup failed: ${methodName} not found in MemoryNodeTools`,
+      );
+      console.log(
+        "Available methods:",
+        Object.getOwnPropertyNames(this).filter(
+          (name) =>
+            typeof (this as any)[name] === "function" && !name.startsWith("_"),
+        ),
+      );
+      throw new Error(
+        `Method ${methodName} not found in ${this.getToolType()}Tool`,
+      );
     }
 
     try {
@@ -54,7 +69,7 @@ export class MemoryNodeTools extends NodeTool {
 
         return {
           success: true,
-          results: results.map(r => ({
+          results: results.map((r) => ({
             id: r.entry.id,
             type: r.entry.type,
             content: r.entry.content,
@@ -76,7 +91,7 @@ export class MemoryNodeTools extends NodeTool {
 
         return {
           success: true,
-          results: entries.map(entry => ({
+          results: entries.map((entry) => ({
             id: entry.id,
             type: entry.type,
             content: entry.content,
@@ -92,7 +107,8 @@ export class MemoryNodeTools extends NodeTool {
       this.handleError(error as Error, "searchMemories");
       return {
         success: false,
-        error: error instanceof Error ? (error as Error).message : "Unknown error",
+        error:
+          error instanceof Error ? (error as Error).message : "Unknown error",
         results: [],
         count: 0,
       };
@@ -114,7 +130,7 @@ export class MemoryNodeTools extends NodeTool {
   ): Promise<any> {
     try {
       const memoryManager = new MemoryManager(apiKey, baseUrl);
-      
+
       const memoryEntry = await memoryManager.createMemory(
         characterId,
         type,
@@ -139,7 +155,8 @@ export class MemoryNodeTools extends NodeTool {
       this.handleError(error as Error, "createMemory");
       return {
         success: false,
-        error: error instanceof Error ? (error as Error).message : "Unknown error",
+        error:
+          error instanceof Error ? (error as Error).message : "Unknown error",
       };
     }
   }
@@ -150,7 +167,7 @@ export class MemoryNodeTools extends NodeTool {
   static async clearMemories(characterId: string): Promise<any> {
     try {
       await LocalMemoryOperations.clearCharacterMemories(characterId);
-      
+
       return {
         success: true,
         message: `All memories cleared for character ${characterId}`,
@@ -159,7 +176,8 @@ export class MemoryNodeTools extends NodeTool {
       this.handleError(error as Error, "clearMemories");
       return {
         success: false,
-        error: error instanceof Error ? (error as Error).message : "Unknown error",
+        error:
+          error instanceof Error ? (error as Error).message : "Unknown error",
       };
     }
   }
@@ -198,12 +216,20 @@ export class MemoryNodeTools extends NodeTool {
       }
 
       // Format memories for prompt injection
-      const memoryPrompt = this.formatMemoriesForPrompt(searchResult.results, language);
+      const memoryPrompt = this.formatMemoriesForPrompt(
+        searchResult.results,
+        language,
+      );
 
       // Inject memories into system message
-      const enhancedSystemMessage = this.injectMemoriesIntoSystemMessage(systemMessage, memoryPrompt);
+      const enhancedSystemMessage = this.injectMemoriesIntoSystemMessage(
+        systemMessage,
+        memoryPrompt,
+      );
 
-      console.log(`Retrieved ${searchResult.count} memories for character ${characterId}`);
+      console.log(
+        `Retrieved ${searchResult.count} memories for character ${characterId}`,
+      );
 
       return {
         enhancedSystemMessage,
@@ -257,7 +283,7 @@ export class MemoryNodeTools extends NodeTool {
             context: conversationContext,
           },
         );
-        
+
         if (result.success) {
           memories.push(result.memory);
           extractedCount++;
@@ -265,9 +291,20 @@ export class MemoryNodeTools extends NodeTool {
       }
 
       // Check for preferences mentioned in conversation
-      const preferenceKeywords = ["喜欢", "不喜欢", "爱好", "兴趣", "prefer", "like", "dislike", "hobby"];
-      const hasPreference = preferenceKeywords.some(keyword => 
-        userInput.toLowerCase().includes(keyword) || assistantResponse.toLowerCase().includes(keyword),
+      const preferenceKeywords = [
+        "喜欢",
+        "不喜欢",
+        "爱好",
+        "兴趣",
+        "prefer",
+        "like",
+        "dislike",
+        "hobby",
+      ];
+      const hasPreference = preferenceKeywords.some(
+        (keyword) =>
+          userInput.toLowerCase().includes(keyword) ||
+          assistantResponse.toLowerCase().includes(keyword),
       );
 
       if (hasPreference) {
@@ -284,7 +321,7 @@ export class MemoryNodeTools extends NodeTool {
             context: conversationContext,
           },
         );
-        
+
         if (result.success) {
           memories.push(result.memory);
           extractedCount++;
@@ -298,13 +335,13 @@ export class MemoryNodeTools extends NodeTool {
         confidence: extractedCount > 0 ? 0.8 : 0,
         reasoning: `Extracted ${extractedCount} memories using basic pattern matching`,
       };
-
     } catch (error) {
       this.handleError(error as Error, "extractAndStoreMemories");
       return {
         success: false,
         extractedCount: 0,
-        error: error instanceof Error ? (error as Error).message : "Unknown error",
+        error:
+          error instanceof Error ? (error as Error).message : "Unknown error",
       };
     }
   }
@@ -312,14 +349,18 @@ export class MemoryNodeTools extends NodeTool {
   /**
    * Private helper: Format retrieved memories for prompt injection
    */
-  private static formatMemoriesForPrompt(memories: any[], language: "zh" | "en"): string {
+  private static formatMemoriesForPrompt(
+    memories: any[],
+    language: "zh" | "en",
+  ): string {
     if (!memories || memories.length === 0) {
       return language === "zh" ? "无相关记忆" : "No relevant memories";
     }
 
     const header = language === "zh" ? "相关记忆：" : "Relevant memories:";
     const memoryTexts = memories.map((memory, index) => {
-      const typeLabel = language === "zh" ? this.getChineseTypeLabel(memory.type) : memory.type;
+      const typeLabel =
+        language === "zh" ? this.getChineseTypeLabel(memory.type) : memory.type;
       return `${index + 1}. [${typeLabel}] ${memory.content}`;
     });
 
@@ -329,7 +370,10 @@ export class MemoryNodeTools extends NodeTool {
   /**
    * Private helper: Inject memories into system message
    */
-  private static injectMemoriesIntoSystemMessage(systemMessage: string, memoryPrompt: string): string {
+  private static injectMemoriesIntoSystemMessage(
+    systemMessage: string,
+    memoryPrompt: string,
+  ): string {
     // Replace {{memory}} placeholder if exists
     if (systemMessage.includes("{{memory}}")) {
       return systemMessage.replace("{{memory}}", memoryPrompt);
@@ -344,14 +388,14 @@ export class MemoryNodeTools extends NodeTool {
    */
   private static getChineseTypeLabel(type: string): string {
     const labels: Record<string, string> = {
-      "fact": "事实",
-      "relationship": "关系",
-      "event": "事件",
-      "preference": "偏好",
-      "emotion": "情感",
-      "geography": "地理",
-      "concept": "概念",
-      "dialogue": "对话",
+      fact: "事实",
+      relationship: "关系",
+      event: "事件",
+      preference: "偏好",
+      emotion: "情感",
+      geography: "地理",
+      concept: "概念",
+      dialogue: "对话",
     };
     return labels[type] || type;
   }
@@ -359,7 +403,10 @@ export class MemoryNodeTools extends NodeTool {
   /**
    * Private helper: Create fallback result for memory retrieval
    */
-  private static createFallbackResult(systemMessage: string, language: "zh" | "en") {
+  private static createFallbackResult(
+    systemMessage: string,
+    language: "zh" | "en",
+  ) {
     return {
       enhancedSystemMessage: systemMessage,
       memoryPrompt: language === "zh" ? "无相关记忆" : "No relevant memories",
@@ -376,39 +423,47 @@ export class MemoryNodeTools extends NodeTool {
     memoryContext: MemoryContext,
     language: "zh" | "en",
   ): string {
-    if (!memoryContext.memoryPrompt || memoryContext.activeMemories.length === 0) {
+    if (
+      !memoryContext.memoryPrompt ||
+      memoryContext.activeMemories.length === 0
+    ) {
       return originalSystemMessage;
     }
 
     // Check if memory context already exists to avoid duplication
-    const memoryKeywords = language === "zh" 
-      ? ["记忆", "回忆", "相关记忆"] 
-      : ["memory", "memories", "relevant memories"];
-    
-    const hasMemoryContext = memoryKeywords.some(keyword => 
+    const memoryKeywords =
+      language === "zh"
+        ? ["记忆", "回忆", "相关记忆"]
+        : ["memory", "memories", "relevant memories"];
+
+    const hasMemoryContext = memoryKeywords.some((keyword) =>
       originalSystemMessage.toLowerCase().includes(keyword.toLowerCase()),
     );
 
     if (hasMemoryContext) {
       // Replace existing memory placeholder
-      const memoryPlaceholders = language === "zh" 
-        ? ["{{memories}}", "{{相关记忆}}", "{{记忆}}"]
-        : ["{{memories}}", "{{relevant_memories}}", "{{memory}}"];
-      
+      const memoryPlaceholders =
+        language === "zh"
+          ? ["{{memories}}", "{{相关记忆}}", "{{记忆}}"]
+          : ["{{memories}}", "{{relevant_memories}}", "{{memory}}"];
+
       let enhancedMessage = originalSystemMessage;
       for (const placeholder of memoryPlaceholders) {
         if (enhancedMessage.includes(placeholder)) {
-          enhancedMessage = enhancedMessage.replace(placeholder, memoryContext.memoryPrompt);
+          enhancedMessage = enhancedMessage.replace(
+            placeholder,
+            memoryContext.memoryPrompt,
+          );
           break;
         }
       }
-      
+
       // If no placeholder found, append memory context
       if (enhancedMessage === originalSystemMessage) {
         const separator = language === "zh" ? "\n\n" : "\n\n";
         enhancedMessage = `${originalSystemMessage}${separator}${memoryContext.memoryPrompt}`;
       }
-      
+
       return enhancedMessage;
     } else {
       // Add memory context to system message
@@ -416,4 +471,4 @@ export class MemoryNodeTools extends NodeTool {
       return `${originalSystemMessage}${separator}${memoryContext.memoryPrompt}`;
     }
   }
-} 
+}

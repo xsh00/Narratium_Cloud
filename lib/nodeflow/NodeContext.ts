@@ -3,7 +3,11 @@ export class NodeContext {
   private cacheStore: Map<string, any>;
   private outputStore: Map<string, any>;
 
-  constructor(inputData?: Record<string, any>, cacheData?: Record<string, any>, outputData?: Record<string, any>) {
+  constructor(
+    inputData?: Record<string, any>,
+    cacheData?: Record<string, any>,
+    outputData?: Record<string, any>,
+  ) {
     this.inputStore = new Map(Object.entries(inputData || {}));
     this.cacheStore = new Map(Object.entries(cacheData || {}));
     this.outputStore = new Map(Object.entries(outputData || {}));
@@ -72,7 +76,11 @@ export class NodeContext {
   }
 
   static fromJSON(json: Record<string, any>): NodeContext {
-    const context = new NodeContext(json.inputStore, json.cacheStore, json.outputStore);
+    const context = new NodeContext(
+      json.inputStore,
+      json.cacheStore,
+      json.outputStore,
+    );
     return context;
   }
-} 
+}

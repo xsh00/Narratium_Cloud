@@ -12,15 +12,26 @@ export class PresetNodeTools extends NodeTool {
     return this.toolType;
   }
 
-  static async executeMethod(methodName: string, ...params: any[]): Promise<any> {
+  static async executeMethod(
+    methodName: string,
+    ...params: any[]
+  ): Promise<any> {
     const method = (this as any)[methodName];
-    
+
     if (typeof method !== "function") {
-      console.error(`Method lookup failed: ${methodName} not found in PresetNodeTools`);
-      console.log("Available methods:", Object.getOwnPropertyNames(this).filter(name => 
-        typeof (this as any)[name] === "function" && !name.startsWith("_"),
-      ));
-      throw new Error(`Method ${methodName} not found in ${this.getToolType()}Tool`);
+      console.error(
+        `Method lookup failed: ${methodName} not found in PresetNodeTools`,
+      );
+      console.log(
+        "Available methods:",
+        Object.getOwnPropertyNames(this).filter(
+          (name) =>
+            typeof (this as any)[name] === "function" && !name.startsWith("_"),
+        ),
+      );
+      throw new Error(
+        `Method ${methodName} not found in ${this.getToolType()}Tool`,
+      );
     }
 
     try {
@@ -39,39 +50,57 @@ export class PresetNodeTools extends NodeTool {
     number?: number,
     fastModel: boolean = false,
     systemPresetType: "mirror_realm" | "novel_king" = "mirror_realm",
-  ): Promise<{ systemMessage: string; userMessage: string; presetId?: string }> {
+  ): Promise<{
+    systemMessage: string;
+    userMessage: string;
+    presetId?: string;
+  }> {
     try {
-      const characterRecord = await LocalCharacterRecordOperations.getCharacterById(characterId);
+      const characterRecord =
+        await LocalCharacterRecordOperations.getCharacterById(characterId);
       if (!characterRecord) {
         throw new Error(`Character record not found for id: ${characterId}`);
       }
       const character = new Character(characterRecord);
-      
+
       const allPresets = await PresetOperations.getAllPresets();
-      const enabledPreset = allPresets.find(preset => preset.enabled === true);
-      
+      const enabledPreset = allPresets.find(
+        (preset) => preset.enabled === true,
+      );
+
       let orderedPrompts: any[] = [];
       let presetId: string | undefined = undefined;
-      
+
       if (enabledPreset && enabledPreset.id) {
-        orderedPrompts = await PresetOperations.getOrderedPrompts(enabledPreset.id);
+        orderedPrompts = await PresetOperations.getOrderedPrompts(
+          enabledPreset.id,
+        );
         presetId = enabledPreset.id;
       } else {
-        console.log(`No enabled preset found, using ${systemPresetType} system framework for character ${characterId}`);
+        console.log(
+          `No enabled preset found, using ${systemPresetType} system framework for character ${characterId}`,
+        );
       }
-      
-      const enrichedPrompts = this.enrichPromptsWithCharacterInfo(orderedPrompts, character);
-      
+
+      const enrichedPrompts = this.enrichPromptsWithCharacterInfo(
+        orderedPrompts,
+        character,
+      );
+
       const { systemMessage, userMessage } = PresetAssembler.assemblePrompts(
         enrichedPrompts,
         language,
         fastModel,
-        { username, charName: charName || character.characterData.name, number },
+        {
+          username,
+          charName: charName || character.characterData.name,
+          number,
+        },
         systemPresetType,
       );
 
-      return { 
-        systemMessage: systemMessage, 
+      return {
+        systemMessage: systemMessage,
         userMessage: userMessage,
         presetId: presetId,
       };
@@ -84,30 +113,30 @@ export class PresetNodeTools extends NodeTool {
     prompts: any[],
     character: Character,
   ): any[] {
-    return prompts.map(prompt => {
+    return prompts.map((prompt) => {
       const enrichedPrompt = { ...prompt };
-      
+
       switch (prompt.identifier) {
-      case "charDescription":
-        if (!enrichedPrompt.content && character.characterData.description) {
-          enrichedPrompt.content = character.characterData.description;
-        }
-        break;
-          
-      case "charPersonality":
-        if (!enrichedPrompt.content && character.characterData.personality) {
-          enrichedPrompt.content = character.characterData.personality;
-        }
-        break;
-          
-      case "scenario":
-        if (!enrichedPrompt.content && character.characterData.scenario) {
-          enrichedPrompt.content = character.characterData.scenario;
-        }
-        break;
+        case "charDescription":
+          if (!enrichedPrompt.content && character.characterData.description) {
+            enrichedPrompt.content = character.characterData.description;
+          }
+          break;
+
+        case "charPersonality":
+          if (!enrichedPrompt.content && character.characterData.personality) {
+            enrichedPrompt.content = character.characterData.personality;
+          }
+          break;
+
+        case "scenario":
+          if (!enrichedPrompt.content && character.characterData.scenario) {
+            enrichedPrompt.content = character.characterData.scenario;
+          }
+          break;
       }
-      
+
       return enrichedPrompt;
     });
   }
-} 
+}

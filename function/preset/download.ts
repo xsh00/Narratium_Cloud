@@ -15,7 +15,8 @@ interface GithubPreset {
 }
 
 const GITHUB_API_URL = "https://api.github.com/repos/Narratium/Preset/contents";
-const GITHUB_REPO_URL = "https://raw.githubusercontent.com/Narratium/Preset/main";
+const GITHUB_REPO_URL =
+  "https://raw.githubusercontent.com/Narratium/Preset/main";
 
 const AVAILABLE_PRESETS: GithubPreset[] = [
   {
@@ -60,14 +61,20 @@ export function getAvailableGithubPresets(): GithubPreset[] {
   return AVAILABLE_PRESETS;
 }
 
-export function getPresetDisplayName(presetName: string, language: "zh" | "en" = "zh"): string {
-  const preset = AVAILABLE_PRESETS.find(p => p.name === presetName);
+export function getPresetDisplayName(
+  presetName: string,
+  language: "zh" | "en" = "zh",
+): string {
+  const preset = AVAILABLE_PRESETS.find((p) => p.name === presetName);
   if (!preset) return presetName;
   return preset.displayName[language] || preset.displayName.zh || preset.name;
 }
 
-export function getPresetDescription(presetName: string, language: "zh" | "en" = "zh"): string {
-  const preset = AVAILABLE_PRESETS.find(p => p.name === presetName);
+export function getPresetDescription(
+  presetName: string,
+  language: "zh" | "en" = "zh",
+): string {
+  const preset = AVAILABLE_PRESETS.find((p) => p.name === presetName);
   if (!preset) return "";
   return preset.description[language] || preset.description.zh || "";
 }
@@ -90,17 +97,17 @@ export function getPresetDescription(presetName: string, language: "zh" | "en" =
 //     // Handle GitHub presets (original logic)
 //     const downloadedPresets = localStorage.getItem("downloaded_github_presets");
 //     let isMarkedAsDownloaded = false;
-    
+
 //     if (downloadedPresets) {
 //       const presets = JSON.parse(downloadedPresets);
 //       isMarkedAsDownloaded = presets.includes(presetName);
 //     }
-    
+
 //     if (isMarkedAsDownloaded) {
 //       const exists = await doesPresetExist(presetName);
 //       return exists;
 //     }
-    
+
 //     return false;
 //   } catch (error) {
 //     console.error("Error checking if preset is downloaded:", error);
@@ -111,12 +118,12 @@ export function getPresetDescription(presetName: string, language: "zh" | "en" =
 // export async function doesPresetExist(presetName: string): Promise<boolean> {
 //   try {
 //     const allPresets = await PresetOperations.getAllPresets();
-    
+
 //     const presetConfig = AVAILABLE_PRESETS.find(p => p.name === presetName);
 //     if (!presetConfig) return false;
 
-//     return allPresets.some(preset => 
-//       preset.name === presetConfig.displayName.zh || 
+//     return allPresets.some(preset =>
+//       preset.name === presetConfig.displayName.zh ||
 //       preset.name === presetConfig.displayName.en ||
 //       preset.name.includes(presetConfig.displayName.zh) ||
 //       preset.name.includes(presetConfig.displayName.en),
@@ -148,12 +155,12 @@ export function getPresetDescription(presetName: string, language: "zh" | "en" =
 //         }
 //         localStorage.setItem("system_preset_type", presetType);
 //         localStorage.setItem("system_preset_name", preset.displayName[language]);
-        
+
 //         // Mark as downloaded
 //         markPresetAsDownloaded(presetName);
-        
-//         return { 
-//           success: true, 
+
+//         return {
+//           success: true,
 //           presetId: `system_${presetName}`,
 //           message: `${preset.displayName[language]} 系统预设已启用`,
 //         };
@@ -172,17 +179,17 @@ export function getPresetDescription(presetName: string, language: "zh" | "en" =
 //             file.name === preset.filename ||
 //             file.name.toLowerCase() === preset.filename.toLowerCase(),
 //           );
-          
+
 //           if (matchingFile && matchingFile.download_url) {
 //             const response = await fetch(matchingFile.download_url);
 //             if (!response.ok) {
 //               return { success: false, message: `Failed to download preset: ${response.statusText}` };
 //             }
-            
+
 //             const jsonContent = await response.text();
 //             const localizedName = getPresetDisplayName(presetName, language);
 //             const result = await importPresetFromJson(jsonContent, localizedName);
-            
+
 //             if (result.success && result.presetId) {
 //               markPresetAsDownloaded(presetName);
 //               return { success: true, presetId: result.presetId };
@@ -199,15 +206,15 @@ export function getPresetDescription(presetName: string, language: "zh" | "en" =
 //     const encodedFilename = encodeURIComponent(preset.filename);
 //     const fileUrl = `${GITHUB_REPO_URL}/${encodedFilename}`;
 //     const response = await fetch(fileUrl);
-    
+
 //     if (!response.ok) {
 //       return { success: false, message: `Failed to download preset: ${response.statusText}` };
 //     }
-    
+
 //     const jsonContent = await response.text();
 //     const localizedName = getPresetDisplayName(presetName, language);
 //     const result = await importPresetFromJson(jsonContent, localizedName);
-    
+
 //     if (result.success && result.presetId) {
 //       markPresetAsDownloaded(presetName);
 //       return { success: true, presetId: result.presetId };
@@ -224,21 +231,27 @@ function markPresetAsDownloaded(presetName: string): void {
   try {
     const downloadedPresets = localStorage.getItem("downloaded_github_presets");
     let presets: string[] = [];
-    
+
     if (downloadedPresets) {
       presets = JSON.parse(downloadedPresets);
     }
-    
+
     if (!presets.includes(presetName)) {
       presets.push(presetName);
-      localStorage.setItem("downloaded_github_presets", JSON.stringify(presets));
+      localStorage.setItem(
+        "downloaded_github_presets",
+        JSON.stringify(presets),
+      );
     }
   } catch (error) {
     console.error("Error marking preset as downloaded:", error);
   }
 }
 
-export function getCurrentSystemPresetType(): "mirror_realm" | "novel_king" | "professional_heart" {
+export function getCurrentSystemPresetType():
+  | "mirror_realm"
+  | "novel_king"
+  | "professional_heart" {
   try {
     const presetType = localStorage.getItem("system_preset_type");
     if (presetType === "novel_king") {

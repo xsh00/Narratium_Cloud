@@ -5,10 +5,14 @@ interface DeleteDialogueNodeOptions {
   nodeId: string;
 }
 
-export async function deleteDialogueNode({ characterId, nodeId }: DeleteDialogueNodeOptions) {
+export async function deleteDialogueNode({
+  characterId,
+  nodeId,
+}: DeleteDialogueNodeOptions) {
   try {
-    const updatedDialogueTree = await LocalCharacterDialogueOperations.deleteNode(characterId, nodeId);
-    
+    const updatedDialogueTree =
+      await LocalCharacterDialogueOperations.deleteNode(characterId, nodeId);
+
     if (!updatedDialogueTree) {
       throw new Error("Failed to delete node or node not found");
     }
@@ -16,9 +20,9 @@ export async function deleteDialogueNode({ characterId, nodeId }: DeleteDialogue
     const currentPath =
       updatedDialogueTree.current_nodeId !== "root"
         ? await LocalCharacterDialogueOperations.getDialoguePathToNode(
-          characterId,
-          updatedDialogueTree.current_nodeId,
-        )
+            characterId,
+            updatedDialogueTree.current_nodeId,
+          )
         : [];
 
     const messages = currentPath.flatMap((node) => {
@@ -66,4 +70,4 @@ export async function deleteDialogueNode({ characterId, nodeId }: DeleteDialogue
     console.error("Error deleting dialogue node:", error);
     throw new Error(`Failed to delete dialogue node: ${error.message}`);
   }
-} 
+}

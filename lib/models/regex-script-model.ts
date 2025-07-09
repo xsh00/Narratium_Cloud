@@ -1,6 +1,6 @@
 export interface RegexScript {
   scriptKey: string;
-  id?: string; 
+  id?: string;
   scriptName: string;
   findRegex: string;
   replaceString?: string | null;
@@ -19,7 +19,7 @@ export interface RegexScript {
 export enum RegexScriptOwnerType {
   CHARACTER = "character",
   GLOBAL = "global",
-  CONVERSATION = "conversation"
+  CONVERSATION = "conversation",
 }
 
 export interface RegexReplacementResult {

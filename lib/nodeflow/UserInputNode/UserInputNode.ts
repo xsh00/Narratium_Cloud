@@ -1,9 +1,15 @@
 import { NodeBase } from "@/lib/nodeflow/NodeBase";
-import { NodeConfig, NodeInput, NodeOutput, NodeCategory } from "@/lib/nodeflow/types";
+import {
+  NodeConfig,
+  NodeInput,
+  NodeOutput,
+  NodeCategory,
+} from "@/lib/nodeflow/types";
 
 export class UserInputNode extends NodeBase {
   static readonly nodeName = "userInput";
-  static readonly description = "Node for accepting user input during workflow execution";
+  static readonly description =
+    "Node for accepting user input during workflow execution";
   static readonly version = "1.0.0";
 
   constructor(config: NodeConfig) {

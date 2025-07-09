@@ -1,10 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
-import { autoImportPresets, getPresetStatus, resetPresetInitialization, getDefaultPresetConfigs } from "@/function/preset/auto-import";
+import {
+  autoImportPresets,
+  getPresetStatus,
+  resetPresetInitialization,
+  getDefaultPresetConfigs,
+} from "@/function/preset/auto-import";
+
+export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest) {
   try {
     const result = await autoImportPresets();
-    
+
     if (result.success) {
       return NextResponse.json(result);
     } else {
@@ -14,7 +21,7 @@ export async function POST(request: NextRequest) {
     console.error("API错误:", error);
     return NextResponse.json(
       { success: false, error: "服务器内部错误" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -25,7 +32,7 @@ export async function GET(request: NextRequest) {
     const action = searchParams.get("action");
 
     let result;
-    
+
     switch (action) {
       case "status":
         result = await getPresetStatus();
@@ -49,7 +56,7 @@ export async function GET(request: NextRequest) {
     console.error("API错误:", error);
     return NextResponse.json(
       { success: false, error: "服务器内部错误" },
-      { status: 500 }
+      { status: 500 },
     );
   }
-} 
+}

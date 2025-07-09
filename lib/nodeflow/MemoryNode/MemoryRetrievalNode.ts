@@ -1,11 +1,17 @@
 import { NodeBase } from "@/lib/nodeflow/NodeBase";
-import { NodeConfig, NodeInput, NodeOutput, NodeCategory } from "@/lib/nodeflow/types";
+import {
+  NodeConfig,
+  NodeInput,
+  NodeOutput,
+  NodeCategory,
+} from "@/lib/nodeflow/types";
 import { MemoryNodeTools } from "./MemoryNodeTools";
 import { NodeToolRegistry } from "../NodeTool";
 
 export class MemoryRetrievalNode extends NodeBase {
   static readonly nodeName = "memoryRetrieval";
-  static readonly description = "Retrieve relevant memories for current conversation context";
+  static readonly description =
+    "Retrieve relevant memories for current conversation context";
   static readonly version = "1.0.0";
 
   constructor(config: NodeConfig) {
@@ -40,7 +46,7 @@ export class MemoryRetrievalNode extends NodeBase {
     }
 
     // Use the memory tool to retrieve and enhance system message with memories
-    const result = await this.executeTool(
+    const result = (await this.executeTool(
       "retrieveAndEnhanceSystemMessage",
       characterId,
       userInput,
@@ -49,7 +55,7 @@ export class MemoryRetrievalNode extends NodeBase {
       baseUrl,
       language,
       maxMemories,
-    ) as {
+    )) as {
       enhancedSystemMessage: string;
       memoryPrompt: string;
       retrievedMemories: any[];
@@ -67,5 +73,4 @@ export class MemoryRetrievalNode extends NodeBase {
       username: input.username,
     };
   }
-} 
- 
+}

@@ -147,11 +147,13 @@ This knowledge is fundamental to creating professional-quality AI roleplay conte
  * Creates a standardized prompt template with core background knowledge
  * This should be used for all major LLM calls in the system
  */
-function createStandardPromptTemplate(specificPrompt: string): ChatPromptTemplate {
+function createStandardPromptTemplate(
+  specificPrompt: string,
+): ChatPromptTemplate {
   const fullPrompt = `${CORE_KNOWLEDGE_SECTION}
 
 ${specificPrompt}`;
-  
+
   return ChatPromptTemplate.fromTemplate(fullPrompt);
 }
 
@@ -160,7 +162,10 @@ ${specificPrompt}`;
 // ============================================================================
 
 // Define user input callback type with optional choice options
-type UserInputCallback = (message?: string, options?: string[]) => Promise<string>;
+type UserInputCallback = (
+  message?: string,
+  options?: string[],
+) => Promise<string>;
 
 /**
  * Agent Engine - Real-time Decision Architecture
@@ -199,37 +204,45 @@ export class AgentEngine {
         this.userInputCallback = userInputCallback;
       }
 
-      await ResearchSessionOperations.updateStatus(this.conversationId, SessionStatus.THINKING);
-      
+      await ResearchSessionOperations.updateStatus(
+        this.conversationId,
+        SessionStatus.THINKING,
+      );
+
       // Initialize the model and perform task decomposition
       const context = await this.buildExecutionContext();
       this.model = this.createLLM();
-      
+
       // Initialize with task decomposition - inspired by DeepResearch
       await this.initialize(context);
-      
+
       // Main execution loop - real-time decision making
       return await this.executionLoop();
-      
-    } catch (error) { 
-      await ResearchSessionOperations.updateStatus(this.conversationId, SessionStatus.FAILED);
-      
+    } catch (error) {
+      await ResearchSessionOperations.updateStatus(
+        this.conversationId,
+        SessionStatus.FAILED,
+      );
+
       return {
         success: false,
         error: error instanceof Error ? error.message : "Unknown error",
       };
-    } 
+    }
   }
 
   /**
    * Initialize session with task decomposition
    * Inspired by DeepResearch's approach to breaking down complex objectives
    */
-  private async initialize (context: ExecutionContext): Promise<void> {
+  private async initialize(context: ExecutionContext): Promise<void> {
     console.log("🚀 Initializing session with task decomposition...");
-    
+
     // Check if already initialized
-    if (context.research_state.task_queue && context.research_state.task_queue.length > 0) {
+    if (
+      context.research_state.task_queue &&
+      context.research_state.task_queue.length > 0
+    ) {
       console.log("📋 Task queue already initialized, skipping decomposition");
       return;
     }
@@ -314,34 +327,62 @@ Respond using the following XML format:
       ]);
 
       const content = response.content as string;
-      
+
       // Parse analysis
-      const realWorldContent = content.match(/<real_world_content_detected>(.*?)<\/real_world_content_detected>/)?.[1]?.trim() === "true";
-      const realWorldDetails = content.match(/<real_world_details>(.*?)<\/real_world_details>/)?.[1]?.trim() || "";
-      const clarityLevel = content.match(/<story_clarity_level>(.*?)<\/story_clarity_level>/)?.[1]?.trim() || "moderate";
-      const unclearAspects = content.match(/<unclear_aspects>(.*?)<\/unclear_aspects>/)?.[1]?.trim() || "";
-      
+      const realWorldContent =
+        content
+          .match(
+            /<real_world_content_detected>(.*?)<\/real_world_content_detected>/,
+          )?.[1]
+          ?.trim() === "true";
+      const realWorldDetails =
+        content
+          .match(/<real_world_details>(.*?)<\/real_world_details>/)?.[1]
+          ?.trim() || "";
+      const clarityLevel =
+        content
+          .match(/<story_clarity_level>(.*?)<\/story_clarity_level>/)?.[1]
+          ?.trim() || "moderate";
+      const unclearAspects =
+        content
+          .match(/<unclear_aspects>(.*?)<\/unclear_aspects>/)?.[1]
+          ?.trim() || "";
+
       // Parse tasks with sub-problems
       const taskMatches = [...content.matchAll(/<task>([\s\S]*?)<\/task>/g)];
       const taskQueue = taskMatches.map((match, index) => {
         const taskContent = match[1];
-        const description = taskContent.match(/<description>([\s\S]*?)<\/description>/)?.[1]?.trim() || `Task ${index + 1}`;
-        const reasoning = taskContent.match(/<reasoning>([\s\S]*?)<\/reasoning>/)?.[1]?.trim() || "Task planning";
-        
+        const description =
+          taskContent
+            .match(/<description>([\s\S]*?)<\/description>/)?.[1]
+            ?.trim() || `Task ${index + 1}`;
+        const reasoning =
+          taskContent
+            .match(/<reasoning>([\s\S]*?)<\/reasoning>/)?.[1]
+            ?.trim() || "Task planning";
+
         // Parse sub-problems
-        const subProblemMatches = [...taskContent.matchAll(/<sub_problem>([\s\S]*?)<\/sub_problem>/g)];
+        const subProblemMatches = [
+          ...taskContent.matchAll(/<sub_problem>([\s\S]*?)<\/sub_problem>/g),
+        ];
         const sub_problems = subProblemMatches.map((subMatch, subIndex) => {
           const subContent = subMatch[1];
-          const subDescription = subContent.match(/<description>([\s\S]*?)<\/description>/)?.[1]?.trim() || `Sub-problem ${subIndex + 1}`;
-          const subReasoning = subContent.match(/<reasoning>([\s\S]*?)<\/reasoning>/)?.[1]?.trim() || "Step planning";
-          
+          const subDescription =
+            subContent
+              .match(/<description>([\s\S]*?)<\/description>/)?.[1]
+              ?.trim() || `Sub-problem ${subIndex + 1}`;
+          const subReasoning =
+            subContent
+              .match(/<reasoning>([\s\S]*?)<\/reasoning>/)?.[1]
+              ?.trim() || "Step planning";
+
           return {
             id: `sub_${Date.now()}_${index}_${subIndex}`,
             description: subDescription,
             reasoning: subReasoning,
           };
         });
-        
+
         return {
           id: `init_task_${Date.now()}_${index}`,
           description,
@@ -351,32 +392,42 @@ Respond using the following XML format:
       });
 
       // Parse strategy
-      const taskStrategy = content.match(/<task_strategy>([\s\S]*?)<\/task_strategy>/)?.[1]?.trim() || "Task decomposition completed";
+      const taskStrategy =
+        content
+          .match(/<task_strategy>([\s\S]*?)<\/task_strategy>/)?.[1]
+          ?.trim() || "Task decomposition completed";
 
       // Update research state with initial decomposition
       const stateUpdate = {
         task_queue: taskQueue,
       };
 
-      await ResearchSessionOperations.updateResearchState(this.conversationId, stateUpdate);
-      
-      console.log(`✅ Task decomposition complete: ${taskQueue.length} tasks created`);
-      console.log(`📊 Analysis: Real-world content: ${realWorldContent}, Clarity: ${clarityLevel}`);
+      await ResearchSessionOperations.updateResearchState(
+        this.conversationId,
+        stateUpdate,
+      );
+
+      console.log(
+        `✅ Task decomposition complete: ${taskQueue.length} tasks created`,
+      );
+      console.log(
+        `📊 Analysis: Real-world content: ${realWorldContent}, Clarity: ${clarityLevel}`,
+      );
 
       // Add comprehensive initialization message
       let analysisMessage = `🎯 Task Planning Analysis:
 - Real-world content detected: ${realWorldContent ? "Yes" : "No"}`;
-      
+
       if (realWorldContent && realWorldDetails) {
         analysisMessage += `\n- Content details: ${realWorldDetails}`;
       }
-      
+
       analysisMessage += `\n- Story clarity level: ${clarityLevel}`;
-      
+
       if (unclearAspects) {
         analysisMessage += `\n- Needs clarification: ${unclearAspects}`;
       }
-      
+
       analysisMessage += `\n\n📋 Task Strategy: ${taskStrategy}
       
 Created ${taskQueue.length} tasks with sub-problems:
@@ -387,7 +438,6 @@ ${taskQueue.map((task, i) => `${i + 1}. ${task.description} (${task.sub_problems
         content: analysisMessage,
         type: "agent_thinking",
       });
-
     } catch (error) {
       console.error("❌ Task decomposition failed:", error);
       console.log("🔄 Using fallback task queue due to decomposition failure");
@@ -403,7 +453,9 @@ ${taskQueue.map((task, i) => `${i + 1}. ${task.description} (${task.sub_problems
     result?: any;
     error?: string;
   }> {
-    const session = await ResearchSessionOperations.getSessionById(this.conversationId);
+    const session = await ResearchSessionOperations.getSessionById(
+      this.conversationId,
+    );
     if (!session) throw new Error("Session not found");
 
     let iteration = 0;
@@ -417,10 +469,10 @@ ${taskQueue.map((task, i) => `${i + 1}. ${task.description} (${task.sub_problems
 
       // Get current context
       const context = await this.buildExecutionContext();
-      
+
       // Real-time planning: What should we do next?
       const decision = await this.selectNextDecision(context);
-      
+
       if (!decision) {
         console.log("🎯 No more decisions available");
         continue; // Continue to end of loop where task queue check happens
@@ -428,14 +480,16 @@ ${taskQueue.map((task, i) => `${i + 1}. ${task.description} (${task.sub_problems
 
       // MANDATORY: Always apply task optimization after planning
       if (decision.taskAdjustment) {
-        console.log(`📋 Applying MANDATORY task optimization: ${decision.taskAdjustment.reasoning}`);
+        console.log(
+          `📋 Applying MANDATORY task optimization: ${decision.taskAdjustment.reasoning}`,
+        );
         await this.applyTaskAdjustment(decision.taskAdjustment);
       }
 
       // Execute the decided tool
       const result = await this.executeDecision(decision, context);
       console.log("🔄 Execution result:", result);
-      
+
       // Handle tool execution failure with LLM analysis
       if (!result.success) {
         console.error(`❌ Tool ${decision.tool} failed: ${result.error}`);
@@ -444,15 +498,25 @@ ${taskQueue.map((task, i) => `${i + 1}. ${task.description} (${task.sub_problems
       }
 
       // Handle SEARCH tool - update knowledge base with search results
-      if (decision.tool === ToolType.SEARCH && result.success) {        
+      if (decision.tool === ToolType.SEARCH && result.success) {
         // Add knowledge entries from search results
-        if (result.result?.knowledge_entries && result.result.knowledge_entries.length > 0) {
-          await ResearchSessionOperations.addKnowledgeEntries(this.conversationId, result.result.knowledge_entries);
-          console.log(`📊 Knowledge base updated: added ${result.result.knowledge_entries.length} new entries`);
+        if (
+          result.result?.knowledge_entries &&
+          result.result.knowledge_entries.length > 0
+        ) {
+          await ResearchSessionOperations.addKnowledgeEntries(
+            this.conversationId,
+            result.result.knowledge_entries,
+          );
+          console.log(
+            `📊 Knowledge base updated: added ${result.result.knowledge_entries.length} new entries`,
+          );
         }
-        
+
         // Complete current sub-problem after successful tool execution
-        await ResearchSessionOperations.completeCurrentSubProblem(this.conversationId); 
+        await ResearchSessionOperations.completeCurrentSubProblem(
+          this.conversationId,
+        );
       }
 
       // Handle ASK_USER tool - special case for user interaction flow control
@@ -461,26 +525,37 @@ ${taskQueue.map((task, i) => `${i + 1}. ${task.description} (${task.sub_problems
           throw new Error("User input required but no callback provided");
         }
 
-        await ResearchSessionOperations.updateStatus(this.conversationId, SessionStatus.WAITING_USER);
-        
-        const userInput = await this.userInputCallback(result.result?.message, result.result?.options);
+        await ResearchSessionOperations.updateStatus(
+          this.conversationId,
+          SessionStatus.WAITING_USER,
+        );
+
+        const userInput = await this.userInputCallback(
+          result.result?.message,
+          result.result?.options,
+        );
 
         await ResearchSessionOperations.addMessage(this.conversationId, {
           role: "agent",
           content: result.result?.message,
           type: "agent_action",
         });
-        
+
         await ResearchSessionOperations.addMessage(this.conversationId, {
           role: "user",
           content: userInput,
           type: "user_input",
         });
-        
-        await ResearchSessionOperations.updateStatus(this.conversationId, SessionStatus.THINKING);
-        
+
+        await ResearchSessionOperations.updateStatus(
+          this.conversationId,
+          SessionStatus.THINKING,
+        );
+
         // Complete current sub-problem after successful user interaction
-        await ResearchSessionOperations.completeCurrentSubProblem(this.conversationId);
+        await ResearchSessionOperations.completeCurrentSubProblem(
+          this.conversationId,
+        );
       }
 
       // Handle CHARACTER, STATUS, USER_SETTING, WORLD_VIEW, SUPPLEMENT tools - data updates and task completion evaluation
@@ -491,93 +566,153 @@ ${taskQueue.map((task, i) => `${i + 1}. ${task.description} (${task.sub_problems
         decision.tool === ToolType.WORLD_VIEW ||
         decision.tool === ToolType.SUPPLEMENT
       ) {
-        console.log(`✅ ${decision.tool} execution completed with generated content`);
-        
-        if (decision.tool === ToolType.CHARACTER && result.result?.character_data) {
+        console.log(
+          `✅ ${decision.tool} execution completed with generated content`,
+        );
+
+        if (
+          decision.tool === ToolType.CHARACTER &&
+          result.result?.character_data
+        ) {
           console.log("🔄 Updating generation output with character data");
-          await ResearchSessionOperations.updateGenerationOutput(this.conversationId, {
-            character_data: result.result.character_data,
-          });
-        } else if (decision.tool === ToolType.STATUS && result.result?.status_data) {
+          await ResearchSessionOperations.updateGenerationOutput(
+            this.conversationId,
+            {
+              character_data: result.result.character_data,
+            },
+          );
+        } else if (
+          decision.tool === ToolType.STATUS &&
+          result.result?.status_data
+        ) {
           console.log("🔄 Updating generation output with status data");
-          await ResearchSessionOperations.appendWorldbookData(this.conversationId, {
-            status_data: result.result.status_data,
-          });
-        } else if (decision.tool === ToolType.USER_SETTING && result.result?.user_setting_data) {
+          await ResearchSessionOperations.appendWorldbookData(
+            this.conversationId,
+            {
+              status_data: result.result.status_data,
+            },
+          );
+        } else if (
+          decision.tool === ToolType.USER_SETTING &&
+          result.result?.user_setting_data
+        ) {
           console.log("🔄 Updating generation output with user setting data");
-          await ResearchSessionOperations.appendWorldbookData(this.conversationId, {
-            user_setting_data: result.result.user_setting_data,
-          });
-        } else if (decision.tool === ToolType.WORLD_VIEW && result.result?.world_view_data) {
+          await ResearchSessionOperations.appendWorldbookData(
+            this.conversationId,
+            {
+              user_setting_data: result.result.user_setting_data,
+            },
+          );
+        } else if (
+          decision.tool === ToolType.WORLD_VIEW &&
+          result.result?.world_view_data
+        ) {
           console.log("🔄 Updating generation output with world view data");
-          await ResearchSessionOperations.appendWorldbookData(this.conversationId, {
-            world_view_data: result.result.world_view_data,
-          });
-        } else if (decision.tool === ToolType.SUPPLEMENT && result.result?.supplement_data) {
+          await ResearchSessionOperations.appendWorldbookData(
+            this.conversationId,
+            {
+              world_view_data: result.result.world_view_data,
+            },
+          );
+        } else if (
+          decision.tool === ToolType.SUPPLEMENT &&
+          result.result?.supplement_data
+        ) {
           console.log("🔄 Updating generation output with supplementary data");
-          await ResearchSessionOperations.appendWorldbookData(this.conversationId, {
-            supplement_data: result.result.supplement_data,
-          });
+          await ResearchSessionOperations.appendWorldbookData(
+            this.conversationId,
+            {
+              supplement_data: result.result.supplement_data,
+            },
+          );
         }
-        
+
         // Complete current sub-problem after successful tool execution
-        await ResearchSessionOperations.completeCurrentSubProblem(this.conversationId);
+        await ResearchSessionOperations.completeCurrentSubProblem(
+          this.conversationId,
+        );
       }
 
       // Handle REFLECT tool - add new tasks to the current queue
       if (decision.tool === ToolType.REFLECT && result.success) {
         console.log("🔄 Reflection completed");
-        
+
         // Efficiently add new tasks without fetching the entire session
         if (result.result.new_tasks && result.result.new_tasks.length > 0) {
-          await ResearchSessionOperations.addTasksToQueue(this.conversationId, result.result.new_tasks);
-          console.log(`📋 Added ${result.result.tasks_count} new tasks to queue`);
+          await ResearchSessionOperations.addTasksToQueue(
+            this.conversationId,
+            result.result.new_tasks,
+          );
+          console.log(
+            `📋 Added ${result.result.tasks_count} new tasks to queue`,
+          );
         }
-        
-        await ResearchSessionOperations.completeCurrentSubProblem(this.conversationId);
+
+        await ResearchSessionOperations.completeCurrentSubProblem(
+          this.conversationId,
+        );
       }
 
       // Handle COMPLETE tool - clear all tasks and end session
       if (decision.tool === ToolType.COMPLETE && result.success) {
         console.log("✅ Completion tool executed");
-        
+
         if (result.result.finished === true) {
           console.log("🎯 Session completion confirmed, clearing all tasks");
           await ResearchSessionOperations.clearAllTasks(this.conversationId);
-          
+
           // Complete current sub-problem after successful completion
-          await ResearchSessionOperations.completeCurrentSubProblem(this.conversationId);
+          await ResearchSessionOperations.completeCurrentSubProblem(
+            this.conversationId,
+          );
         }
       }
 
       // Check if task queue is empty at the end of each iteration
       const currentContext = await this.buildExecutionContext();
-      if (!currentContext.research_state.task_queue || currentContext.research_state.task_queue.length === 0) {
-        console.log("📋 Task queue is empty, checking final generation completion...");
-        const generationOutput = await ResearchSessionOperations.getGenerationOutput(this.conversationId);
+      if (
+        !currentContext.research_state.task_queue ||
+        currentContext.research_state.task_queue.length === 0
+      ) {
+        console.log(
+          "📋 Task queue is empty, checking final generation completion...",
+        );
+        const generationOutput =
+          await ResearchSessionOperations.getGenerationOutput(
+            this.conversationId,
+          );
         if (generationOutput) {
-          const evaluationResult = await this.evaluateGenerationProgress(generationOutput);
+          const evaluationResult =
+            await this.evaluateGenerationProgress(generationOutput);
           if (evaluationResult === null) {
             console.log("✅ Final generation evaluation: Complete");
-            await ResearchSessionOperations.updateStatus(this.conversationId, SessionStatus.COMPLETED);
+            await ResearchSessionOperations.updateStatus(
+              this.conversationId,
+              SessionStatus.COMPLETED,
+            );
             return {
               success: true,
               result: await this.generateFinalResult(),
             };
           } else {
-            console.log("❓ Final generation evaluation: Incomplete, adding completion task");
+            console.log(
+              "❓ Final generation evaluation: Incomplete, adding completion task",
+            );
           }
         }
       }
 
       // Small delay to prevent tight loops
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
     }
 
     // If we exit the loop due to limits, return failure
     return {
       success: false,
-      error: usedTokens >= tokenBudget ? "Token budget exceeded" : "Maximum iterations reached without completion",
+      error:
+        usedTokens >= tokenBudget
+          ? "Token budget exceeded"
+          : "Maximum iterations reached without completion",
     };
   }
 
@@ -585,12 +720,14 @@ ${taskQueue.map((task, i) => `${i + 1}. ${task.description} (${task.sub_problems
    * Core planning module - real-time decision making with complete content generation
    * Following DeepResearch: planner generates ALL content, tools just store/process results
    */
-  private async selectNextDecision(context: ExecutionContext): Promise<ToolDecision | null> {
+  private async selectNextDecision(
+    context: ExecutionContext,
+  ): Promise<ToolDecision | null> {
     console.log("🔄 Selecting next decision");
-    
+
     // Get detailed tool information in XML format to inject into the prompt
     const availableTools = ToolRegistry.getDetailedToolsInfo();
-    
+
     const prompt = createStandardPromptTemplate(`
 <prompt>
   <system_role>
@@ -892,34 +1029,67 @@ ${taskQueue.map((task, i) => `${i + 1}. ${task.description} (${task.sub_problems
           available_tools: availableTools,
           main_objective: context.research_state.main_objective,
           completed_tasks: this.buildCompletedTasksSummary(context),
-          knowledge_base: this.buildKnowledgeBaseSummary(context.research_state.knowledge_base),
-          recent_conversation: this.buildRecentConversationSummary(context.message_history),
+          knowledge_base: this.buildKnowledgeBaseSummary(
+            context.research_state.knowledge_base,
+          ),
+          recent_conversation: this.buildRecentConversationSummary(
+            context.message_history,
+          ),
           task_queue_status: this.buildTaskQueueSummary(context),
-          current_sub_problem: context.research_state.task_queue?.[0]?.sub_problems?.[0]?.description || "No current sub-problem",
-          character_progress: this.buildCharacterProgressSummary(context.generation_output),
-          worldbook_progress: this.buildWorldbookProgressSummary(context.generation_output),
-          completion_status: this.buildCompletionStatusSummary(context.generation_output, context.message_history),
+          current_sub_problem:
+            context.research_state.task_queue?.[0]?.sub_problems?.[0]
+              ?.description || "No current sub-problem",
+          character_progress: this.buildCharacterProgressSummary(
+            context.generation_output,
+          ),
+          worldbook_progress: this.buildWorldbookProgressSummary(
+            context.generation_output,
+          ),
+          completion_status: this.buildCompletionStatusSummary(
+            context.generation_output,
+            context.message_history,
+          ),
         }),
       ]);
 
       const content = response.content as string;
-      
+
       // Parse XML response directly
-      const think = content.match(/<think>([\s\S]*?)<\/think>/)?.[1].trim() ?? "No reasoning provided";
-      const taskAdjustmentBlock = content.match(/<task_adjustment>([\s\S]*?)<\/task_adjustment>/)?.[1] ?? "";
-      const action = content.match(/<action>([\s\S]*?)<\/action>/)?.[1].trim() ?? "null";
-      
+      const think =
+        content.match(/<think>([\s\S]*?)<\/think>/)?.[1].trim() ??
+        "No reasoning provided";
+      const taskAdjustmentBlock =
+        content.match(/<task_adjustment>([\s\S]*?)<\/task_adjustment>/)?.[1] ??
+        "";
+      const action =
+        content.match(/<action>([\s\S]*?)<\/action>/)?.[1].trim() ?? "null";
+
       // Parse task adjustment details
-      const adjustmentReasoning = taskAdjustmentBlock.match(/<reasoning>([\s\S]*?)<\/reasoning>/)?.[1]?.trim() ?? "Task optimization based on current progress";
-      const newTaskDescription = taskAdjustmentBlock.match(/<task_description>([\s\S]*?)<\/task_description>/)?.[1]?.trim() ?? "";
-      const newSubproblemsText = taskAdjustmentBlock.match(/<new_subproblems>([\s\S]*?)<\/new_subproblems>/)?.[1]?.trim() ?? "";
-      
+      const adjustmentReasoning =
+        taskAdjustmentBlock
+          .match(/<reasoning>([\s\S]*?)<\/reasoning>/)?.[1]
+          ?.trim() ?? "Task optimization based on current progress";
+      const newTaskDescription =
+        taskAdjustmentBlock
+          .match(/<task_description>([\s\S]*?)<\/task_description>/)?.[1]
+          ?.trim() ?? "";
+      const newSubproblemsText =
+        taskAdjustmentBlock
+          .match(/<new_subproblems>([\s\S]*?)<\/new_subproblems>/)?.[1]
+          ?.trim() ?? "";
+
       const taskAdjustment = {
         reasoning: adjustmentReasoning,
         taskDescription: newTaskDescription || undefined,
-        newSubproblems: newSubproblemsText ? newSubproblemsText.split("|").map(s => s.trim()).filter(s => s.length > 0).slice(0, 3) : undefined,
+        newSubproblems: newSubproblemsText
+          ? newSubproblemsText
+              .split("|")
+              .map((s) => s.trim())
+              .filter((s) => s.length > 0)
+              .slice(0, 3)
+          : undefined,
       };
-      
+
       if (action === "null" || !action) {
         return null;
       }
@@ -962,7 +1132,7 @@ ${taskQueue.map((task, i) => `${i + 1}. ${task.description} (${task.sub_problems
               // Fix unbalanced double quotes
               const quoteCount = (fixedCdata.match(/\"/g) || []).length;
               if (quoteCount % 2 !== 0) {
-                fixedCdata = fixedCdata + "\"";
+                fixedCdata = fixedCdata + '"';
                 fixed = true;
               }
               // Try parsing again if fixed
@@ -1024,14 +1194,14 @@ ${taskQueue.map((task, i) => `${i + 1}. ${task.description} (${task.sub_problems
    * Analyze tool failure using LLM and record the analysis
    */
   private async analyzeToolFailure(
-    decision: ToolDecision, 
-    result: ExecutionResult, 
+    decision: ToolDecision,
+    result: ExecutionResult,
     context: ExecutionContext,
   ): Promise<void> {
     try {
       // Get tool information to understand expected parameters
       const toolInfo = ToolRegistry.getDetailedToolsInfo();
-      
+
       const prompt = createStandardPromptTemplate(`
 You are analyzing a tool execution failure to understand what went wrong and provide actionable insights.
 
@@ -1068,25 +1238,46 @@ Provide your analysis in the following XML format:
       const response = await this.model.invoke([
         await prompt.format({
           tool_name: decision.tool,
-          expected_parameters: this.extractToolParameters(toolInfo, decision.tool),
+          expected_parameters: this.extractToolParameters(
+            toolInfo,
+            decision.tool,
+          ),
           actual_parameters: JSON.stringify(decision.parameters, null, 2),
           error_message: result.error || "Unknown error",
           tool_reasoning: decision.reasoning || "No reasoning provided",
-          message_history: this.buildRecentConversationSummary(context.message_history.slice(-5)),
-          current_task: context.research_state.task_queue?.[0]?.description || "No current task",
+          message_history: this.buildRecentConversationSummary(
+            context.message_history.slice(-5),
+          ),
+          current_task:
+            context.research_state.task_queue?.[0]?.description ||
+            "No current task",
           main_objective: context.research_state.main_objective,
         }),
       ]);
 
       const content = response.content as string;
-      
+
       // Parse the analysis
-      const rootCause = content.match(/<root_cause>([\s\S]*?)<\/root_cause>/)?.[1]?.trim() || "Analysis failed";
-      const parameterAnalysis = content.match(/<parameter_analysis>([\s\S]*?)<\/parameter_analysis>/)?.[1]?.trim() || "";
-      const plannerIssue = content.match(/<planner_issue>([\s\S]*?)<\/planner_issue>/)?.[1]?.trim() || "";
-      const correctApproach = content.match(/<correct_approach>([\s\S]*?)<\/correct_approach>/)?.[1]?.trim() || "";
-      const prevention = content.match(/<prevention>([\s\S]*?)<\/prevention>/)?.[1]?.trim() || "";
-      const impact = content.match(/<impact>([\s\S]*?)<\/impact>/)?.[1]?.trim() || "";
+      const rootCause =
+        content.match(/<root_cause>([\s\S]*?)<\/root_cause>/)?.[1]?.trim() ||
+        "Analysis failed";
+      const parameterAnalysis =
+        content
+          .match(/<parameter_analysis>([\s\S]*?)<\/parameter_analysis>/)?.[1]
+          ?.trim() || "";
+      const plannerIssue =
+        content
+          .match(/<planner_issue>([\s\S]*?)<\/planner_issue>/)?.[1]
+          ?.trim() || "";
+      const correctApproach =
+        content
+          .match(/<correct_approach>([\s\S]*?)<\/correct_approach>/)?.[1]
+          ?.trim() || "";
+      const prevention =
+        content.match(/<prevention>([\s\S]*?)<\/prevention>/)?.[1]?.trim() ||
+        "";
+      const impact =
+        content.match(/<impact>([\s\S]*?)<\/impact>/)?.[1]?.trim() || "";
 
       // Create comprehensive failure analysis message
       const analysisContent = `TOOL FAILURE ANALYSIS - ${decision.tool}
@@ -1116,10 +1307,9 @@ Technical Details:
       });
 
       console.log(`🔍 Tool failure analysis completed for ${decision.tool}`);
-
     } catch (error) {
       console.error("❌ Failed to analyze tool failure:", error);
-      
+
       // Fallback: Simple error recording
       await ResearchSessionOperations.addMessage(this.conversationId, {
         role: "agent",
@@ -1135,13 +1325,15 @@ Technical Details:
   private extractToolParameters(toolsXml: string, toolType: ToolType): string {
     try {
       // Parse the XML to find the specific tool's parameters
-      const toolRegex = new RegExp(`<tool>\\s*<type>${toolType}</type>[\\s\\S]*?<parameters>([\\s\\S]*?)</parameters>[\\s\\S]*?</tool>`);
+      const toolRegex = new RegExp(
+        `<tool>\\s*<type>${toolType}</type>[\\s\\S]*?<parameters>([\\s\\S]*?)</parameters>[\\s\\S]*?</tool>`,
+      );
       const match = toolsXml.match(toolRegex);
-      
+
       if (match && match[1]) {
         return match[1].trim();
       }
-      
+
       return `Parameters not found for tool ${toolType}`;
     } catch (error) {
       return `Error extracting parameters for ${toolType}: ${error instanceof Error ? error.message : String(error)}`;
@@ -1152,52 +1344,70 @@ Technical Details:
    * Apply task optimization based on planning analysis
    * MANDATORY: Always optimize current task and sub-problems
    */
-  private async applyTaskAdjustment(taskAdjustment: TaskAdjustment): Promise<void> {
+  private async applyTaskAdjustment(
+    taskAdjustment: TaskAdjustment,
+  ): Promise<void> {
     try {
-      console.log(`🔄 Processing MANDATORY task optimization: ${taskAdjustment.reasoning}`);
-      
+      console.log(
+        `🔄 Processing MANDATORY task optimization: ${taskAdjustment.reasoning}`,
+      );
+
       // MANDATORY: Always apply optimization (no type checking needed)
       // Get current task info to validate constraints
-      const currentTaskInfo = await ResearchSessionOperations.getCurrentSubProblem(this.conversationId);
-      const currentSubproblemCount = currentTaskInfo.task?.sub_problems?.length || 0;
-      
+      const currentTaskInfo =
+        await ResearchSessionOperations.getCurrentSubProblem(
+          this.conversationId,
+        );
+      const currentSubproblemCount =
+        currentTaskInfo.task?.sub_problems?.length || 0;
+
       // ENFORCE CONSTRAINTS: Ensure new sub-problems don't exceed current count and max limit of 2
       let finalSubproblems = taskAdjustment.newSubproblems || [];
-      
+
       // Constraint 1: Cannot exceed current sub-problem count
       if (finalSubproblems.length > currentSubproblemCount) {
-        console.log(`⚠️ Sub-problem count constraint: requested ${finalSubproblems.length}, current ${currentSubproblemCount}, truncating`);
+        console.log(
+          `⚠️ Sub-problem count constraint: requested ${finalSubproblems.length}, current ${currentSubproblemCount}, truncating`,
+        );
         finalSubproblems = finalSubproblems.slice(0, currentSubproblemCount);
       }
-      
+
       // Constraint 2: Maximum 2 sub-problems allowed
       if (finalSubproblems.length > 3) {
-        console.log(`⚠️ Sub-problem max constraint: requested ${finalSubproblems.length}, max 3, truncating`);
+        console.log(
+          `⚠️ Sub-problem max constraint: requested ${finalSubproblems.length}, max 3, truncating`,
+        );
         finalSubproblems = finalSubproblems.slice(0, 3);
       }
-      
+
       // MANDATORY: Always rewrite task description
-      const newTaskDescription = taskAdjustment.taskDescription || currentTaskInfo.task?.description || "Task optimization";
-      
+      const newTaskDescription =
+        taskAdjustment.taskDescription ||
+        currentTaskInfo.task?.description ||
+        "Task optimization";
+
       // Apply the optimization
       await ResearchSessionOperations.modifyCurrentTaskAndSubproblems(
-        this.conversationId, 
+        this.conversationId,
         newTaskDescription,
         finalSubproblems,
       );
-      
+
       console.log("✅ MANDATORY task optimization applied:");
       console.log(`   - New task description: ${newTaskDescription}`);
-      console.log(`   - New sub-problems (${finalSubproblems.length}): ${finalSubproblems.join(", ")}`);
-      console.log(`   - Constraints enforced: max ${Math.min(currentSubproblemCount, 2)} sub-problems`);
-      
+      console.log(
+        `   - New sub-problems (${finalSubproblems.length}): ${finalSubproblems.join(", ")}`,
+      );
+      console.log(
+        `   - Constraints enforced: max ${Math.min(currentSubproblemCount, 2)} sub-problems`,
+      );
+
       // Record the mandatory task optimization in conversation history
       await ResearchSessionOperations.addMessage(this.conversationId, {
         role: "agent",
         content: `MANDATORY task optimization applied: ${taskAdjustment.reasoning || "Task refinement based on progress"}`,
         type: "system_info",
       });
-      
     } catch (error) {
       console.error("❌ Failed to apply mandatory task optimization:", error);
       // Don't throw - continue with execution even if optimization fails
@@ -1208,7 +1418,10 @@ Technical Details:
    * Build task queue summary for decision making
    */
   private buildTaskQueueSummary(context: ExecutionContext): string {
-    if (!context.research_state.task_queue || context.research_state.task_queue.length === 0) {
+    if (
+      !context.research_state.task_queue ||
+      context.research_state.task_queue.length === 0
+    ) {
       return "No tasks in queue";
     }
 
@@ -1230,13 +1443,16 @@ Task Progress: ${currentTask.sub_problems.length - remainingSubProblems}/${curre
   }
 
   private buildCompletedTasksSummary(context: ExecutionContext): string {
-    if (!context.research_state.completed_tasks || context.research_state.completed_tasks.length === 0) {
+    if (
+      !context.research_state.completed_tasks ||
+      context.research_state.completed_tasks.length === 0
+    ) {
       return "No tasks completed yet";
     }
 
     const completedTasks = context.research_state.completed_tasks;
     let summary = `Total Completed: ${completedTasks.length} tasks\n\n`;
-    
+
     // Show the most recent completed tasks (up to 5)
     const recentCompleted = completedTasks.slice(-5);
     summary += "Recently Completed Tasks:\n";
@@ -1256,10 +1472,13 @@ Task Progress: ${currentTask.sub_problems.length - remainingSubProblems}/${curre
    * Execute a tool decision
    */
   private async executeDecision(
-    decision: ToolDecision, 
+    decision: ToolDecision,
     context: ExecutionContext,
   ): Promise<ExecutionResult> {
-    await ResearchSessionOperations.updateStatus(this.conversationId, SessionStatus.EXECUTING);
+    await ResearchSessionOperations.updateStatus(
+      this.conversationId,
+      SessionStatus.EXECUTING,
+    );
 
     // Add execution message
     await ResearchSessionOperations.addMessage(this.conversationId, {
@@ -1283,7 +1502,9 @@ Task Progress: ${currentTask.sub_problems.length - remainingSubProblems}/${curre
    * Evaluate generation progress - assess if GenerationOutput meets completion standards
    * Returns null if satisfied, or improvement suggestions string if not satisfied
    */
-  private async evaluateGenerationProgress(generationOutput: GenerationOutput): Promise<string | null> {
+  private async evaluateGenerationProgress(
+    generationOutput: GenerationOutput,
+  ): Promise<string | null> {
     // First, perform basic validation checks
     const basicValidation = this.performBasicValidation(generationOutput);
     if (!basicValidation.isValid) {
@@ -1299,7 +1520,9 @@ Task Progress: ${currentTask.sub_problems.length - remainingSubProblems}/${curre
       return improvementMsg;
     }
 
-    console.log("✅ Basic validation passed, proceeding with LLM quality assessment");
+    console.log(
+      "✅ Basic validation passed, proceeding with LLM quality assessment",
+    );
 
     // If basic validation passes, use LLM for strict quality assessment
     const prompt = createStandardPromptTemplate(`
@@ -1452,17 +1675,42 @@ Task Progress: ${currentTask.sub_problems.length - remainingSubProblems}/${curre
       });
 
       // Parse detailed XML response
-      const character_quality_score = parseInt(response.match(/<character_quality_score>(\d+)<\/character_quality_score>/)?.[1] ?? "0", 10);
-      const worldbook_quality_score = parseInt(response.match(/<worldbook_quality_score>(\d+)<\/worldbook_quality_score>/)?.[1] ?? "0", 10);
-      const overall_quality_score = parseInt(response.match(/<overall_quality_score>(\d+)<\/overall_quality_score>/)?.[1] ?? "0", 10);
-      const meets_professional_standards = response.match(/<meets_professional_standards>(true|false)<\/meets_professional_standards>/)?.[1] === "true";
+      const character_quality_score = parseInt(
+        response.match(
+          /<character_quality_score>(\d+)<\/character_quality_score>/,
+        )?.[1] ?? "0",
+        10,
+      );
+      const worldbook_quality_score = parseInt(
+        response.match(
+          /<worldbook_quality_score>(\d+)<\/worldbook_quality_score>/,
+        )?.[1] ?? "0",
+        10,
+      );
+      const overall_quality_score = parseInt(
+        response.match(
+          /<overall_quality_score>(\d+)<\/overall_quality_score>/,
+        )?.[1] ?? "0",
+        10,
+      );
+      const meets_professional_standards =
+        response.match(
+          /<meets_professional_standards>(true|false)<\/meets_professional_standards>/,
+        )?.[1] === "true";
 
       // Extract detailed analysis sections
-      const content_depth_evaluation = response.match(/<content_depth_evaluation>([\s\S]*?)<\/content_depth_evaluation>/)?.[1].trim() ?? "No content depth evaluation provided";
-      
+      const content_depth_evaluation =
+        response
+          .match(
+            /<content_depth_evaluation>([\s\S]*?)<\/content_depth_evaluation>/,
+          )?.[1]
+          .trim() ?? "No content depth evaluation provided";
+
       // Extract critical issues
       const critical_issues: string[] = [];
-      const issuesMatch = response.match(/<critical_issues>([\s\S]*?)<\/critical_issues>/)?.[1] ?? "";
+      const issuesMatch =
+        response.match(/<critical_issues>([\s\S]*?)<\/critical_issues>/)?.[1] ??
+        "";
       const issueRegex = /<issue>([\s\S]*?)<\/issue>/g;
       let issueMatch;
       while ((issueMatch = issueRegex.exec(issuesMatch)) !== null) {
@@ -1471,7 +1719,10 @@ Task Progress: ${currentTask.sub_problems.length - remainingSubProblems}/${curre
 
       // Extract improvement tasks
       const improvement_tasks: string[] = [];
-      const tasksMatch = response.match(/<improvement_tasks>([\s\S]*?)<\/improvement_tasks>/)?.[1] ?? "";
+      const tasksMatch =
+        response.match(
+          /<improvement_tasks>([\s\S]*?)<\/improvement_tasks>/,
+        )?.[1] ?? "";
       const taskRegex = /<task>([\s\S]*?)<\/task>/g;
       let taskMatch;
       while ((taskMatch = taskRegex.exec(tasksMatch)) !== null) {
@@ -1479,21 +1730,47 @@ Task Progress: ${currentTask.sub_problems.length - remainingSubProblems}/${curre
       }
 
       // Extract essential entries analysis for detailed logging
-      const status_present = response.match(/<status_entry>[\s\S]*?<present>(true|false)<\/present>[\s\S]*?<\/status_entry>/)?.[1] === "true";
-      const status_word_count = response.match(/<status_entry>[\s\S]*?<word_count>(\d+)<\/word_count>[\s\S]*?<\/status_entry>/)?.[1] ?? "0";
-      const user_setting_present = response.match(/<user_setting_entry>[\s\S]*?<present>(true|false)<\/present>[\s\S]*?<\/user_setting_entry>/)?.[1] === "true";
-      const user_setting_word_count = response.match(/<user_setting_entry>[\s\S]*?<word_count>(\d+)<\/word_count>[\s\S]*?<\/user_setting_entry>/)?.[1] ?? "0";
-      const world_view_present = response.match(/<world_view_entry>[\s\S]*?<present>(true|false)<\/present>[\s\S]*?<\/world_view_entry>/)?.[1] === "true";
-      const world_view_word_count = response.match(/<world_view_entry>[\s\S]*?<word_count>(\d+)<\/word_count>[\s\S]*?<\/world_view_entry>/)?.[1] ?? "0";
+      const status_present =
+        response.match(
+          /<status_entry>[\s\S]*?<present>(true|false)<\/present>[\s\S]*?<\/status_entry>/,
+        )?.[1] === "true";
+      const status_word_count =
+        response.match(
+          /<status_entry>[\s\S]*?<word_count>(\d+)<\/word_count>[\s\S]*?<\/status_entry>/,
+        )?.[1] ?? "0";
+      const user_setting_present =
+        response.match(
+          /<user_setting_entry>[\s\S]*?<present>(true|false)<\/present>[\s\S]*?<\/user_setting_entry>/,
+        )?.[1] === "true";
+      const user_setting_word_count =
+        response.match(
+          /<user_setting_entry>[\s\S]*?<word_count>(\d+)<\/word_count>[\s\S]*?<\/user_setting_entry>/,
+        )?.[1] ?? "0";
+      const world_view_present =
+        response.match(
+          /<world_view_entry>[\s\S]*?<present>(true|false)<\/present>[\s\S]*?<\/world_view_entry>/,
+        )?.[1] === "true";
+      const world_view_word_count =
+        response.match(
+          /<world_view_entry>[\s\S]*?<word_count>(\d+)<\/word_count>[\s\S]*?<\/world_view_entry>/,
+        )?.[1] ?? "0";
 
       console.log("📊 Detailed Quality Assessment:");
-      console.log(`   Character: ${character_quality_score}%, Worldbook: ${worldbook_quality_score}%, Overall: ${overall_quality_score}%`);
-      console.log(`   Essential Entries: STATUS(${status_present ? "✅" : "❌"}, ${status_word_count}w), USER_SETTING(${user_setting_present ? "✅" : "❌"}, ${user_setting_word_count}w), WORLD_VIEW(${world_view_present ? "✅" : "❌"}, ${world_view_word_count}w)`);
-      console.log(`   Professional Standards: ${meets_professional_standards ? "✅ MET" : "❌ NOT MET"}`);
-      
+      console.log(
+        `   Character: ${character_quality_score}%, Worldbook: ${worldbook_quality_score}%, Overall: ${overall_quality_score}%`,
+      );
+      console.log(
+        `   Essential Entries: STATUS(${status_present ? "✅" : "❌"}, ${status_word_count}w), USER_SETTING(${user_setting_present ? "✅" : "❌"}, ${user_setting_word_count}w), WORLD_VIEW(${world_view_present ? "✅" : "❌"}, ${world_view_word_count}w)`,
+      );
+      console.log(
+        `   Professional Standards: ${meets_professional_standards ? "✅ MET" : "❌ NOT MET"}`,
+      );
+
       if (meets_professional_standards) {
         // Generation meets professional completion standards
-        console.log("✅ Content meets professional standards - Generation complete");
+        console.log(
+          "✅ Content meets professional standards - Generation complete",
+        );
         return null;
       } else {
         // Generation needs improvement - return detailed analysis
@@ -1514,25 +1791,24 @@ Task Progress: ${currentTask.sub_problems.length - remainingSubProblems}/${curre
 ${content_depth_evaluation}
 
 🚨 CRITICAL ISSUES:
-${critical_issues.length > 0 ? critical_issues.map(issue => `• ${issue}`).join("\n") : "• No critical issues identified"}
+${critical_issues.length > 0 ? critical_issues.map((issue) => `• ${issue}`).join("\n") : "• No critical issues identified"}
 
 🎯 IMMEDIATE ACTION REQUIRED:
 Use REFLECT tool to generate new tasks based on these specific improvement requirements:
-${improvement_tasks.map(task => `• ${task}`).join("\n")}`;
+${improvement_tasks.map((task) => `• ${task}`).join("\n")}`;
 
         await ResearchSessionOperations.addMessage(this.conversationId, {
           role: "agent",
           content: improvementMsg,
           type: "quality_evaluation",
-        }); 
+        });
 
         return improvementMsg;
       }
-
     } catch (error) {
       console.error("❌ Generation evaluation failed:", error);
       const errorMsg = `Generation evaluation failed: ${error instanceof Error ? error.message : String(error)}\n\nNext step: Call REFLECT tool to analyze and create new tasks to continue generation progress.`;
-      
+
       await ResearchSessionOperations.addMessage(this.conversationId, {
         role: "agent",
         content: errorMsg,
@@ -1546,61 +1822,84 @@ ${improvement_tasks.map(task => `• ${task}`).join("\n")}`;
   /**
    * Perform basic validation of GenerationOutput before LLM assessment
    */
-  private performBasicValidation(generationOutput: GenerationOutput): { isValid: boolean; reason?: string } {
+  private performBasicValidation(generationOutput: GenerationOutput): {
+    isValid: boolean;
+    reason?: string;
+  } {
     // Check if character_data exists and all required fields are non-empty
     if (!generationOutput.character_data) {
-      return { 
-        isValid: false, 
-        reason: "character_data is missing. Next step: Call REFLECT tool to analyze and create new tasks to complete character creation. Required fields: name, description, personality, scenario, first_mes, mes_example, alternate_greetings, creator_notes, tags", 
+      return {
+        isValid: false,
+        reason:
+          "character_data is missing. Next step: Call REFLECT tool to analyze and create new tasks to complete character creation. Required fields: name, description, personality, scenario, first_mes, mes_example, alternate_greetings, creator_notes, tags",
       };
     }
 
     const charData = generationOutput.character_data;
-    const requiredCharFields = ["name", "description", "personality", "scenario", "first_mes", "mes_example", "alternate_greetings", "creator_notes", "tags"];
-    
+    const requiredCharFields = [
+      "name",
+      "description",
+      "personality",
+      "scenario",
+      "first_mes",
+      "mes_example",
+      "alternate_greetings",
+      "creator_notes",
+      "tags",
+    ];
+
     for (const field of requiredCharFields) {
       if (!charData[field] || charData[field].toString().trim() === "") {
-        return { 
-          isValid: false, 
-          reason: `character_data.${field} is empty or missing. Next step: Call REFLECT tool to analyze and create new tasks to complete the missing character field: ${field}`, 
+        return {
+          isValid: false,
+          reason: `character_data.${field} is empty or missing. Next step: Call REFLECT tool to analyze and create new tasks to complete the missing character field: ${field}`,
         };
       }
     }
 
     // Validate individual worldbook components
     if (!generationOutput.status_data) {
-      return { 
-        isValid: false, 
-        reason: "status_data is missing. Next step: Call REFLECT tool to analyze and create new tasks to generate status data.", 
+      return {
+        isValid: false,
+        reason:
+          "status_data is missing. Next step: Call REFLECT tool to analyze and create new tasks to generate status data.",
       };
     }
 
     if (!generationOutput.user_setting_data) {
-      return { 
-        isValid: false, 
-        reason: "user_setting_data is missing. Next step: Call REFLECT tool to analyze and create new tasks to generate user setting data.", 
+      return {
+        isValid: false,
+        reason:
+          "user_setting_data is missing. Next step: Call REFLECT tool to analyze and create new tasks to generate user setting data.",
       };
     }
 
     if (!generationOutput.world_view_data) {
-      return { 
-        isValid: false, 
-        reason: "world_view_data is missing. Next step: Call REFLECT tool to analyze and create new tasks to generate world view data.", 
+      return {
+        isValid: false,
+        reason:
+          "world_view_data is missing. Next step: Call REFLECT tool to analyze and create new tasks to generate world view data.",
       };
     }
 
-    if (!generationOutput.supplement_data || !Array.isArray(generationOutput.supplement_data)) {
-      return { 
-        isValid: false, 
-        reason: "supplement_data is missing or not an array. Next step: Call REFLECT tool to analyze and create new tasks to generate supplementary data.", 
+    if (
+      !generationOutput.supplement_data ||
+      !Array.isArray(generationOutput.supplement_data)
+    ) {
+      return {
+        isValid: false,
+        reason:
+          "supplement_data is missing or not an array. Next step: Call REFLECT tool to analyze and create new tasks to generate supplementary data.",
       };
     }
 
-    const validSupplementEntries = generationOutput.supplement_data.filter(e => e.content && e.content.trim() !== "");
+    const validSupplementEntries = generationOutput.supplement_data.filter(
+      (e) => e.content && e.content.trim() !== "",
+    );
     if (validSupplementEntries.length < 5) {
-      return { 
-        isValid: false, 
-        reason: `supplement_data has only ${validSupplementEntries.length} valid entries, minimum 5 required. Next step: Call REFLECT tool to analyze and create new tasks to generate more supplementary entries (need ${5 - validSupplementEntries.length} more valid entries).`, 
+      return {
+        isValid: false,
+        reason: `supplement_data has only ${validSupplementEntries.length} valid entries, minimum 5 required. Next step: Call REFLECT tool to analyze and create new tasks to generate more supplementary entries (need ${5 - validSupplementEntries.length} more valid entries).`,
       };
     }
 
@@ -1612,7 +1911,9 @@ ${improvement_tasks.map(task => `• ${task}`).join("\n")}`;
   // ============================================================================
 
   private async buildExecutionContext(): Promise<ExecutionContext> {
-    const session = await ResearchSessionOperations.getSessionById(this.conversationId);
+    const session = await ResearchSessionOperations.getSessionById(
+      this.conversationId,
+    );
     if (!session) throw new Error("Session not found");
 
     return {
@@ -1652,52 +1953,60 @@ ${improvement_tasks.map(task => `• ${task}`).join("\n")}`;
 
   private buildRecentConversationSummary(messages: Message[]): string {
     const recentMessages = messages.slice(-5);
-    
+
     if (recentMessages.length === 0) {
       return "No recent conversation history available";
     }
-    
+
     let summary = "RECENT CONVERSATION (Last 5 turns):\n";
-    
+
     // Check for critical message types first
-    const criticalMessages = recentMessages.filter(m => 
-      m.type === "quality_evaluation" || m.type === "tool_failure",
+    const criticalMessages = recentMessages.filter(
+      (m) => m.type === "quality_evaluation" || m.type === "tool_failure",
     );
-    
+
     if (criticalMessages.length > 0) {
       summary += "\n🚨 CRITICAL RECENT FEEDBACK:\n";
-      criticalMessages.forEach(m => {
+      criticalMessages.forEach((m) => {
         summary += `⚠️ ${m.type.toUpperCase()}: ${m.content.substring(0, 200)}...\n`;
       });
       summary += "\n";
     }
-    
+
     // Add all recent messages
-    summary += recentMessages.map(m => {
-      const prefix = (m.type === "quality_evaluation" || m.type === "tool_failure") ? "🚨 " : "";
-      return `${prefix}${m.type}: ${m.content}`;
-    }).join("\n");
-    
+    summary += recentMessages
+      .map((m) => {
+        const prefix =
+          m.type === "quality_evaluation" || m.type === "tool_failure"
+            ? "🚨 "
+            : "";
+        return `${prefix}${m.type}: ${m.content}`;
+      })
+      .join("\n");
+
     return summary;
   }
 
   private buildFullConversationSummary(messages: Message[]): string {
     // Get all messages except the last 5
     const fullMessages = messages.slice(0, -5);
-    
+
     if (fullMessages.length === 0) {
       return "No earlier conversation history available";
     }
-    
+
     let summary = `FULL CONVERSATION HISTORY (${fullMessages.length} earlier messages):\n`;
-    
+
     // Group messages by type for better organization
-    const messagesByType = fullMessages.reduce((acc, msg) => {
-      if (!acc[msg.type]) acc[msg.type] = [];
-      acc[msg.type].push(msg);
-      return acc;
-    }, {} as Record<string, Message[]>);
-    
+    const messagesByType = fullMessages.reduce(
+      (acc, msg) => {
+        if (!acc[msg.type]) acc[msg.type] = [];
+        acc[msg.type].push(msg);
+        return acc;
+      },
+      {} as Record<string, Message[]>,
+    );
+
     // Show summary by message types
     Object.entries(messagesByType).forEach(([type, msgs]) => {
       summary += `\n${type.toUpperCase()} (${msgs.length} messages):\n`;
@@ -1708,7 +2017,7 @@ ${improvement_tasks.map(task => `• ${task}`).join("\n")}`;
         summary += `  ... and ${msgs.length - 3} more ${type} messages\n`;
       }
     });
-    
+
     return summary;
   }
 
@@ -1719,14 +2028,16 @@ ${improvement_tasks.map(task => `• ${task}`).join("\n")}`;
 
     return knowledgeBase
       .slice(0, 5)
-      .map(k => `- ${k.source}: ${k.content.substring(0, 100)}...`)
+      .map((k) => `- ${k.source}: ${k.content.substring(0, 100)}...`)
       .join("\n");
   }
 
   private async generateFinalResult(): Promise<any> {
     // For final result generation, we do need the complete session data
     // This is acceptable since it only happens once at the very end
-    const session = await ResearchSessionOperations.getSessionById(this.conversationId);
+    const session = await ResearchSessionOperations.getSessionById(
+      this.conversationId,
+    );
     if (!session) return null;
 
     return {
@@ -1739,40 +2050,72 @@ ${improvement_tasks.map(task => `• ${task}`).join("\n")}`;
     };
   }
 
-  private buildCharacterProgressSummary(generationOutput: GenerationOutput): string {
+  private buildCharacterProgressSummary(
+    generationOutput: GenerationOutput,
+  ): string {
     if (!generationOutput?.character_data) {
       return "CHARACTER STATUS: Not started - No character data available";
     }
 
     const charData = generationOutput.character_data;
-    const requiredCharFields = ["name", "description", "personality", "scenario", "first_mes", "mes_example", "alternate_greetings", "creator_notes", "tags"];
-    const completedFields = charData ? requiredCharFields.filter(field => charData[field] && charData[field].toString().trim() !== "") : [];
-    const missingFields = charData ? requiredCharFields.filter(field => !charData[field] || charData[field].toString().trim() === "") : requiredCharFields;
-    
-    const progressPercentage = Math.round((completedFields.length / requiredCharFields.length) * 100);
-    
+    const requiredCharFields = [
+      "name",
+      "description",
+      "personality",
+      "scenario",
+      "first_mes",
+      "mes_example",
+      "alternate_greetings",
+      "creator_notes",
+      "tags",
+    ];
+    const completedFields = charData
+      ? requiredCharFields.filter(
+          (field) =>
+            charData[field] && charData[field].toString().trim() !== "",
+        )
+      : [];
+    const missingFields = charData
+      ? requiredCharFields.filter(
+          (field) =>
+            !charData[field] || charData[field].toString().trim() === "",
+        )
+      : requiredCharFields;
+
+    const progressPercentage = Math.round(
+      (completedFields.length / requiredCharFields.length) * 100,
+    );
+
     let summary = `CHARACTER STATUS: ${progressPercentage}% Complete (${completedFields.length}/${requiredCharFields.length} fields)`;
-    
+
     if (completedFields.length > 0) {
       summary += `\n✅ Completed: ${completedFields.join(", ")}`;
     }
-    
+
     if (missingFields.length > 0) {
       summary += `\n❌ Missing: ${missingFields.join(", ")}`;
     }
-    
+
     return summary;
   }
 
-  private buildWorldbookProgressSummary(generationOutput: GenerationOutput): string {
+  private buildWorldbookProgressSummary(
+    generationOutput: GenerationOutput,
+  ): string {
     if (!generationOutput) {
       return "WORLDBOOK STATUS: No generation output available";
     }
 
     // STATUS
     let statusSummary = "";
-    if (generationOutput.status_data && generationOutput.status_data.content && generationOutput.status_data.content.trim() !== "") {
-      const wordCount = generationOutput.status_data.content.trim().split(/\s+/).length;
+    if (
+      generationOutput.status_data &&
+      generationOutput.status_data.content &&
+      generationOutput.status_data.content.trim() !== ""
+    ) {
+      const wordCount = generationOutput.status_data.content
+        .trim()
+        .split(/\s+/).length;
       statusSummary = `STATUS: ✅ Present (${wordCount} words)`;
     } else {
       statusSummary = "STATUS: ❌ Missing";
@@ -1780,8 +2123,14 @@ ${improvement_tasks.map(task => `• ${task}`).join("\n")}`;
 
     // USER_SETTING
     let userSettingSummary = "";
-    if (generationOutput.user_setting_data && generationOutput.user_setting_data.content && generationOutput.user_setting_data.content.trim() !== "") {
-      const wordCount = generationOutput.user_setting_data.content.trim().split(/\s+/).length;
+    if (
+      generationOutput.user_setting_data &&
+      generationOutput.user_setting_data.content &&
+      generationOutput.user_setting_data.content.trim() !== ""
+    ) {
+      const wordCount = generationOutput.user_setting_data.content
+        .trim()
+        .split(/\s+/).length;
       userSettingSummary = `USER_SETTING: ✅ Present (${wordCount} words)`;
     } else {
       userSettingSummary = "USER_SETTING: ❌ Missing";
@@ -1789,8 +2138,14 @@ ${improvement_tasks.map(task => `• ${task}`).join("\n")}`;
 
     // WORLD_VIEW
     let worldViewSummary = "";
-    if (generationOutput.world_view_data && generationOutput.world_view_data.content && generationOutput.world_view_data.content.trim() !== "") {
-      const wordCount = generationOutput.world_view_data.content.trim().split(/\s+/).length;
+    if (
+      generationOutput.world_view_data &&
+      generationOutput.world_view_data.content &&
+      generationOutput.world_view_data.content.trim() !== ""
+    ) {
+      const wordCount = generationOutput.world_view_data.content
+        .trim()
+        .split(/\s+/).length;
       worldViewSummary = `WORLD_VIEW: ✅ Present (${wordCount} words)`;
     } else {
       worldViewSummary = "WORLD_VIEW: ❌ Missing";
@@ -1798,24 +2153,48 @@ ${improvement_tasks.map(task => `• ${task}`).join("\n")}`;
 
     // SUPPLEMENT
     let supplementSummary = "";
-    if (generationOutput.supplement_data && Array.isArray(generationOutput.supplement_data) && generationOutput.supplement_data.length > 0) {
-      const validSupplements = generationOutput.supplement_data.filter(entry => entry.content && entry.content.trim() !== "");
+    if (
+      generationOutput.supplement_data &&
+      Array.isArray(generationOutput.supplement_data) &&
+      generationOutput.supplement_data.length > 0
+    ) {
+      const validSupplements = generationOutput.supplement_data.filter(
+        (entry) => entry.content && entry.content.trim() !== "",
+      );
       const count = validSupplements.length;
-      const avgWordCount = count > 0 ? Math.round(validSupplements.map(e => e.content.trim().split(/\s+/).length).reduce((a, b) => a + b, 0) / count) : 0;
+      const avgWordCount =
+        count > 0
+          ? Math.round(
+              validSupplements
+                .map((e) => e.content.trim().split(/\s+/).length)
+                .reduce((a, b) => a + b, 0) / count,
+            )
+          : 0;
       supplementSummary = `SUPPLEMENT: ${count} entries (avg ${avgWordCount} words)`;
     } else {
       supplementSummary = "SUPPLEMENT: ❌ None";
     }
 
     // 合并描述
-    return [statusSummary, userSettingSummary, worldViewSummary, supplementSummary].join("\n");
+    return [
+      statusSummary,
+      userSettingSummary,
+      worldViewSummary,
+      supplementSummary,
+    ].join("\n");
   }
 
-  private buildCompletionStatusSummary(generationOutput: GenerationOutput, message_history: Message[]): string {
+  private buildCompletionStatusSummary(
+    generationOutput: GenerationOutput,
+    message_history: Message[],
+  ): string {
     // Atomic feedback: If the latest message is a quality_evaluation or tool_failure, return its content immediately
     if (Array.isArray(message_history) && message_history.length > 0) {
       const lastMsg = message_history[message_history.length - 1];
-      if (lastMsg.type === "quality_evaluation" || lastMsg.type === "tool_failure") {
+      if (
+        lastMsg.type === "quality_evaluation" ||
+        lastMsg.type === "tool_failure"
+      ) {
         // Return only this feedback, do not append or combine with other status
         return lastMsg.content;
       }
@@ -1825,40 +2204,67 @@ ${improvement_tasks.map(task => `• ${task}`).join("\n")}`;
     }
 
     const hasCharacterData = !!generationOutput.character_data;
-    
+
     // Check individual worldbook components
     const hasStatusData = !!generationOutput.status_data;
     const hasUserSettingData = !!generationOutput.user_setting_data;
     const hasWorldViewData = !!generationOutput.world_view_data;
     const supplementEntries = generationOutput.supplement_data || [];
-    const hasSupplementData = Array.isArray(supplementEntries) && supplementEntries.length > 0;
-    
-    const hasAnyWorldbookData = hasStatusData || hasUserSettingData || hasWorldViewData || hasSupplementData;
-    const hasAllMandatoryWorldbookData = hasStatusData && hasUserSettingData && hasWorldViewData;
-    
+    const hasSupplementData =
+      Array.isArray(supplementEntries) && supplementEntries.length > 0;
+
+    const hasAnyWorldbookData =
+      hasStatusData ||
+      hasUserSettingData ||
+      hasWorldViewData ||
+      hasSupplementData;
+    const hasAllMandatoryWorldbookData =
+      hasStatusData && hasUserSettingData && hasWorldViewData;
+
     if (!hasCharacterData && !hasAnyWorldbookData) {
       return "OVERALL STATUS: Generation not started - Start with CHARACTER tool";
     }
-    
+
     if (!hasCharacterData && hasAnyWorldbookData) {
       return "OVERALL STATUS: ⚠️ INVALID STATE - Worldbook exists but no character data. Character must be completed first before worldbook creation.";
     }
-    
+
     // Character exists, check completion
     const charData = generationOutput.character_data;
-    const requiredCharFields = ["name", "description", "personality", "scenario", "first_mes", "mes_example", "creator_notes", "tags"];
-    const completedFields = charData ? requiredCharFields.filter(field => charData[field] && charData[field].toString().trim() !== "") : [];
-    const missingFields = charData ? requiredCharFields.filter(field => !charData[field] || charData[field].toString().trim() === "") : requiredCharFields;
+    const requiredCharFields = [
+      "name",
+      "description",
+      "personality",
+      "scenario",
+      "first_mes",
+      "mes_example",
+      "creator_notes",
+      "tags",
+    ];
+    const completedFields = charData
+      ? requiredCharFields.filter(
+          (field) =>
+            charData[field] && charData[field].toString().trim() !== "",
+        )
+      : [];
+    const missingFields = charData
+      ? requiredCharFields.filter(
+          (field) =>
+            !charData[field] || charData[field].toString().trim() === "",
+        )
+      : requiredCharFields;
     const charComplete = missingFields.length === 0;
-    
+
     if (!charComplete) {
       let status = `OVERALL STATUS: Character incomplete - ${completedFields.length}/${requiredCharFields.length} fields done`;
       status += `\n❌ MISSING CHARACTER FIELDS: ${missingFields.join(", ")}`;
-      status += "\n🚫 BLOCKED: Cannot create worldbook until ALL character fields are complete";
-      status += "\n📋 NEXT ACTION: Use CHARACTER tool to complete missing fields";
+      status +=
+        "\n🚫 BLOCKED: Cannot create worldbook until ALL character fields are complete";
+      status +=
+        "\n📋 NEXT ACTION: Use CHARACTER tool to complete missing fields";
       return status;
     }
-    
+
     // Character is complete, check worldbook status
     if (hasCharacterData && !hasAnyWorldbookData) {
       return "OVERALL STATUS: ✅ Character complete - Ready for worldbook creation. Start with STATUS tool.";
@@ -1878,7 +2284,11 @@ ${improvement_tasks.map(task => `• ${task}`).join("\n")}`;
       return "OVERALL STATUS: Character complete - Worldbook in progress\n❌ MISSING WORLDBOOK COMPONENT: WORLD_VIEW\n📋 NEXT ACTION: Use tool: WORLD_VIEW";
     }
     // 4. SUPPLEMENT (must have at least 5 entries and all non-empty)
-    const supplementComplete = supplementEntries.length >= 5 && supplementEntries.every(entry => entry.content && entry.content.trim() !== "");
+    const supplementComplete =
+      supplementEntries.length >= 5 &&
+      supplementEntries.every(
+        (entry) => entry.content && entry.content.trim() !== "",
+      );
     if (!supplementComplete) {
       // Collect all existing supplement keys (support string and string[])
       const existingKeys: string[] = [];
@@ -1888,7 +2298,7 @@ ${improvement_tasks.map(task => `• ${task}`).join("\n")}`;
           existingKeys.push(`"${keys}"`);
         } else if (Array.isArray(keys)) {
           // If key is an array, add all non-empty strings
-          keys  .forEach(k => {
+          keys.forEach((k) => {
             if (typeof k === "string" && k.trim() !== "") {
               existingKeys.push(`"${k}"`);
             }
@@ -1901,9 +2311,8 @@ ${improvement_tasks.map(task => `• ${task}`).join("\n")}`;
       }
       return `OVERALL STATUS: Character complete - Worldbook in progress\n❌ MISSING WORLDBOOK COMPONENT: SUPPLEMENT (need 5+)\n📋 NEXT ACTION: Use tool: SUPPLEMENT${keyInfo}`;
     }
-    
+
     // All worldbook components complete
     return "OVERALL STATUS: ✅ Generation complete - Ready for final evaluation";
   }
-} 
- 
+}

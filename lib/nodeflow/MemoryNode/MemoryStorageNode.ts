@@ -1,11 +1,17 @@
 import { NodeBase } from "@/lib/nodeflow/NodeBase";
-import { NodeConfig, NodeInput, NodeOutput, NodeCategory } from "@/lib/nodeflow/types";
+import {
+  NodeConfig,
+  NodeInput,
+  NodeOutput,
+  NodeCategory,
+} from "@/lib/nodeflow/types";
 import { MemoryNodeTools } from "./MemoryNodeTools";
 import { NodeToolRegistry } from "../NodeTool";
 
 export class MemoryStorageNode extends NodeBase {
   static readonly nodeName = "memoryStorage";
-  static readonly description = "Extract and store new memories from conversation asynchronously";
+  static readonly description =
+    "Extract and store new memories from conversation asynchronously";
   static readonly version = "1.0.0";
 
   constructor(config: NodeConfig) {
@@ -45,34 +51,36 @@ export class MemoryStorageNode extends NodeBase {
     // Early return if memory storage is disabled
     if (!enableMemoryStorage) {
       console.log("Memory storage disabled, skipping...");
-      outputData.memoryStorageResult = { 
-        success: true, 
+      outputData.memoryStorageResult = {
+        success: true,
         message: "Memory storage disabled",
-        extractedCount: 0, 
+        extractedCount: 0,
       };
       return outputData;
     }
 
     // Validate required inputs
     if (!characterId || !apiKey || !userInput || !fullResponse) {
-      const error = !characterId ? "Character ID required" : 
-        !apiKey ? "API key required" : 
-          "Insufficient conversation data";
-      
+      const error = !characterId
+        ? "Character ID required"
+        : !apiKey
+          ? "API key required"
+          : "Insufficient conversation data";
+
       console.warn(`Memory storage validation failed: ${error}`);
-      outputData.memoryStorageResult = { 
-        success: false, 
+      outputData.memoryStorageResult = {
+        success: false,
         error,
-        extractedCount: 0, 
+        extractedCount: 0,
       };
       return outputData;
     }
 
     try {
       console.log("Starting memory extraction and storage...");
-      
+
       // Extract and store memories using the tool
-      const extractionResult = await this.executeTool(
+      const extractionResult = (await this.executeTool(
         "extractAndStoreMemories",
         characterId,
         userInput,
@@ -81,7 +89,7 @@ export class MemoryStorageNode extends NodeBase {
         apiKey,
         baseUrl,
         language,
-      ) as {
+      )) as {
         success: boolean;
         extractedCount: number;
         extractedMemories?: any[];
@@ -92,11 +100,12 @@ export class MemoryStorageNode extends NodeBase {
 
       outputData.memoryStorageResult = extractionResult;
 
-      console.log(`Memory storage completed: ${extractionResult.extractedCount} memories extracted`);
-
+      console.log(
+        `Memory storage completed: ${extractionResult.extractedCount} memories extracted`,
+      );
     } catch (error) {
       console.error("Memory storage failed:", error);
-      
+
       // Don't fail the entire workflow if memory storage fails
       outputData.memoryStorageResult = {
         success: false,
@@ -107,4 +116,4 @@ export class MemoryStorageNode extends NodeBase {
 
     return outputData;
   }
-} 
+}

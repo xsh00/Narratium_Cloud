@@ -37,17 +37,19 @@ export class PresetInitializer {
 
     try {
       console.log("Initializing presets...");
-      
+
       // 获取现有的预设列表
       const existingPresets = await PresetOperations.getAllPresets();
-      
+
       // 导入默认预设
       for (const config of DEFAULT_PRESET_CONFIGS) {
         if (!config.autoImport) continue;
-        
+
         try {
           // 检查是否已存在同名预设
-          const existingPreset = existingPresets.find(p => p.name === config.name);
+          const existingPreset = existingPresets.find(
+            (p) => p.name === config.name,
+          );
           if (existingPreset) {
             console.log(`Preset ${config.name} already exists, skipping...`);
             continue;
@@ -58,18 +60,23 @@ export class PresetInitializer {
           if (presetData) {
             const result = await importPresetFromJson(
               JSON.stringify(presetData),
-              config.displayName.zh
+              config.displayName.zh,
             );
-            
+
             if (result.success) {
               console.log(`Successfully imported preset: ${config.name}`);
-              
+
               // 如果配置为启用状态，则启用该预设
               if (config.enabled && result.presetId) {
-                await PresetOperations.updatePreset(result.presetId, { enabled: true });
+                await PresetOperations.updatePreset(result.presetId, {
+                  enabled: true,
+                });
               }
             } else {
-              console.error(`Failed to import preset ${config.name}:`, result.error);
+              console.error(
+                `Failed to import preset ${config.name}:`,
+                result.error,
+              );
             }
           }
         } catch (error) {
@@ -80,7 +87,6 @@ export class PresetInitializer {
       // 标记为已初始化
       this.markAsInitialized();
       console.log("Preset initialization completed");
-      
     } catch (error) {
       console.error("Error during preset initialization:", error);
     }
@@ -96,7 +102,7 @@ export class PresetInitializer {
       if (response.ok) {
         return await response.json();
       }
-      
+
       // 如果文件不存在，尝试从其他位置加载
       console.warn(`Preset file ${filename} not found in /presets/`);
       return null;
@@ -127,4 +133,4 @@ export class PresetInitializer {
       configs: DEFAULT_PRESET_CONFIGS,
     };
   }
-} 
+}

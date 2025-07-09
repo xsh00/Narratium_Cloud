@@ -4,7 +4,10 @@ import { ResearchSession, SessionStatus } from "@/lib/models/agent-model";
 import { ConfigManager, loadConfigFromLocalStorage } from "./config-manager";
 
 // Define user input callback type
-type UserInputCallback = (message?: string, options?: string[]) => Promise<string>;
+type UserInputCallback = (
+  message?: string,
+  options?: string[],
+) => Promise<string>;
 
 /**
  * Agent Service - Simplified for Real-time Decision Architecture
@@ -56,7 +59,8 @@ export class AgentService {
         return {
           conversationId: "",
           success: false,
-          error: "LLM configuration not found. Please run configuration setup first.",
+          error:
+            "LLM configuration not found. Please run configuration setup first.",
         };
       }
 
@@ -65,21 +69,20 @@ export class AgentService {
         "Character & Worldbook Generation", // Fixed title
         initialUserRequest, // Story description as user request
       );
-      
+
       // Create agent engine with user input callback
       const engine = new AgentEngine(session.id, userInputCallback);
       this.engines.set(session.id, engine);
-      
+
       // Start execution with callback
       const result = await engine.start(userInputCallback);
-      
+
       return {
         conversationId: session.id,
         success: result.success,
         result: result.result,
         error: result.error,
       };
-      
     } catch (error) {
       console.error("Failed to start generation:", error);
       return {
@@ -118,17 +121,21 @@ export class AgentService {
           hasResult: false,
         };
       }
-      
+
       // Check completion using new character_progress structure
       const hasCharacterData = !!session.generation_output.character_data;
       // Check if all mandatory worldbook components exist and supplement_data has content (at least 5 valid entries)
-      const hasAllWorldbookComponents = !!session.generation_output.status_data && 
-                                      !!session.generation_output.user_setting_data && 
-                                      !!session.generation_output.world_view_data && 
-                                      (session.generation_output.supplement_data && session.generation_output.supplement_data.filter(e => e.content && e.content.trim() !== "").length >= 5);
-      
+      const hasAllWorldbookComponents =
+        !!session.generation_output.status_data &&
+        !!session.generation_output.user_setting_data &&
+        !!session.generation_output.world_view_data &&
+        session.generation_output.supplement_data &&
+        session.generation_output.supplement_data.filter(
+          (e) => e.content && e.content.trim() !== "",
+        ).length >= 5;
+
       const hasResult = hasCharacterData && hasAllWorldbookComponents;
-      
+
       return {
         session: session,
         status: session.status,
@@ -138,17 +145,18 @@ export class AgentService {
           knowledgeBaseSize: session.research_state.knowledge_base.length,
         },
         hasResult: hasResult || false,
-        result: hasResult ? {
-          character_data: session.generation_output.character_data,
-          status_data: session.generation_output.status_data,
-          user_setting_data: session.generation_output.user_setting_data,
-          world_view_data: session.generation_output.world_view_data,
-          supplement_data: session.generation_output.supplement_data,
-          knowledge_base: session.research_state.knowledge_base,
-          completion_status: session,
-        } : undefined,
+        result: hasResult
+          ? {
+              character_data: session.generation_output.character_data,
+              status_data: session.generation_output.status_data,
+              user_setting_data: session.generation_output.user_setting_data,
+              world_view_data: session.generation_output.world_view_data,
+              supplement_data: session.generation_output.supplement_data,
+              knowledge_base: session.research_state.knowledge_base,
+              completion_status: session,
+            }
+          : undefined,
       };
-      
     } catch (error) {
       console.error("Failed to get conversation status:", error);
       return {
@@ -183,7 +191,7 @@ export class AgentService {
     try {
       // Remove engine from memory
       this.engines.delete(sessionId);
-      
+
       // Delete from storage
       await ResearchSessionOperations.deleteSession(sessionId);
       return true;
@@ -200,7 +208,7 @@ export class AgentService {
     try {
       // Clear all engines from memory
       this.engines.clear();
-      
+
       // Clear all sessions from storage
       await ResearchSessionOperations.clearAll();
       console.log("All sessions cleared from storage.");
@@ -225,12 +233,11 @@ export class AgentService {
           messageCount: 0,
         };
       }
-      
+
       return {
         messages: session.messages,
         messageCount: session.messages.length,
       };
-      
     } catch (error) {
       console.error("Failed to get conversation messages:", error);
       return {
@@ -257,13 +264,12 @@ export class AgentService {
           knowledgeBase: [],
         };
       }
-      
+
       return {
         mainObjective: session.research_state.main_objective,
         completedTasks: session.research_state.completed_tasks,
         knowledgeBase: session.research_state.knowledge_base,
       };
-      
     } catch (error) {
       console.error("Failed to get task state:", error);
       return {
@@ -300,12 +306,15 @@ export class AgentService {
           supplementDataCount: 0,
         };
       }
-      
+
       const hasCharacter = !!session.generation_output.character_data;
       const hasStatus = !!session.generation_output.status_data;
       const hasUserSetting = !!session.generation_output.user_setting_data;
       const hasWorldView = !!session.generation_output.world_view_data;
-      const validSupplementCount = session.generation_output.supplement_data?.filter(e => e.content && e.content.trim() !== "").length || 0;
+      const validSupplementCount =
+        session.generation_output.supplement_data?.filter(
+          (e) => e.content && e.content.trim() !== "",
+        ).length || 0;
 
       return {
         hasCharacter,
@@ -319,7 +328,6 @@ export class AgentService {
         worldViewData: session.generation_output.world_view_data,
         supplementData: session.generation_output.supplement_data,
       };
-      
     } catch (error) {
       console.error("Failed to get character progress:", error);
       return {
@@ -348,19 +356,18 @@ export class AgentService {
           error: "Conversation not found",
         };
       }
-      
+
       const exportData = {
         session,
         exportedAt: new Date().toISOString(),
         version: "4.0", // Updated to new simplified architecture
         architecture: "real-time-decision",
       };
-      
+
       return {
         success: true,
         data: exportData,
       };
-      
     } catch (error) {
       console.error("Failed to export conversation:", error);
       return {
@@ -384,54 +391,55 @@ export class AgentService {
   }> {
     try {
       const sessions = await ResearchSessionOperations.getAllSessions();
-      
+
       const statusBreakdown: Record<string, number> = {};
       let totalIterations = 0;
       let completedGenerations = 0;
       let totalKnowledgeBaseSize = 0;
       let totalTokensUsed = 0;
-      
-      sessions.forEach(session => {
+
+      sessions.forEach((session) => {
         // Count by status
-        statusBreakdown[session.status] = (statusBreakdown[session.status] || 0) + 1;
-        
+        statusBreakdown[session.status] =
+          (statusBreakdown[session.status] || 0) + 1;
+
         // Count iterations
         totalIterations += session.execution_info.current_iteration;
-        
+
         // Count tokens used
         totalTokensUsed += session.execution_info.total_tokens_used || 0;
-        
+
         // Count knowledge base size
         totalKnowledgeBaseSize += session.research_state.knowledge_base.length;
-        
+
         // Count completed generations
-        if (session.status === SessionStatus.COMPLETED && 
-            session.generation_output.character_data && 
-            session.generation_output.status_data &&
-            session.generation_output.user_setting_data &&
-            session.generation_output.world_view_data &&
-            (session.generation_output.supplement_data && session.generation_output.supplement_data.length >= 5)) {
+        if (
+          session.status === SessionStatus.COMPLETED &&
+          session.generation_output.character_data &&
+          session.generation_output.status_data &&
+          session.generation_output.user_setting_data &&
+          session.generation_output.world_view_data &&
+          session.generation_output.supplement_data &&
+          session.generation_output.supplement_data.length >= 5
+        ) {
           completedGenerations++;
         }
-       
       });
-      
-      const successRate = sessions.length > 0 
-        ? (completedGenerations / sessions.length) * 100 
-        : 0;
-        
-      const averageIterations = sessions.length > 0 
-        ? totalIterations / sessions.length 
-        : 0;
 
-      const averageKnowledgeBaseSize = sessions.length > 0
-        ? totalKnowledgeBaseSize / sessions.length
-        : 0;
+      const successRate =
+        sessions.length > 0
+          ? (completedGenerations / sessions.length) * 100
+          : 0;
 
-      const averageTokensUsed = sessions.length > 0
-        ? totalTokensUsed / sessions.length
-        : 0;
-      
+      const averageIterations =
+        sessions.length > 0 ? totalIterations / sessions.length : 0;
+
+      const averageKnowledgeBaseSize =
+        sessions.length > 0 ? totalKnowledgeBaseSize / sessions.length : 0;
+
+      const averageTokensUsed =
+        sessions.length > 0 ? totalTokensUsed / sessions.length : 0;
+
       return {
         totalConversations: sessions.length,
         completedGenerations,
@@ -441,7 +449,6 @@ export class AgentService {
         averageKnowledgeBaseSize,
         averageTokensUsed,
       };
-      
     } catch (error) {
       console.error("Failed to get generation stats:", error);
       return {
@@ -489,5 +496,4 @@ export class AgentService {
   getEngine(conversationId: string): AgentEngine | undefined {
     return this.engines.get(conversationId);
   }
-
 }

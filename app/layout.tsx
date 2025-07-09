@@ -18,14 +18,19 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"),
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000",
+  ),
   title: "Narratium - Interactive Storytelling Platform",
-  description: "Narratium is an innovative interactive storytelling platform that brings your stories to life. Create, share, and experience unique narratives in a fantasy-themed environment.",
-  keywords: "interactive storytelling, narrative platform, fantasy stories, creative writing, story creation",
+  description:
+    "Narratium is an innovative interactive storytelling platform that brings your stories to life. Create, share, and experience unique narratives in a fantasy-themed environment.",
+  keywords:
+    "interactive storytelling, narrative platform, fantasy stories, creative writing, story creation",
   authors: [{ name: "Narratium Team" }],
   openGraph: {
     title: "Narratium - Interactive Storytelling Platform",
-    description: "Create and experience unique interactive stories in a fantasy-themed environment",
+    description:
+      "Create and experience unique interactive stories in a fantasy-themed environment",
     type: "website",
     locale: "en_US",
     alternateLocale: "zh_CN",
@@ -42,7 +47,8 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Narratium - Interactive Storytelling Platform",
-    description: "Create and experience unique interactive stories in a fantasy-themed environment",
+    description:
+      "Create and experience unique interactive stories in a fantasy-themed environment",
     images: ["/og-image.png"],
   },
   robots: {
@@ -57,9 +63,7 @@ export const metadata: Metadata = {
     },
   },
   icons: {
-    icon: [
-      { url: "/icon.ico", sizes: "any" },
-    ],
+    icon: [{ url: "/icon.ico", sizes: "any" }],
     apple: [
       { url: "/icon.ico", sizes: "180x180" },
       { url: "/icon.ico", sizes: "152x152" },
@@ -77,7 +81,9 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: { children: React.ReactNode }) {
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="zh" className="h-full">
       <body className="h-full bg-[#171717] text-white">
@@ -94,4 +100,3 @@ export default function RootLayout({
     </html>
   );
 }
-

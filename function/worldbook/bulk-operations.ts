@@ -15,7 +15,7 @@ export async function bulkToggleWorldBookEntries(
 
   try {
     const worldBook = await WorldBookOperations.getWorldBook(characterId);
-    
+
     if (!worldBook) {
       throw new Error("World book not found");
     }
@@ -45,8 +45,11 @@ export async function bulkToggleWorldBookEntries(
       };
     }
 
-    const result = await WorldBookOperations.updateWorldBook(characterId, worldBook);
-    
+    const result = await WorldBookOperations.updateWorldBook(
+      characterId,
+      worldBook,
+    );
+
     return {
       success: result,
       updatedCount,
@@ -54,6 +57,8 @@ export async function bulkToggleWorldBookEntries(
     };
   } catch (error: any) {
     console.error("Failed to bulk toggle world book entries:", error);
-    throw new Error(`Failed to bulk toggle world book entries: ${error.message}`);
+    throw new Error(
+      `Failed to bulk toggle world book entries: ${error.message}`,
+    );
   }
-} 
+}

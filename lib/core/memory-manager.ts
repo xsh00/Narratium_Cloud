@@ -1,7 +1,7 @@
-import { 
-  MemoryEntry, 
-  MemoryType, 
-  MemorySearchResult, 
+import {
+  MemoryEntry,
+  MemoryType,
+  MemorySearchResult,
   MemoryContext,
   MemoryRAGConfig,
   MemoryAnalytics,
@@ -35,7 +35,7 @@ export interface MemoryExtractionResult {
 export class MemoryManager {
   private embeddings: OpenAIEmbeddings;
   private textSplitter: RecursiveCharacterTextSplitter;
-  
+
   constructor(
     private apiKey: string,
     private baseUrl?: string,
@@ -77,7 +77,10 @@ export class MemoryManager {
     try {
       await this.generateAndStoreEmbedding(memoryEntry);
     } catch (error) {
-      console.warn(`Failed to generate embedding for memory ${memoryEntry.id}:`, error);
+      console.warn(
+        `Failed to generate embedding for memory ${memoryEntry.id}:`,
+        error,
+      );
     }
 
     return memoryEntry;
@@ -106,11 +109,13 @@ export class MemoryManager {
     try {
       // Generate query embedding
       const queryEmbedding = await this.embeddings.embedQuery(query);
-      
+
       // Get all embeddings for the character
-      const characterEmbeddings = await LocalMemoryOperations.getEmbeddingsByCharacter(characterId);
-      const characterMemories = await LocalMemoryOperations.getMemoryEntriesByCharacter(characterId);
-      
+      const characterEmbeddings =
+        await LocalMemoryOperations.getEmbeddingsByCharacter(characterId);
+      const characterMemories =
+        await LocalMemoryOperations.getMemoryEntriesByCharacter(characterId);
+
       // Calculate similarities
       const similarities: Array<{
         entry: MemoryEntry;
@@ -119,7 +124,9 @@ export class MemoryManager {
       }> = [];
 
       for (const embeddingRecord of characterEmbeddings) {
-        const memory = characterMemories.find(m => m.id === embeddingRecord.id);
+        const memory = characterMemories.find(
+          (m) => m.id === embeddingRecord.id,
+        );
         if (!memory) continue;
 
         // Apply type filter
@@ -128,13 +135,20 @@ export class MemoryManager {
         // Exclude very recent memories (last 2 entries) to avoid repetition
         if (excludeRecent) {
           const recentMemories = characterMemories
-            .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+            .sort(
+              (a, b) =>
+                new Date(b.created_at).getTime() -
+                new Date(a.created_at).getTime(),
+            )
             .slice(0, 2);
-          if (recentMemories.find(rm => rm.id === memory.id)) continue;
+          if (recentMemories.find((rm) => rm.id === memory.id)) continue;
         }
 
-        const similarity = this.cosineSimilarity(queryEmbedding, embeddingRecord.embedding);
-        
+        const similarity = this.cosineSimilarity(
+          queryEmbedding,
+          embeddingRecord.embedding,
+        );
+
         if (similarity >= similarityThreshold) {
           similarities.push({
             entry: memory,
@@ -195,8 +209,8 @@ export class MemoryManager {
       alpha?: number; // Balance between semantic (0) and keyword (1) search
     } = {},
   ): Promise<MemorySearchResult[]> {
-    const { 
-      topK = 5, 
+    const {
+      topK = 5,
       similarityThreshold = 0.6,
       includeTypes,
       alpha = 0.7, // Favor semantic search
@@ -242,7 +256,9 @@ export class MemoryManager {
     });
 
     const prompt = ChatPromptTemplate.fromMessages([
-      ["system", `You are an expert memory extraction system for character AI. Analyze the conversation and extract important memories that should be stored for future reference.
+      [
+        "system",
+        `You are an expert memory extraction system for character AI. Analyze the conversation and extract important memories that should be stored for future reference.
 
 Extract memories that are:
 - Factual information (names, dates, locations, numbers)
@@ -272,34 +288,46 @@ Example output:
     "tags": ["name", "job", "Alice", "engineer"],
     "confidence": 0.9
   }
-]`],
-      ["human", `Context: ${context || "No additional context"}
+]`,
+      ],
+      [
+        "human",
+        `Context: ${context || "No additional context"}
 
 User: ${userMessage}
 Assistant: ${assistantMessage}
 
-Extract important memories from this conversation:`],
-      ["human", `Context: ${context || "No additional context"}
+Extract important memories from this conversation:`,
+      ],
+      [
+        "human",
+        `Context: ${context || "No additional context"}
 
 User: ${userMessage}
 Assistant: ${assistantMessage}
 
-Extract important memories from this conversation:`],
+Extract important memories from this conversation:`,
+      ],
     ]);
 
     try {
       const chain = prompt.pipe(llm).pipe(new StringOutputParser());
       const response = await chain.invoke({});
-      
+
       const extractedMemories = JSON.parse(response);
       if (!Array.isArray(extractedMemories)) {
-        return { memories: [], confidence: 0, reasoning: "Invalid response format" };
+        return {
+          memories: [],
+          confidence: 0,
+          reasoning: "Invalid response format",
+        };
       }
 
       // Create memory entries
       const memories: MemoryEntry[] = [];
       for (const memoryData of extractedMemories) {
-        if (memoryData.confidence >= 0.6) { // Only store high-confidence memories
+        if (memoryData.confidence >= 0.6) {
+          // Only store high-confidence memories
           const memory = await this.createMemory(
             characterId,
             memoryData.type,
@@ -318,22 +346,23 @@ Extract important memories from this conversation:`],
         }
       }
 
-      const avgConfidence = extractedMemories.length > 0 
-        ? extractedMemories.reduce((sum, m) => sum + m.confidence, 0) / extractedMemories.length
-        : 0;
+      const avgConfidence =
+        extractedMemories.length > 0
+          ? extractedMemories.reduce((sum, m) => sum + m.confidence, 0) /
+            extractedMemories.length
+          : 0;
 
       return {
         memories,
         confidence: avgConfidence,
         reasoning: `Extracted ${memories.length} memories from dialogue with average confidence ${avgConfidence.toFixed(2)}`,
       };
-
     } catch (error) {
       console.error("Memory extraction failed:", error);
-      return { 
-        memories: [], 
-        confidence: 0, 
-        reasoning: `Memory extraction failed: ${error instanceof Error ? error.message : "Unknown error"}`, 
+      return {
+        memories: [],
+        confidence: 0,
+        reasoning: `Memory extraction failed: ${error instanceof Error ? error.message : "Unknown error"}`,
       };
     }
   }
@@ -341,10 +370,12 @@ Extract important memories from this conversation:`],
   /**
    * Generate contextual memory prompt for LLM
    */
-  async generateMemoryContext(options: RAGGenerationOptions): Promise<MemoryContext> {
-    const { 
-      characterId, 
-      currentUserInput, 
+  async generateMemoryContext(
+    options: RAGGenerationOptions,
+  ): Promise<MemoryContext> {
+    const {
+      characterId,
+      currentUserInput,
       conversationContext,
       maxMemories = 5,
       includeTypes,
@@ -352,23 +383,29 @@ Extract important memories from this conversation:`],
     } = options;
 
     // Search for relevant memories
-    const searchResults = await this.hybridSearch(characterId, currentUserInput, {
-      topK: maxMemories,
-      includeTypes,
-      similarityThreshold: 0.6,
-    });
+    const searchResults = await this.hybridSearch(
+      characterId,
+      currentUserInput,
+      {
+        topK: maxMemories,
+        includeTypes,
+        similarityThreshold: 0.6,
+      },
+    );
 
     // Format memory prompt
     const memoryPrompt = this.formatMemoryPrompt(searchResults, language);
 
     // Get total memory count
-    const totalMemoryCount = (await LocalMemoryOperations.getMemoryEntriesByCharacter(characterId)).length;
+    const totalMemoryCount = (
+      await LocalMemoryOperations.getMemoryEntriesByCharacter(characterId)
+    ).length;
 
     // Get RAG config
     const config = await LocalMemoryOperations.getRAGConfig(characterId);
 
     return {
-      activeMemories: searchResults.map(r => r.entry),
+      activeMemories: searchResults.map((r) => r.entry),
       searchResults,
       memoryPrompt,
       totalMemoryCount,
@@ -379,14 +416,16 @@ Extract important memories from this conversation:`],
   /**
    * Generate and store embedding for a memory entry
    */
-  private async generateAndStoreEmbedding(memoryEntry: MemoryEntry): Promise<void> {
+  private async generateAndStoreEmbedding(
+    memoryEntry: MemoryEntry,
+  ): Promise<void> {
     try {
       // Combine content with metadata for richer embeddings
       const embeddingText = this.prepareTextForEmbedding(memoryEntry);
-      
+
       // Generate embedding
       const embedding = await this.embeddings.embedQuery(embeddingText);
-      
+
       // Store embedding
       await LocalMemoryOperations.storeEmbedding(
         memoryEntry.id,
@@ -395,7 +434,10 @@ Extract important memories from this conversation:`],
         "text-embedding-3-small",
       );
     } catch (error) {
-      console.error(`Failed to generate embedding for memory ${memoryEntry.id}:`, error);
+      console.error(
+        `Failed to generate embedding for memory ${memoryEntry.id}:`,
+        error,
+      );
       throw error;
     }
   }
@@ -454,7 +496,7 @@ Extract important memories from this conversation:`],
   ): Promise<string> {
     // For performance, use a simple rule-based approach
     const reasons = [];
-    
+
     if (score > 0.9) {
       reasons.push("highly semantically similar");
     } else if (score > 0.8) {
@@ -473,12 +515,12 @@ Extract important memories from this conversation:`],
 
     const queryLower = query.toLowerCase();
     const contentLower = memory.content.toLowerCase();
-    
-    if (memory.tags.some(tag => queryLower.includes(tag.toLowerCase()))) {
+
+    if (memory.tags.some((tag) => queryLower.includes(tag.toLowerCase()))) {
       reasons.push("matches tags");
     }
 
-    if (queryLower.split(" ").some(word => contentLower.includes(word))) {
+    if (queryLower.split(" ").some((word) => contentLower.includes(word))) {
       reasons.push("contains keywords");
     }
 
@@ -500,9 +542,10 @@ Extract important memories from this conversation:`],
       maxResults: options.topK || 5,
     };
 
-    const entries = await LocalMemoryOperations.searchMemoriesByText(searchQuery);
-    
-    return entries.map(entry => ({
+    const entries =
+      await LocalMemoryOperations.searchMemoriesByText(searchQuery);
+
+    return entries.map((entry) => ({
       entry,
       score: this.calculateKeywordScore(query, entry),
       reasoning: "Keyword match",
@@ -515,18 +558,20 @@ Extract important memories from this conversation:`],
   private calculateKeywordScore(query: string, memory: MemoryEntry): number {
     const queryWords = query.toLowerCase().split(/\s+/);
     const contentWords = memory.content.toLowerCase().split(/\s+/);
-    const tagWords = memory.tags.map(tag => tag.toLowerCase());
-    
+    const tagWords = memory.tags.map((tag) => tag.toLowerCase());
+
     let matches = 0;
     let totalWords = queryWords.length;
-    
+
     for (const queryWord of queryWords) {
-      if (contentWords.some(word => word.includes(queryWord)) ||
-          tagWords.some(tag => tag.includes(queryWord))) {
+      if (
+        contentWords.some((word) => word.includes(queryWord)) ||
+        tagWords.some((tag) => tag.includes(queryWord))
+      ) {
         matches++;
       }
     }
-    
+
     const baseScore = matches / totalWords;
     return Math.min(baseScore * memory.importance * 1.2, 1.0);
   }
@@ -554,7 +599,7 @@ Extract important memories from this conversation:`],
       const existing = resultMap.get(result.entry.id);
       if (existing) {
         // Combine scores
-        existing.score = existing.score + (result.score * (1 - alpha));
+        existing.score = existing.score + result.score * (1 - alpha);
         existing.reasoning = `${existing.reasoning} + ${result.reasoning}`;
       } else {
         resultMap.set(result.entry.id, {
@@ -583,14 +628,20 @@ Extract important memories from this conversation:`],
   /**
    * Format memory prompt for LLM consumption
    */
-  private formatMemoryPrompt(results: MemorySearchResult[], language: "zh" | "en"): string {
+  private formatMemoryPrompt(
+    results: MemorySearchResult[],
+    language: "zh" | "en",
+  ): string {
     if (results.length === 0) {
       return language === "zh" ? "无相关记忆" : "No relevant memories";
     }
 
     const header = language === "zh" ? "相关记忆：" : "Relevant memories:";
     const memoryTexts = results.map((result, index) => {
-      const typeLabel = language === "zh" ? this.getChineseTypeLabel(result.entry.type) : result.entry.type;
+      const typeLabel =
+        language === "zh"
+          ? this.getChineseTypeLabel(result.entry.type)
+          : result.entry.type;
       return `${index + 1}. [${typeLabel}] ${result.entry.content}`;
     });
 
@@ -624,15 +675,21 @@ Extract important memories from this conversation:`],
   /**
    * Update RAG configuration
    */
-  async updateRAGConfig(characterId: string, config: Partial<MemoryRAGConfig>): Promise<MemoryRAGConfig> {
+  async updateRAGConfig(
+    characterId: string,
+    config: Partial<MemoryRAGConfig>,
+  ): Promise<MemoryRAGConfig> {
     return LocalMemoryOperations.updateRAGConfig(characterId, config);
   }
 
   /**
    * Rebuild embeddings for all memories of a character (useful after config changes)
    */
-  async rebuildEmbeddings(characterId: string): Promise<{ success: number; failed: number }> {
-    const memories = await LocalMemoryOperations.getMemoryEntriesByCharacter(characterId);
+  async rebuildEmbeddings(
+    characterId: string,
+  ): Promise<{ success: number; failed: number }> {
+    const memories =
+      await LocalMemoryOperations.getMemoryEntriesByCharacter(characterId);
     let success = 0;
     let failed = 0;
 
@@ -641,11 +698,14 @@ Extract important memories from this conversation:`],
         await this.generateAndStoreEmbedding(memory);
         success++;
       } catch (error) {
-        console.error(`Failed to regenerate embedding for memory ${memory.id}:`, error);
+        console.error(
+          `Failed to regenerate embedding for memory ${memory.id}:`,
+          error,
+        );
         failed++;
       }
     }
 
     return { success, failed };
   }
-} 
+}

@@ -11,13 +11,13 @@ export interface LLMConfig {
   baseUrl?: string;
   llmType: "openai" | "ollama";
   temperature?: number;
-  maxTokens?:number;
-  maxRetries?: number,
-  topP?: number,
-  frequencyPenalty?: number,
-  presencePenalty?: number,
-  topK?: number,
-  repeatPenalty?: number,
+  maxTokens?: number;
+  maxRetries?: number;
+  topP?: number;
+  frequencyPenalty?: number;
+  presencePenalty?: number;
+  topK?: number;
+  repeatPenalty?: number;
   streaming?: boolean;
   streamUsage?: boolean;
   language?: "zh" | "en";
@@ -30,15 +30,26 @@ export class LLMNodeTools extends NodeTool {
     return this.toolType;
   }
 
-  static async executeMethod(methodName: string, ...params: any[]): Promise<any> {
+  static async executeMethod(
+    methodName: string,
+    ...params: any[]
+  ): Promise<any> {
     const method = (this as any)[methodName];
-    
+
     if (typeof method !== "function") {
-      console.error(`Method lookup failed: ${methodName} not found in LLMNodeTools`);
-      console.log("Available methods:", Object.getOwnPropertyNames(this).filter(name => 
-        typeof (this as any)[name] === "function" && !name.startsWith("_"),
-      ));
-      throw new Error(`Method ${methodName} not found in ${this.getToolType()}Tool`);
+      console.error(
+        `Method lookup failed: ${methodName} not found in LLMNodeTools`,
+      );
+      console.log(
+        "Available methods:",
+        Object.getOwnPropertyNames(this).filter(
+          (name) =>
+            typeof (this as any)[name] === "function" && !name.startsWith("_"),
+        ),
+      );
+      throw new Error(
+        `Method ${methodName} not found in ${this.getToolType()}Tool`,
+      );
     }
 
     try {
@@ -100,8 +111,10 @@ export class LLMNodeTools extends NodeTool {
         temperature: config.temperature ?? defaultSettings.temperature,
         maxRetries: config.maxRetries ?? defaultSettings.maxRetries,
         topP: config.topP ?? defaultSettings.topP,
-        frequencyPenalty: config.frequencyPenalty ?? defaultSettings.frequencyPenalty,
-        presencePenalty: config.presencePenalty ?? defaultSettings.presencePenalty,
+        frequencyPenalty:
+          config.frequencyPenalty ?? defaultSettings.frequencyPenalty,
+        presencePenalty:
+          config.presencePenalty ?? defaultSettings.presencePenalty,
         streaming: config.streaming ?? defaultSettings.streaming,
         streamUsage: config.streamUsage ?? defaultSettings.streamUsage,
       });
@@ -112,8 +125,10 @@ export class LLMNodeTools extends NodeTool {
         temperature: config.temperature ?? defaultSettings.temperature,
         topK: config.topK ?? defaultSettings.topK,
         topP: config.topP ?? defaultSettings.topP,
-        frequencyPenalty: config.frequencyPenalty ?? defaultSettings.frequencyPenalty,
-        presencePenalty: config.presencePenalty ?? defaultSettings.presencePenalty,
+        frequencyPenalty:
+          config.frequencyPenalty ?? defaultSettings.frequencyPenalty,
+        presencePenalty:
+          config.presencePenalty ?? defaultSettings.presencePenalty,
         repeatPenalty: config.repeatPenalty ?? defaultSettings.repeatPenalty,
         streaming: config.streaming ?? defaultSettings.streaming,
       });
@@ -136,4 +151,4 @@ export class LLMNodeTools extends NodeTool {
       .pipe(llm)
       .pipe(new StringOutputParser());
   }
-} 
+}

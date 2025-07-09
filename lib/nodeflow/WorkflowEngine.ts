@@ -1,7 +1,7 @@
 import { NodeBase } from "@/lib/nodeflow/NodeBase";
 import { NodeContext } from "@/lib/nodeflow/NodeContext";
-import { 
-  NodeInput, 
+import {
+  NodeInput,
   NodeOutput,
   NodeRegistry,
   WorkflowConfig,
@@ -42,38 +42,40 @@ export class WorkflowEngine {
   }
 
   private getEntryNodes(): NodeBase[] {
-    const entryNodesByCategory = Array.from(this.nodes.values())
-      .filter(node => node.isEntryNode());
-    
+    const entryNodesByCategory = Array.from(this.nodes.values()).filter(
+      (node) => node.isEntryNode(),
+    );
+
     if (entryNodesByCategory.length > 0) {
       return entryNodesByCategory;
     }
 
     const targetNodes = new Set<string>();
-    this.config.nodes.forEach(node => {
+    this.config.nodes.forEach((node) => {
       if (node.next) {
-        node.next.forEach(nextId => targetNodes.add(nextId));
+        node.next.forEach((nextId) => targetNodes.add(nextId));
       }
     });
 
     return this.config.nodes
-      .filter(node => !targetNodes.has(node.id))
-      .map(node => this.nodes.get(node.id)!)
+      .filter((node) => !targetNodes.has(node.id))
+      .map((node) => this.nodes.get(node.id)!)
       .filter(Boolean);
   }
 
   private getNodesByCategory(category: NodeCategory): NodeBase[] {
     return this.config.nodes
-      .filter(nodeConfig => nodeConfig.category === category)
-      .map(nodeConfig => this.nodes.get(nodeConfig.id)!)
+      .filter((nodeConfig) => nodeConfig.category === category)
+      .map((nodeConfig) => this.nodes.get(nodeConfig.id)!)
       .filter(Boolean);
   }
 
   private getNextNodes(nodeId: string): NodeBase[] {
     const node = this.nodes.get(nodeId);
     if (!node) return [];
-    return node.getNext()
-      .map(id => this.nodes.get(id))
+    return node
+      .getNext()
+      .map((id) => this.nodes.get(id))
       .filter(Boolean) as NodeBase[];
   }
 
@@ -92,9 +94,7 @@ export class WorkflowEngine {
     nodes: NodeBase[],
     context: NodeContext,
   ): Promise<NodeOutput[]> {
-    return Promise.all(
-      nodes.map(node => this.executeNode(node, context)),
-    );
+    return Promise.all(nodes.map((node) => this.executeNode(node, context)));
   }
 
   /**
@@ -123,7 +123,7 @@ export class WorkflowEngine {
 
       // Execute main workflow (ENTRY -> MIDDLE -> EXIT)
       const mainWorkflowResult = await this.executeMainWorkflow(ctx);
-      
+
       // Set main workflow results
       result.outputData = mainWorkflowResult.outputData;
       result.status = mainWorkflowResult.status;
@@ -131,18 +131,17 @@ export class WorkflowEngine {
       // Handle AFTER nodes
       if (executeAfterNodes) {
         const afterNodesPromise = this.executeAfterNodes(ctx);
-        
+
         if (awaitAfterNodes) {
           // Wait for AFTER nodes to complete before returning
           await afterNodesPromise;
         } else {
           // Execute AFTER nodes in background (fire and forget)
-          afterNodesPromise.catch(error => {
+          afterNodesPromise.catch((error) => {
             console.error("AFTER nodes execution failed:", error);
           });
         }
       }
-
     } catch (error) {
       result.status = NodeExecutionStatus.FAILED;
     } finally {
@@ -163,23 +162,28 @@ export class WorkflowEngine {
     if (entryNodes.length === 0) {
       throw new Error("No entry nodes found in workflow");
     }
-    
+
     await this.executeParallel(entryNodes, context);
 
     const processedNodes = new Set<string>();
-    entryNodes.forEach(node => processedNodes.add(node.getId()));
+    entryNodes.forEach((node) => processedNodes.add(node.getId()));
 
     const queue: Array<{
       nodes: NodeBase[];
     }> = [];
-    
+
     // Add initial next nodes to queue
     const nextLevelNodesSet = new Set<NodeBase>();
-    entryNodes.forEach(node => {
-      this.getNextNodes(node.getId()).forEach(nextNode => {
+    entryNodes.forEach((node) => {
+      this.getNextNodes(node.getId()).forEach((nextNode) => {
         // Skip AFTER nodes in main workflow
-        const nodeConfig = this.config.nodes.find(n => n.id === nextNode.getId());
-        if (nodeConfig?.category !== NodeCategory.AFTER && !processedNodes.has(nextNode.getId())) {
+        const nodeConfig = this.config.nodes.find(
+          (n) => n.id === nextNode.getId(),
+        );
+        if (
+          nodeConfig?.category !== NodeCategory.AFTER &&
+          !processedNodes.has(nextNode.getId())
+        ) {
           nextLevelNodesSet.add(nextNode);
         }
       });
@@ -191,17 +195,19 @@ export class WorkflowEngine {
     // Process nodes level by level until EXIT nodes
     while (queue.length > 0) {
       const currentBatch = queue.shift()!;
-      const nodesToExecuteInBatch = currentBatch.nodes.filter(node => !processedNodes.has(node.getId()));
-      
+      const nodesToExecuteInBatch = currentBatch.nodes.filter(
+        (node) => !processedNodes.has(node.getId()),
+      );
+
       if (nodesToExecuteInBatch.length === 0) continue;
 
       await this.executeParallel(nodesToExecuteInBatch, context);
 
-      nodesToExecuteInBatch.forEach(node => processedNodes.add(node.getId()));
+      nodesToExecuteInBatch.forEach((node) => processedNodes.add(node.getId()));
 
       // Check if we have reached EXIT nodes
-      const hasExitNodes = nodesToExecuteInBatch.some(node => {
-        const nodeConfig = this.config.nodes.find(n => n.id === node.getId());
+      const hasExitNodes = nodesToExecuteInBatch.some((node) => {
+        const nodeConfig = this.config.nodes.find((n) => n.id === node.getId());
         return nodeConfig?.category === NodeCategory.EXIT;
       });
 
@@ -212,10 +218,15 @@ export class WorkflowEngine {
 
       // Add next level nodes (excluding AFTER nodes)
       const nextLevelNodesSet = new Set<NodeBase>();
-      nodesToExecuteInBatch.forEach(node => {
-        this.getNextNodes(node.getId()).forEach(nextNode => {
-          const nodeConfig = this.config.nodes.find(n => n.id === nextNode.getId());
-          if (nodeConfig?.category !== NodeCategory.AFTER && !processedNodes.has(nextNode.getId())) {
+      nodesToExecuteInBatch.forEach((node) => {
+        this.getNextNodes(node.getId()).forEach((nextNode) => {
+          const nodeConfig = this.config.nodes.find(
+            (n) => n.id === nextNode.getId(),
+          );
+          if (
+            nodeConfig?.category !== NodeCategory.AFTER &&
+            !processedNodes.has(nextNode.getId())
+          ) {
             nextLevelNodesSet.add(nextNode);
           }
         });
@@ -236,13 +247,13 @@ export class WorkflowEngine {
    */
   private async executeAfterNodes(context: NodeContext): Promise<void> {
     const afterNodes = this.getNodesByCategory(NodeCategory.AFTER);
-    
+
     if (afterNodes.length === 0) {
       return;
     }
 
     console.log(`Executing ${afterNodes.length} AFTER nodes in background...`);
-    
+
     try {
       // Execute all AFTER nodes in parallel
       await this.executeParallel(afterNodes, context);
@@ -279,15 +290,15 @@ export class WorkflowEngine {
       await this.executeParallel(entryNodes, ctx);
 
       const processedNodes = new Set<string>();
-      entryNodes.forEach(node => processedNodes.add(node.getId()));
+      entryNodes.forEach((node) => processedNodes.add(node.getId()));
 
       const queue: Array<{
         nodes: NodeBase[];
       }> = [];
-      
+
       const nextLevelNodesSet = new Set<NodeBase>();
-      entryNodes.forEach(node => {
-        this.getNextNodes(node.getId()).forEach(nextNode => {
+      entryNodes.forEach((node) => {
+        this.getNextNodes(node.getId()).forEach((nextNode) => {
           if (!processedNodes.has(nextNode.getId())) {
             nextLevelNodesSet.add(nextNode);
           }
@@ -299,17 +310,21 @@ export class WorkflowEngine {
 
       while (queue.length > 0) {
         const currentBatch = queue.shift()!;
-        const nodesToExecuteInBatch = currentBatch.nodes.filter(node => !processedNodes.has(node.getId()));
-        
+        const nodesToExecuteInBatch = currentBatch.nodes.filter(
+          (node) => !processedNodes.has(node.getId()),
+        );
+
         if (nodesToExecuteInBatch.length === 0) continue;
 
         await this.executeParallel(nodesToExecuteInBatch, ctx);
 
-        nodesToExecuteInBatch.forEach(node => processedNodes.add(node.getId()));
+        nodesToExecuteInBatch.forEach((node) =>
+          processedNodes.add(node.getId()),
+        );
 
         const nextLevelNodesSet = new Set<NodeBase>();
         nodesToExecuteInBatch.forEach((node) => {
-          this.getNextNodes(node.getId()).forEach(nextNode => {
+          this.getNextNodes(node.getId()).forEach((nextNode) => {
             if (!processedNodes.has(nextNode.getId())) {
               nextLevelNodesSet.add(nextNode);
             }
@@ -332,12 +347,14 @@ export class WorkflowEngine {
   }
 
   validate(): boolean {
-    const nodeIds = new Set(this.config.nodes.map(n => n.id));
+    const nodeIds = new Set(this.config.nodes.map((n) => n.id));
     for (const node of this.config.nodes) {
       if (node.next) {
         for (const nextId of node.next) {
           if (!nodeIds.has(nextId)) {
-            throw new Error(`Invalid node reference: ${nextId} in node ${node.id}`);
+            throw new Error(
+              `Invalid node reference: ${nextId} in node ${node.id}`,
+            );
           }
         }
       }
@@ -377,4 +394,4 @@ export class WorkflowEngine {
       }
     }
   }
-} 
+}

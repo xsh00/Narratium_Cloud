@@ -1,6 +1,9 @@
 import { PresetOperations } from "@/lib/data/roleplay/preset-operation";
 
-export async function importPresetFromJson(jsonContent: string, customName?: string): Promise<{ success: boolean; presetId?: string; error?: string }> {
+export async function importPresetFromJson(
+  jsonContent: string,
+  customName?: string,
+): Promise<{ success: boolean; presetId?: string; error?: string }> {
   try {
     let presetData;
     try {
@@ -13,8 +16,11 @@ export async function importPresetFromJson(jsonContent: string, customName?: str
       return { success: false, error: "Invalid preset structure" };
     }
 
-    const presetId = await PresetOperations.importPreset(presetData, customName);
-    
+    const presetId = await PresetOperations.importPreset(
+      presetData,
+      customName,
+    );
+
     if (!presetId) {
       return { success: false, error: "Failed to import preset" };
     }
@@ -22,6 +28,9 @@ export async function importPresetFromJson(jsonContent: string, customName?: str
     return { success: true, presetId };
   } catch (error) {
     console.error("Error importing preset from JSON:", error);
-    return { success: false, error: `Error importing preset: ${error instanceof Error ? error.message : String(error)}` };
+    return {
+      success: false,
+      error: `Error importing preset: ${error instanceof Error ? error.message : String(error)}`,
+    };
   }
 }

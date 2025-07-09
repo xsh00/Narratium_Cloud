@@ -1,5 +1,10 @@
 import { NodeBase } from "@/lib/nodeflow/NodeBase";
-import { NodeConfig, NodeInput, NodeOutput, NodeCategory } from "@/lib/nodeflow/types";
+import {
+  NodeConfig,
+  NodeInput,
+  NodeOutput,
+  NodeCategory,
+} from "@/lib/nodeflow/types";
 import { PresetNodeTools } from "./PresetNodeTools";
 import { NodeToolRegistry } from "../NodeTool";
 
@@ -13,7 +18,7 @@ export class PresetNode extends NodeBase {
     super(config);
     this.toolClass = PresetNodeTools;
   }
-  
+
   protected getDefaultCategory(): NodeCategory {
     return NodeCategory.MIDDLE;
   }
@@ -31,7 +36,7 @@ export class PresetNode extends NodeBase {
       throw new Error("Character ID is required for PresetNode");
     }
 
-    const result = await this.executeTool(
+    const result = (await this.executeTool(
       "buildPromptFramework",
       characterId,
       language,
@@ -40,7 +45,7 @@ export class PresetNode extends NodeBase {
       number,
       fastModel,
       systemPresetType,
-    ) as { systemMessage: string; userMessage: string; presetId?: string };
+    )) as { systemMessage: string; userMessage: string; presetId?: string };
 
     return {
       systemMessage: result.systemMessage,
@@ -48,5 +53,4 @@ export class PresetNode extends NodeBase {
       presetId: result.presetId,
     };
   }
-} 
- 
+}

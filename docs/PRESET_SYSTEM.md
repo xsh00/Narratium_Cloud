@@ -54,16 +54,16 @@ export const DEFAULT_PRESET_CONFIGS = [
     name: "your-preset-name",
     displayName: {
       zh: "你的预设名称",
-      en: "Your Preset Name"
+      en: "Your Preset Name",
     },
     description: {
       zh: "预设描述",
-      en: "Preset Description"
+      en: "Preset Description",
     },
     filename: "your-preset.json",
-    enabled: true,        // 是否默认启用
-    autoImport: true      // 是否自动导入
-  }
+    enabled: true, // 是否默认启用
+    autoImport: true, // 是否自动导入
+  },
 ];
 ```
 
@@ -110,18 +110,18 @@ export const DEFAULT_PRESET_CONFIGS = [
 
 ```typescript
 // 自动导入预设
-const response = await fetch('/api/preset/auto-import', {
-  method: 'POST'
+const response = await fetch("/api/preset/auto-import", {
+  method: "POST",
 });
 
 // 获取预设状态
-const status = await fetch('/api/preset/auto-import?action=status');
+const status = await fetch("/api/preset/auto-import?action=status");
 
 // 重置初始化状态
-const reset = await fetch('/api/preset/auto-import?action=reset');
+const reset = await fetch("/api/preset/auto-import?action=reset");
 
 // 获取预设配置
-const configs = await fetch('/api/preset/auto-import?action=configs');
+const configs = await fetch("/api/preset/auto-import?action=configs");
 ```
 
 ## 测试功能
@@ -185,7 +185,7 @@ static async initializePresets(): Promise<void> {
   if (!userSettings.autoImportPresets) {
     return;
   }
-  
+
   // 继续导入逻辑
 }
 ```
@@ -202,4 +202,4 @@ static async initializePresets(): Promise<void> {
 
 - v1.0.0: 初始版本，支持基本的预设导入功能
 - v1.1.0: 添加了预设管理页面和API端点
-- v1.2.0: 改进了错误处理和用户反馈 
+- v1.2.0: 改进了错误处理和用户反馈

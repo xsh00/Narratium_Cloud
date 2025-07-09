@@ -9,7 +9,7 @@ export const WORLD_BOOK_FILE = "world_book";
 export const REGEX_SCRIPTS_FILE = "regex_scripts";
 export const PRESET_FILE = "preset_data";
 
-// Agent-related storage constants  
+// Agent-related storage constants
 export const AGENT_CONVERSATIONS_FILE = "agent_conversations";
 
 // Memory/RAG storage constants
@@ -88,8 +88,8 @@ export async function initializeDataFiles(): Promise<void> {
   const db = await openDB();
 
   const storeNames = [
-    CHARACTERS_RECORD_FILE, 
-    CHARACTER_DIALOGUES_FILE, 
+    CHARACTERS_RECORD_FILE,
+    CHARACTER_DIALOGUES_FILE,
     CHARACTER_IMAGES_FILE,
     WORLD_BOOK_FILE,
     PRESET_FILE,
@@ -99,25 +99,27 @@ export async function initializeDataFiles(): Promise<void> {
     MEMORY_EMBEDDINGS_FILE,
   ];
 
-  await Promise.all(storeNames.map(storeName => {
-    return new Promise<void>((resolve, reject) => {
-      const tx = db.transaction(storeName, "readwrite");
-      const store = tx.objectStore(storeName);
-      const getRequest = store.get("data");
+  await Promise.all(
+    storeNames.map((storeName) => {
+      return new Promise<void>((resolve, reject) => {
+        const tx = db.transaction(storeName, "readwrite");
+        const store = tx.objectStore(storeName);
+        const getRequest = store.get("data");
 
-      getRequest.onsuccess = () => {
-        if (getRequest.result === undefined) {
-          const putRequest = store.put([], "data");
-          putRequest.onsuccess = () => resolve();
-          putRequest.onerror = () => reject(putRequest.error);
-        } else {
-          resolve();
-        }
-      };
+        getRequest.onsuccess = () => {
+          if (getRequest.result === undefined) {
+            const putRequest = store.put([], "data");
+            putRequest.onsuccess = () => resolve();
+            putRequest.onerror = () => reject(putRequest.error);
+          } else {
+            resolve();
+          }
+        };
 
-      getRequest.onerror = () => reject(getRequest.error);
-    });
-  }));
+        getRequest.onerror = () => reject(getRequest.error);
+      });
+    }),
+  );
 }
 
 export async function setBlob(key: string, blob: Blob): Promise<void> {
@@ -160,7 +162,7 @@ export async function deleteBlob(key: string): Promise<void> {
 export async function exportAllData(): Promise<Record<string, any>> {
   const db = await openDB();
   const exportData: Record<string, any> = {};
-  
+
   // Handle regular data stores
   const regularStores = [
     CHARACTERS_RECORD_FILE,
@@ -179,8 +181,8 @@ export async function exportAllData(): Promise<Record<string, any>> {
 
   // Handle image data separately
   const imageData = await readData(CHARACTER_IMAGES_FILE);
-  const imageBlobs: Array<{key: string, data: string}> = [];
-  
+  const imageBlobs: Array<{ key: string; data: string }> = [];
+
   // Get all keys from the image store
   const tx = db.transaction(CHARACTER_IMAGES_FILE, "readonly");
   const store = tx.objectStore(CHARACTER_IMAGES_FILE);
@@ -201,7 +203,7 @@ export async function exportAllData(): Promise<Record<string, any>> {
       }
     }
   }
-  
+
   exportData[CHARACTER_IMAGES_FILE] = imageBlobs;
 
   return exportData;
@@ -209,7 +211,7 @@ export async function exportAllData(): Promise<Record<string, any>> {
 
 export async function importAllData(data: Record<string, any>): Promise<void> {
   const db = await openDB();
-  
+
   // Handle regular data stores
   const regularStores = [
     CHARACTERS_RECORD_FILE,
@@ -243,7 +245,7 @@ async function blobToBase64(blob: Blob): Promise<string> {
   if (!(blob instanceof Blob)) {
     throw new Error("Input is not a valid Blob object");
   }
-  
+
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onloadend = () => {
@@ -263,4 +265,3 @@ async function base64ToBlob(base64: string): Promise<Blob> {
   const response = await fetch(base64);
   return response.blob();
 }
-

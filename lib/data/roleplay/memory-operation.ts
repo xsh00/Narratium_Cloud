@@ -1,10 +1,15 @@
-import { readData, writeData, MEMORY_ENTRIES_FILE, MEMORY_EMBEDDINGS_FILE } from "@/lib/data/local-storage";
-import { 
-  MemoryEntry, 
-  MemoryType, 
-  MemorySearchQuery, 
+import {
+  readData,
+  writeData,
+  MEMORY_ENTRIES_FILE,
+  MEMORY_EMBEDDINGS_FILE,
+} from "@/lib/data/local-storage";
+import {
+  MemoryEntry,
+  MemoryType,
+  MemorySearchQuery,
   MemoryAnalytics,
-  MemoryRAGConfig, 
+  MemoryRAGConfig,
 } from "@/lib/models/memory-model";
 import { v4 as uuidv4 } from "uuid";
 
@@ -30,7 +35,7 @@ export class LocalMemoryOperations {
    * Create a new memory entry for a character
    */
   static async createMemoryEntry(
-    characterId: string, 
+    characterId: string,
     type: MemoryType,
     content: string,
     metadata: any = {},
@@ -38,7 +43,7 @@ export class LocalMemoryOperations {
     importance: number = 0.5,
   ): Promise<MemoryEntry> {
     const memoryRecords = await readData(MEMORY_ENTRIES_FILE);
-    
+
     const memoryEntry: MemoryEntry = {
       id: uuidv4(),
       characterId,
@@ -84,28 +89,34 @@ export class LocalMemoryOperations {
   /**
    * Get all memory entries for a character
    */
-  static async getMemoryEntriesByCharacter(characterId: string): Promise<MemoryEntry[]> {
+  static async getMemoryEntriesByCharacter(
+    characterId: string,
+  ): Promise<MemoryEntry[]> {
     const memoryRecords = await readData(MEMORY_ENTRIES_FILE);
     const characterRecord = memoryRecords.find(
       (record: MemoryRecord) => record.characterId === characterId,
     );
-    
+
     return characterRecord ? characterRecord.entries : [];
   }
 
   /**
    * Get a specific memory entry by ID
    */
-  static async getMemoryEntryById(entryId: string): Promise<MemoryEntry | null> {
+  static async getMemoryEntryById(
+    entryId: string,
+  ): Promise<MemoryEntry | null> {
     const memoryRecords = await readData(MEMORY_ENTRIES_FILE);
-    
+
     for (const record of memoryRecords) {
-      const entry = record.entries.find((entry: MemoryEntry) => entry.id === entryId);
+      const entry = record.entries.find(
+        (entry: MemoryEntry) => entry.id === entryId,
+      );
       if (entry) {
         return entry;
       }
     }
-    
+
     return null;
   }
 
@@ -113,13 +124,15 @@ export class LocalMemoryOperations {
    * Update a memory entry
    */
   static async updateMemoryEntry(
-    entryId: string, 
+    entryId: string,
     updates: Partial<MemoryEntry>,
   ): Promise<MemoryEntry | null> {
     const memoryRecords = await readData(MEMORY_ENTRIES_FILE);
-    
+
     for (const record of memoryRecords) {
-      const entryIndex = record.entries.findIndex((entry: MemoryEntry) => entry.id === entryId);
+      const entryIndex = record.entries.findIndex(
+        (entry: MemoryEntry) => entry.id === entryId,
+      );
       if (entryIndex !== -1) {
         record.entries[entryIndex] = {
           ...record.entries[entryIndex],
@@ -127,12 +140,12 @@ export class LocalMemoryOperations {
           updated_at: new Date().toISOString(),
         };
         record.updated_at = new Date().toISOString();
-        
+
         await writeData(MEMORY_ENTRIES_FILE, memoryRecords);
         return record.entries[entryIndex];
       }
     }
-    
+
     return null;
   }
 
@@ -141,22 +154,24 @@ export class LocalMemoryOperations {
    */
   static async deleteMemoryEntry(entryId: string): Promise<boolean> {
     const memoryRecords = await readData(MEMORY_ENTRIES_FILE);
-    
+
     for (const record of memoryRecords) {
-      const entryIndex = record.entries.findIndex((entry: MemoryEntry) => entry.id === entryId);
+      const entryIndex = record.entries.findIndex(
+        (entry: MemoryEntry) => entry.id === entryId,
+      );
       if (entryIndex !== -1) {
         record.entries.splice(entryIndex, 1);
         record.updated_at = new Date().toISOString();
-        
+
         await writeData(MEMORY_ENTRIES_FILE, memoryRecords);
-        
+
         // Also delete embedding if exists
         await this.deleteEmbedding(entryId);
-        
+
         return true;
       }
     }
-    
+
     return false;
   }
 
@@ -176,30 +191,35 @@ export class LocalMemoryOperations {
   /**
    * Search memories by text (basic search, not vector search)
    */
-  static async searchMemoriesByText(query: MemorySearchQuery): Promise<MemoryEntry[]> {
+  static async searchMemoriesByText(
+    query: MemorySearchQuery,
+  ): Promise<MemoryEntry[]> {
     const entries = await this.getMemoryEntriesByCharacter(query.characterId);
     const lowerQuery = query.query.toLowerCase();
-    
+
     let filteredEntries = entries.filter((entry: MemoryEntry) => {
       // Text search
-      const matchesText = entry.content.toLowerCase().includes(lowerQuery) ||
-                         entry.tags.some(tag => tag.toLowerCase().includes(lowerQuery));
-      
+      const matchesText =
+        entry.content.toLowerCase().includes(lowerQuery) ||
+        entry.tags.some((tag) => tag.toLowerCase().includes(lowerQuery));
+
       // Type filter
       const matchesType = !query.types || query.types.includes(entry.type);
-      
+
       // Tag filter
-      const matchesTags = !query.tags || query.tags.some(tag => 
-        entry.tags.includes(tag),
-      );
-      
+      const matchesTags =
+        !query.tags || query.tags.some((tag) => entry.tags.includes(tag));
+
       return matchesText && matchesType && matchesTags;
     });
 
     // Sort by importance and access count
     filteredEntries.sort((a: MemoryEntry, b: MemoryEntry) => {
-      return (b.importance * 0.7 + (b.accessCount / 100) * 0.3) - 
-             (a.importance * 0.7 + (a.accessCount / 100) * 0.3);
+      return (
+        b.importance * 0.7 +
+        (b.accessCount / 100) * 0.3 -
+        (a.importance * 0.7 + (a.accessCount / 100) * 0.3)
+      );
     });
 
     // Apply max results limit
@@ -214,13 +234,13 @@ export class LocalMemoryOperations {
    * Store vector embedding for a memory entry
    */
   static async storeEmbedding(
-    entryId: string, 
+    entryId: string,
     characterId: string,
-    embedding: number[], 
+    embedding: number[],
     model: string,
   ): Promise<void> {
     const embeddingRecords = await readData(MEMORY_EMBEDDINGS_FILE);
-    
+
     const embeddingRecord: EmbeddingRecord = {
       id: entryId,
       characterId,
@@ -228,18 +248,18 @@ export class LocalMemoryOperations {
       model,
       created_at: new Date().toISOString(),
     };
-    
+
     // Remove existing embedding if exists
     const existingIndex = embeddingRecords.findIndex(
       (record: EmbeddingRecord) => record.id === entryId,
     );
-    
+
     if (existingIndex !== -1) {
       embeddingRecords[existingIndex] = embeddingRecord;
     } else {
       embeddingRecords.push(embeddingRecord);
     }
-    
+
     await writeData(MEMORY_EMBEDDINGS_FILE, embeddingRecords);
   }
 
@@ -251,14 +271,16 @@ export class LocalMemoryOperations {
     const embedding = embeddingRecords.find(
       (record: EmbeddingRecord) => record.id === entryId,
     );
-    
+
     return embedding || null;
   }
 
   /**
    * Get all embeddings for a character
    */
-  static async getEmbeddingsByCharacter(characterId: string): Promise<EmbeddingRecord[]> {
+  static async getEmbeddingsByCharacter(
+    characterId: string,
+  ): Promise<EmbeddingRecord[]> {
     const embeddingRecords = await readData(MEMORY_EMBEDDINGS_FILE);
     return embeddingRecords.filter(
       (record: EmbeddingRecord) => record.characterId === characterId,
@@ -273,22 +295,24 @@ export class LocalMemoryOperations {
     const index = embeddingRecords.findIndex(
       (record: EmbeddingRecord) => record.id === entryId,
     );
-    
+
     if (index !== -1) {
       embeddingRecords.splice(index, 1);
       await writeData(MEMORY_EMBEDDINGS_FILE, embeddingRecords);
       return true;
     }
-    
+
     return false;
   }
 
   /**
    * Get memory analytics for a character
    */
-  static async getMemoryAnalytics(characterId: string): Promise<MemoryAnalytics> {
+  static async getMemoryAnalytics(
+    characterId: string,
+  ): Promise<MemoryAnalytics> {
     const entries = await this.getMemoryEntriesByCharacter(characterId);
-    
+
     const entriesByType: Record<MemoryType, number> = {
       [MemoryType.FACT]: 0,
       [MemoryType.RELATIONSHIP]: 0,
@@ -308,10 +332,16 @@ export class LocalMemoryOperations {
       entriesByType[entry.type]++;
       totalImportance += entry.importance;
 
-      if (!oldestEntry || new Date(entry.created_at) < new Date(oldestEntry.created_at)) {
+      if (
+        !oldestEntry ||
+        new Date(entry.created_at) < new Date(oldestEntry.created_at)
+      ) {
         oldestEntry = entry;
       }
-      if (!newestEntry || new Date(entry.created_at) > new Date(newestEntry.created_at)) {
+      if (
+        !newestEntry ||
+        new Date(entry.created_at) > new Date(newestEntry.created_at)
+      ) {
         newestEntry = entry;
       }
     }
@@ -323,11 +353,13 @@ export class LocalMemoryOperations {
     return {
       totalEntries: entries.length,
       entriesByType,
-      averageImportance: entries.length > 0 ? totalImportance / entries.length : 0,
+      averageImportance:
+        entries.length > 0 ? totalImportance / entries.length : 0,
       mostAccessedEntries,
       oldestEntry,
       newestEntry,
-      memoryDensity: entries.length > 0 ? this.calculateMemoryDensity(entries) : 0,
+      memoryDensity:
+        entries.length > 0 ? this.calculateMemoryDensity(entries) : 0,
     };
   }
 
@@ -339,7 +371,7 @@ export class LocalMemoryOperations {
     const characterRecord = memoryRecords.find(
       (record: MemoryRecord) => record.characterId === characterId,
     );
-    
+
     return characterRecord?.config || this.getDefaultRAGConfig();
   }
 
@@ -347,7 +379,7 @@ export class LocalMemoryOperations {
    * Update RAG configuration for a character
    */
   static async updateRAGConfig(
-    characterId: string, 
+    characterId: string,
     config: Partial<MemoryRAGConfig>,
   ): Promise<MemoryRAGConfig> {
     const memoryRecords = await readData(MEMORY_ENTRIES_FILE);
@@ -416,10 +448,14 @@ export class LocalMemoryOperations {
   private static calculateMemoryDensity(entries: MemoryEntry[]): number {
     if (entries.length === 0) return 0;
 
-    const oldest = Math.min(...entries.map(e => new Date(e.created_at).getTime()));
-    const newest = Math.max(...entries.map(e => new Date(e.created_at).getTime()));
+    const oldest = Math.min(
+      ...entries.map((e) => new Date(e.created_at).getTime()),
+    );
+    const newest = Math.max(
+      ...entries.map((e) => new Date(e.created_at).getTime()),
+    );
     const daysDiff = (newest - oldest) / (1000 * 60 * 60 * 24);
-    
+
     return daysDiff > 0 ? entries.length / daysDiff : entries.length;
   }
-} 
+}

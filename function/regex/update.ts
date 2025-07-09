@@ -7,7 +7,11 @@ export async function updateRegexScript(
   updates: Partial<RegexScript>,
 ): Promise<boolean> {
   try {
-    return await RegexScriptOperations.updateRegexScript(characterId, scriptId, updates);
+    return await RegexScriptOperations.updateRegexScript(
+      characterId,
+      scriptId,
+      updates,
+    );
   } catch (error) {
     console.error("Error updating regex script:", error);
     throw new Error("Failed to update regex script");

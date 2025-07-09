@@ -1241,7 +1241,11 @@ export class PromptLibrary {
    * @param lang - 语言代码，默认 'zh'
    * @param type - 类型：'prompt' | 'cot' | 'structure'
    */
-  static get(name: PromptKey, lang: PromptLang = "zh", type: "prompt" | "cot" | "structure" = "prompt"): string {
+  static get(
+    name: PromptKey,
+    lang: PromptLang = "zh",
+    type: "prompt" | "cot" | "structure" = "prompt",
+  ): string {
     const entry = this.prompts[name];
     if (!entry) throw new Error(`Prompt not found: ${name}`);
     const langEntry = entry[lang];

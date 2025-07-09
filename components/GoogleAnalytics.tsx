@@ -13,7 +13,9 @@ function GoogleAnalyticsContent() {
     if (GA_MEASUREMENT_ID) {
       initGA();
 
-      const url = pathname + (searchParams?.toString() ? `?${searchParams.toString()}` : "");
+      const url =
+        pathname +
+        (searchParams?.toString() ? `?${searchParams.toString()}` : "");
       pageview(url);
     }
   }, [pathname, searchParams]);

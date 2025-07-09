@@ -5,7 +5,10 @@ import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { StringOutputParser } from "@langchain/core/output_parsers";
 import { PromptAssembler } from "@/lib/core/prompt-assembler";
 import { RunnablePassthrough } from "@langchain/core/runnables";
-import { getCharacterCompressorPromptZh, getCharacterCompressorPromptEn } from "@/lib/prompts/character-prompts";
+import {
+  getCharacterCompressorPromptZh,
+  getCharacterCompressorPromptEn,
+} from "@/lib/prompts/character-prompts";
 import { CharacterHistory } from "@/lib/core/character-history";
 import { DialogueOptions } from "@/lib/models/character-dialogue-model";
 
@@ -35,7 +38,7 @@ export class CharacterDialogue {
         language: this.language,
         contextWindow: options?.contextWindow || 5,
       });
-      
+
       this.setupLLM(options);
       this.setupDialogueChain();
     } catch (error) {
@@ -75,7 +78,7 @@ export class CharacterDialogue {
       topK?: number;
       repeatPenalty?: number;
     };
-    
+
     let llmSettings: LLMSettings = {
       temperature: temperature || 0.9,
       maxRetries: 2,
@@ -85,7 +88,7 @@ export class CharacterDialogue {
       topK: 40,
       repeatPenalty: 1.1,
     };
-    
+
     try {
       if (typeof window !== "undefined" && window.localStorage) {
         const savedSettings = localStorage.getItem("llmSettings");
@@ -104,7 +107,10 @@ export class CharacterDialogue {
         }
       }
     } catch (error) {
-      console.warn("Failed to load LLM settings from localStorage, using defaults", error);
+      console.warn(
+        "Failed to load LLM settings from localStorage, using defaults",
+        error,
+      );
     }
 
     if (llmType === "openai") {
@@ -127,7 +133,8 @@ export class CharacterDialogue {
     } else if (llmType === "ollama") {
       this.llm = new ChatOllama({
         model: safeModel,
-        baseUrl: baseUrl && baseUrl.trim() ? baseUrl.trim() : "http://localhost:11434",
+        baseUrl:
+          baseUrl && baseUrl.trim() ? baseUrl.trim() : "http://localhost:11434",
         temperature: llmSettings.temperature,
         topK: llmSettings.topK,
         topP: llmSettings.topP,
@@ -157,14 +164,14 @@ export class CharacterDialogue {
       .pipe(this.llm)
       .pipe(new StringOutputParser());
   }
-  
+
   async compressStory(userInput: string, story: string): Promise<string> {
     if (!this.llm) {
       throw new Error("LLM not initialized");
     }
 
     this.llm.streaming = false;
-    
+
     try {
       let compressorPrompt;
       if (this.language === "zh") {
@@ -178,12 +185,12 @@ export class CharacterDialogue {
           ["user", getCharacterCompressorPromptEn(userInput, story)],
         ]);
       }
-      
+
       const compressorChain = compressorPrompt
         .pipe(this.llm)
         .pipe(new StringOutputParser());
       const compressedStory = await compressorChain.invoke({});
-      
+
       return compressedStory;
     } catch (error) {
       console.error("Error compressing story:", error);
@@ -191,4 +198,3 @@ export class CharacterDialogue {
     }
   }
 }
-

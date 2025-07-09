@@ -36,6 +36,7 @@ Once the development server starts, visit: [http://localhost:3000](http://localh
 If you want to create a standalone application:
 
 1. First, install the pake-cli globally:
+
 ```bash
 npm install -g pake-cli
 ```
@@ -43,21 +44,25 @@ npm install -g pake-cli
 2. Then, depending on your operating system, run one of the following commands:
 
 For Docker:
+
 ```bash
 docker-compose up --build
 ```
 
 For macOS:
+
 ```bash
 pnpm pake-mac
 ```
 
 For Linux:
+
 ```bash
 pnpm pake-linux
 ```
 
 For Windows:
+
 ```bash
 pnpm pake-win
 ```

@@ -31,9 +31,9 @@ export class DialogueTree {
   id: string;
   character_id: string;
   current_nodeId: string;
-  
+
   nodes: DialogueNode[];
-  
+
   constructor(
     id: string,
     character_id: string,

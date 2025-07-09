@@ -11,7 +11,7 @@ export interface RawCharacterData {
   creatorcomment: string;
   avatar: string;
   sample_status: string;
-  data:{
+  data: {
     name: string;
     description: string;
     personality: string;
@@ -25,17 +25,19 @@ export interface RawCharacterData {
     creator: string;
     character_version: string;
     alternate_greetings: string[];
-    character_book:{
-      entries: {
-        comment: string;
-        content: string;
-        disable?: boolean;
-        position?: number;
-        constant?: boolean;
-        key?: string[];
-        order?: number;
-        depth?: number;
-      }[] | Record<string, WorldBookEntry>;
-    }
-  },
+    character_book: {
+      entries:
+        | {
+            comment: string;
+            content: string;
+            disable?: boolean;
+            position?: number;
+            constant?: boolean;
+            key?: string[];
+            order?: number;
+            depth?: number;
+          }[]
+        | Record<string, WorldBookEntry>;
+    };
+  };
 }

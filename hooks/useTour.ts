@@ -29,7 +29,8 @@ export function useTour() {
 
   useEffect(() => {
     if (isTourVisible) {
-      const isHomeTour = currentTourSteps.length > 0 && currentTourSteps[0].target === "body";
+      const isHomeTour =
+        currentTourSteps.length > 0 && currentTourSteps[0].target === "body";
       const isCharacterTour = !isHomeTour;
 
       if (isHomeTour) {
@@ -69,13 +70,15 @@ export function useTour() {
         position: "bottom",
       },
     ];
-    
+
     setCurrentTourSteps(homeSteps);
     setIsTourVisible(true);
   };
 
   const startCharacterTour = () => {
-    const characterTourCompleted = localStorage.getItem(CHARACTER_TOUR_STORAGE_KEY);
+    const characterTourCompleted = localStorage.getItem(
+      CHARACTER_TOUR_STORAGE_KEY,
+    );
     if (characterTourCompleted) {
       return;
     }
@@ -106,7 +109,7 @@ export function useTour() {
         position: "top",
       },
     ];
-    
+
     setCurrentTourSteps(characterSteps);
     setIsTourVisible(true);
   };
@@ -119,7 +122,7 @@ export function useTour() {
   };
 
   const skipTour = () => {
-    setIsTourVisible(false);  
+    setIsTourVisible(false);
     if (currentTourSteps.length > 0 && currentTourSteps[0].target === "body") {
       localStorage.setItem(TOUR_STORAGE_KEY, "true");
     }
@@ -140,4 +143,4 @@ export function useTour() {
     skipTour,
     resetTour,
   };
-} 
+}

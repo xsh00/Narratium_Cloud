@@ -18,4 +18,3 @@ export interface DialogueOptions {
   language?: "zh" | "en";
   contextWindow?: number;
 }
-

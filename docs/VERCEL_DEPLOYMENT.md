@@ -3,6 +3,7 @@
 ## English
 
 ### Quick Deploy
+
 Click the button below to deploy Narratium.ai to Vercel with one click:
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/YOUR_USERNAME/Narratium.ai)
@@ -33,6 +34,7 @@ Click the button below to deploy Narratium.ai to Vercel with one click:
    - Your app will be available at `your-project.vercel.app`
 
 ### Auto-Deploy
+
 Once connected, Vercel will automatically deploy when you push to your main branch.
 
 **Please make sure to review the LICENSE file for fork permissions and restrictions, especially regarding brand elements and generated content.**
@@ -46,6 +48,7 @@ For deployment issues, check [Vercel Documentation](https://vercel.com/docs)
 ## 中文
 
 ### 快速部署
+
 点击下方按钮一键部署 Narratium.ai 到 Vercel：
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/YOUR_USERNAME/Narratium.ai)
@@ -76,10 +79,11 @@ For deployment issues, check [Vercel Documentation](https://vercel.com/docs)
    - 您的应用将在 `your-project.vercel.app` 可用
 
 ### 自动部署
+
 连接后，每当您推送到主分支时，Vercel 将自动部署。
 
 **请务必查阅 LICENSE 文件，了解 fork 权限和限制，特别是关于品牌元素和生成内容的相关规定。**
 
 ### 支持
 
-部署问题请查看 [Vercel 文档](https://vercel.com/docs) 
+部署问题请查看 [Vercel 文档](https://vercel.com/docs)

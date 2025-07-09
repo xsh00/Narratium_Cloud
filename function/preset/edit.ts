@@ -77,7 +77,9 @@ export async function updatePromptInPreset(
       return { success: false, error: "Preset not found" };
     }
 
-    const originalPrompt = preset.prompts.find(p => p.identifier === promptIdentifier);
+    const originalPrompt = preset.prompts.find(
+      (p) => p.identifier === promptIdentifier,
+    );
     if (!originalPrompt) {
       return { success: false, error: "Prompt not found in preset" };
     }
@@ -85,7 +87,10 @@ export async function updatePromptInPreset(
     const promptData = {
       identifier: promptIdentifier,
       name: originalPrompt.name || promptIdentifier,
-      position: updates.position !== undefined ? updates.position : originalPrompt.position,
+      position:
+        updates.position !== undefined
+          ? updates.position
+          : originalPrompt.position,
       ...updates,
     };
 
@@ -94,7 +99,7 @@ export async function updatePromptInPreset(
       originalPrompt.group_id || 2,
       promptData,
     );
-    
+
     if (!success) {
       return { success: false, error: "Failed to update prompt" };
     }

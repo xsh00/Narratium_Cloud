@@ -104,4 +104,4 @@ export interface MemoryAnalytics {
   oldestEntry?: MemoryEntry;
   newestEntry?: MemoryEntry;
   memoryDensity: number; // Memories per day/conversation
-} 
+}

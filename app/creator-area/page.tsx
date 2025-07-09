@@ -11,13 +11,13 @@ export default function CreatorAreaPage() {
     setMounted(true);
     const yellowImg = new Image();
     const redImg = new Image();
-    
+
     yellowImg.src = "/background_yellow.png";
     redImg.src = "/background_red.png";
-    
+
     Promise.all([
-      new Promise(resolve => yellowImg.onload = resolve),
-      new Promise(resolve => redImg.onload = resolve),
+      new Promise((resolve) => (yellowImg.onload = resolve)),
+      new Promise((resolve) => (redImg.onload = resolve)),
     ]).then(() => {
       setImagesLoaded(true);
     });

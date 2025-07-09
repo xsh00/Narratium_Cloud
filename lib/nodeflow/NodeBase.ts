@@ -1,4 +1,11 @@
-import { NodeConfig, NodeInput, NodeOutput, NodeExecutionStatus, NodeExecutionResult, NodeCategory } from "@/lib/nodeflow/types";
+import {
+  NodeConfig,
+  NodeInput,
+  NodeOutput,
+  NodeExecutionStatus,
+  NodeExecutionResult,
+  NodeCategory,
+} from "@/lib/nodeflow/types";
 import { NodeContext } from "@/lib/nodeflow/NodeContext";
 import { NodeTool, NodeToolRegistry } from "@/lib/nodeflow/NodeTool";
 
@@ -16,7 +23,7 @@ export abstract class NodeBase {
     this.name = config.name;
     this.category = this.getDefaultCategory();
     this.next = config.next || [];
-    
+
     this.params = {
       initParams: config.initParams || [],
       inputFields: config.inputFields || [],
@@ -29,7 +36,7 @@ export abstract class NodeBase {
   protected getInitParams(): string[] {
     return this.getConfigValue("initParams") || [];
   }
-  
+
   protected getInputFields(): string[] {
     return this.getConfigValue("inputFields") || [];
   }
@@ -37,7 +44,7 @@ export abstract class NodeBase {
   protected getOutputFields(): string[] {
     return this.getConfigValue("outputFields") || [];
   }
-  
+
   protected getConfigValue<T>(key: string, defaultValue?: T): T | undefined {
     if (this.params && this.params[key] !== undefined) {
       return this.params[key] as T;
@@ -70,7 +77,7 @@ export abstract class NodeBase {
   isMiddleNode(): boolean {
     return this.category === NodeCategory.MIDDLE;
   }
-  
+
   protected initializeTools(): void {
     try {
       const registeredToolClass = NodeToolRegistry.get(this.getName());
@@ -84,9 +91,14 @@ export abstract class NodeBase {
     }
   }
 
-  protected async executeTool(methodName: string, ...params: any[]): Promise<any> {
+  protected async executeTool(
+    methodName: string,
+    ...params: any[]
+  ): Promise<any> {
     if (!this.toolClass) {
-      throw new Error(`No tool class available for node type: ${this.getName()}`);
+      throw new Error(
+        `No tool class available for node type: ${this.getName()}`,
+      );
     }
     return await this.toolClass.executeMethod(methodName, ...params);
   }
@@ -107,43 +119,52 @@ export abstract class NodeBase {
     const resolvedInput: NodeInput = {};
     const initParams = this.getInitParams();
     const inputFields = this.getInputFields();
-    const inputMapping = this.getConfigValue<Record<string, string>>("inputMapping") || {};
+    const inputMapping =
+      this.getConfigValue<Record<string, string>>("inputMapping") || {};
 
     for (const fieldName of initParams) {
       if (context.hasInput(fieldName)) {
         resolvedInput[fieldName] = context.getInput(fieldName);
       } else {
-        console.warn(`Node ${this.id}: Required input '${fieldName}' not found in Input`);
+        console.warn(
+          `Node ${this.id}: Required input '${fieldName}' not found in Input`,
+        );
       }
     }
 
     for (const workflowFieldName of inputFields) {
-      const nodeFieldName = inputMapping[workflowFieldName] || workflowFieldName;
-      
+      const nodeFieldName =
+        inputMapping[workflowFieldName] || workflowFieldName;
+
       if (context.hasCache(workflowFieldName)) {
         resolvedInput[nodeFieldName] = context.getCache(workflowFieldName);
       } else {
-        console.warn(`Node ${this.id}: Required input '${workflowFieldName}' (mapped to node field '${nodeFieldName}') not found in cache`);
+        console.warn(
+          `Node ${this.id}: Required input '${workflowFieldName}' (mapped to node field '${nodeFieldName}') not found in cache`,
+        );
       }
     }
 
     return resolvedInput;
   }
 
-  protected async publishOutput(output: NodeOutput, context: NodeContext): Promise<void> {
+  protected async publishOutput(
+    output: NodeOutput,
+    context: NodeContext,
+  ): Promise<void> {
     const outputFields = this.getOutputFields();
-    
+
     const storeData = (key: string, value: any) => {
       switch (this.category) {
-      case NodeCategory.EXIT:
-        context.setOutput(key, value);
-        break;
-      default:
-        context.setCache(key, value);
-        break;
+        case NodeCategory.EXIT:
+          context.setOutput(key, value);
+          break;
+        default:
+          context.setCache(key, value);
+          break;
       }
     };
-    
+
     for (const fieldName of outputFields) {
       if (output[fieldName] !== undefined) {
         storeData(fieldName, output[fieldName]);
@@ -163,7 +184,7 @@ export abstract class NodeBase {
       const resolvedNodeInput = await this.resolveInput(context);
       await this.beforeExecute(resolvedNodeInput);
       result.input = resolvedNodeInput;
-      
+
       const output = await this._call(resolvedNodeInput);
       await this.publishOutput(output, context);
       await this.afterExecute(output);
@@ -188,20 +209,20 @@ export abstract class NodeBase {
     console.log(`Node ${this.id}: Processing workflow afterExecute`);
   }
 
-  protected async _call(input: NodeInput): Promise<NodeOutput>{
+  protected async _call(input: NodeInput): Promise<NodeOutput> {
     const outputFields = this.getOutputFields();
     const output: NodeOutput = {};
-    
+
     if (outputFields.length === 0) {
       return { ...input };
     }
-    
+
     for (const field of outputFields) {
       if (input[field] !== undefined) {
         output[field] = input[field];
       }
     }
-    
+
     return output;
   }
 
@@ -220,4 +241,4 @@ export abstract class NodeBase {
       next: this.next,
     };
   }
-} 
+}

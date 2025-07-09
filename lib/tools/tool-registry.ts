@@ -1,8 +1,8 @@
-import { 
-  ToolType, 
-  ExecutionContext, 
-  ExecutionResult, 
-  ToolDecision, 
+import {
+  ToolType,
+  ExecutionContext,
+  ExecutionResult,
+  ToolDecision,
 } from "../models/agent-model";
 import { SimpleTool } from "./base-tool";
 import { SearchTool } from "./search";
@@ -41,14 +41,16 @@ export class ToolRegistry {
     this.tools.set(ToolType.COMPLETE, new CompleteTool());
 
     this.initialized = true;
-    console.log("🔧 Tool Registry initialized with 9 tools (including 4 specialized worldbook tools)");
+    console.log(
+      "🔧 Tool Registry initialized with 9 tools (including 4 specialized worldbook tools)",
+    );
   }
 
   /**
    * Execute a tool decision - the core method for real-time execution
    */
   static async executeToolDecision(
-    decision: ToolDecision, 
+    decision: ToolDecision,
     context: ExecutionContext,
   ): Promise<ExecutionResult> {
     this.initialize();
@@ -63,12 +65,12 @@ export class ToolRegistry {
 
     try {
       const result = await tool.execute(context, decision.parameters);
-      
+
       console.log(`✅ [${tool.name}] ${result.success ? "Success" : "Failed"}`);
       if (result.error) {
         console.log(`❌ Error: ${result.error}`);
       }
-      
+
       return result;
     } catch (error) {
       console.error(`❌ [${tool.name}] Execution failed:`, error);
@@ -94,8 +96,8 @@ export class ToolRegistry {
       xmlOutput += `    <name>${tool.name}</name>\n`;
       xmlOutput += `    <description>${tool.description}</description>\n`;
       xmlOutput += "    <parameters>\n";
-      
-      tool.parameters.forEach(param => {
+
+      tool.parameters.forEach((param) => {
         xmlOutput += "      <parameter>\n";
         xmlOutput += `        <name>${param.name}</name>\n`;
         xmlOutput += `        <type>${param.type}</type>\n`;
@@ -114,5 +116,4 @@ export class ToolRegistry {
 }
 
 // Auto-initialize the registry
-ToolRegistry.initialize(); 
- 
+ToolRegistry.initialize();

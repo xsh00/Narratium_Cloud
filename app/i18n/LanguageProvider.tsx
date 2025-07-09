@@ -1,8 +1,19 @@
 "use client";
 
 import { ReactNode, useEffect, useState } from "react";
-import { DEFAULT_LANGUAGE, Language, LANGUAGES, LanguageContext, getTranslation, getClientLanguage } from "./index";
-import { getLanguageFont, getLanguageTitleFont, getLanguageSerifFont } from "./fonts";
+import {
+  DEFAULT_LANGUAGE,
+  Language,
+  LANGUAGES,
+  LanguageContext,
+  getTranslation,
+  getClientLanguage,
+} from "./index";
+import {
+  getLanguageFont,
+  getLanguageTitleFont,
+  getLanguageSerifFont,
+} from "./fonts";
 import LoadingTransition from "@/components/LoadingTransition";
 
 interface LanguageProviderProps {
@@ -16,8 +27,12 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
   const [isFirstLoad, setIsFirstLoad] = useState(true);
 
   const [fontClass, setFontClass] = useState(getLanguageFont(DEFAULT_LANGUAGE));
-  const [titleFontClass, setTitleFontClass] = useState(getLanguageTitleFont(DEFAULT_LANGUAGE));
-  const [serifFontClass, setSerifFontClass] = useState(getLanguageSerifFont(DEFAULT_LANGUAGE));
+  const [titleFontClass, setTitleFontClass] = useState(
+    getLanguageTitleFont(DEFAULT_LANGUAGE),
+  );
+  const [serifFontClass, setSerifFontClass] = useState(
+    getLanguageSerifFont(DEFAULT_LANGUAGE),
+  );
 
   useEffect(() => {
     const clientLanguage = getClientLanguage();
@@ -30,7 +45,7 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
     if (typeof document !== "undefined") {
       document.documentElement.setAttribute("lang", clientLanguage);
     }
-    
+
     if (isFirstLoad) {
       setShowTransition(true);
       setTimeout(() => {
@@ -38,7 +53,7 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
         setIsFirstLoad(false);
       }, 3000);
     }
-    
+
     setIsLoaded(true);
   }, [isFirstLoad]);
 
@@ -57,7 +72,7 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
         if (typeof document !== "undefined") {
           document.documentElement.setAttribute("lang", newLanguage);
         }
-        
+
         setTimeout(() => {
           setShowTransition(false);
         }, 2000);
@@ -71,14 +86,32 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
 
   if (!isLoaded && typeof window !== "undefined") {
     return (
-      <LanguageContext.Provider value={{ language, setLanguage, t, fontClass, titleFontClass, serifFontClass }}>
+      <LanguageContext.Provider
+        value={{
+          language,
+          setLanguage,
+          t,
+          fontClass,
+          titleFontClass,
+          serifFontClass,
+        }}
+      >
         {children}
       </LanguageContext.Provider>
     );
   }
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t, fontClass, titleFontClass, serifFontClass }}>
+    <LanguageContext.Provider
+      value={{
+        language,
+        setLanguage,
+        t,
+        fontClass,
+        titleFontClass,
+        serifFontClass,
+      }}
+    >
       {showTransition && <LoadingTransition duration={3000} />}
       {children}
     </LanguageContext.Provider>

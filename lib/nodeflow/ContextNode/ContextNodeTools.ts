@@ -11,15 +11,26 @@ export class ContextNodeTools extends NodeTool {
     return this.toolType;
   }
 
-  static async executeMethod(methodName: string, ...params: any[]): Promise<any> {
+  static async executeMethod(
+    methodName: string,
+    ...params: any[]
+  ): Promise<any> {
     const method = (this as any)[methodName];
-    
+
     if (typeof method !== "function") {
-      console.error(`Method lookup failed: ${methodName} not found in ContextNodeTools`);
-      console.log("Available methods:", Object.getOwnPropertyNames(this).filter(name => 
-        typeof (this as any)[name] === "function" && !name.startsWith("_"),
-      ));
-      throw new Error(`Method ${methodName} not found in ${this.getToolType()}Tool`);
+      console.error(
+        `Method lookup failed: ${methodName} not found in ContextNodeTools`,
+      );
+      console.log(
+        "Available methods:",
+        Object.getOwnPropertyNames(this).filter(
+          (name) =>
+            typeof (this as any)[name] === "function" && !name.startsWith("_"),
+        ),
+      );
+      throw new Error(
+        `Method ${methodName} not found in ${this.getToolType()}Tool`,
+      );
     }
 
     try {
@@ -41,9 +52,15 @@ export class ContextNodeTools extends NodeTool {
       }
 
       const historyData = await this.loadCharacterHistory(characterId);
-      const chatHistoryContent = this.formatChatHistory(historyData, memoryLength);
+      const chatHistoryContent = this.formatChatHistory(
+        historyData,
+        memoryLength,
+      );
 
-      const assembledUserMessage = userMessage.replace("{{chatHistory}}", chatHistoryContent);
+      const assembledUserMessage = userMessage.replace(
+        "{{chatHistory}}",
+        chatHistoryContent,
+      );
 
       console.log(`Assembled chat history for character ${characterId}`);
 
@@ -56,9 +73,7 @@ export class ContextNodeTools extends NodeTool {
     }
   }
 
-  static async loadCharacterHistory(
-    characterId: string,
-  ): Promise<{
+  static async loadCharacterHistory(characterId: string): Promise<{
     systemMessage: string;
     recentDialogue: DialogueStory;
     historyDialogue: DialogueStory;
@@ -68,16 +83,21 @@ export class ContextNodeTools extends NodeTool {
       const historyDialogue = new DialogueStory("en");
       let systemMessage = "";
 
-      const dialogueTree = await LocalCharacterDialogueOperations.getDialogueTreeById(characterId);
+      const dialogueTree =
+        await LocalCharacterDialogueOperations.getDialogueTreeById(characterId);
       if (!dialogueTree) {
         console.warn(`Dialogue tree not found for character ${characterId}`);
         return { systemMessage, recentDialogue, historyDialogue };
       }
 
-      const nodePath = dialogueTree.current_nodeId !== "root"
-        ? await LocalCharacterDialogueOperations.getDialoguePathToNode(characterId, dialogueTree.current_nodeId)
-        : [];
-      
+      const nodePath =
+        dialogueTree.current_nodeId !== "root"
+          ? await LocalCharacterDialogueOperations.getDialoguePathToNode(
+              characterId,
+              dialogueTree.current_nodeId,
+            )
+          : [];
+
       for (const node of nodePath) {
         if (node.parentNodeId === "root" && node.assistantResponse) {
           systemMessage = node.assistantResponse;
@@ -116,13 +136,21 @@ export class ContextNodeTools extends NodeTool {
       }
 
       // Use DialogueStory.getStory directly for compressed history
-      const compressedHistory = historyData.historyDialogue.getStory(0, Math.max(0, historyData.historyDialogue.responses.length - memoryLength));
+      const compressedHistory = historyData.historyDialogue.getStory(
+        0,
+        Math.max(
+          0,
+          historyData.historyDialogue.responses.length - memoryLength,
+        ),
+      );
       if (compressedHistory) {
         parts.push(`历史信息：${compressedHistory}`);
       }
 
       // Use DialogueStory.getStory directly for recent history
-      const recentHistory = historyData.recentDialogue.getStory(Math.max(0, historyData.recentDialogue.userInput.length - memoryLength));
+      const recentHistory = historyData.recentDialogue.getStory(
+        Math.max(0, historyData.recentDialogue.userInput.length - memoryLength),
+      );
       if (recentHistory) {
         parts.push(`最近故事：${recentHistory}`);
       }
@@ -143,25 +171,26 @@ export class ContextNodeTools extends NodeTool {
   ): Promise<string> {
     try {
       const historyData = await this.loadCharacterHistory(characterId);
-      
+
       // Get recent dialogue for context using DialogueStory.getStory directly
-      const recentHistory = historyData.recentDialogue.getStory(Math.max(0, historyData.recentDialogue.userInput.length - memoryLength));
-      
+      const recentHistory = historyData.recentDialogue.getStory(
+        Math.max(0, historyData.recentDialogue.userInput.length - memoryLength),
+      );
+
       // Build conversation context
       const contextLines = [];
-      
+
       if (recentHistory) {
         contextLines.push(recentHistory);
       }
-      
+
       // Add current user input
       contextLines.push(`User: ${currentUserInput}`);
-      
+
       return contextLines.join("\n");
     } catch (error) {
       this.handleError(error as Error, "generateConversationContext");
       return `User: ${currentUserInput}`;
     }
   }
-} 
-
+}

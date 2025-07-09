@@ -1,13 +1,13 @@
 /**
  * Edit Prompt Modal Component
- * 
+ *
  * This component provides a prompt editing interface with the following features:
  * - Preset prompt content editing
  * - Real-time content validation
  * - Save functionality with error handling
  * - Modal-based editing workflow
  * - Loading states and user feedback
- * 
+ *
  * The component handles:
  * - Prompt content editing and validation
  * - Preset prompt updates and persistence
@@ -15,7 +15,7 @@
  * - Error handling and user notifications
  * - Loading states during save operations
  * - Form reset and cleanup
- * 
+ *
  * Dependencies:
  * - useLanguage: For internationalization
  * - updatePromptInPreset: For preset prompt updates
@@ -56,13 +56,13 @@ interface EditPromptModalProps {
 
 /**
  * Edit prompt modal component
- * 
+ *
  * Provides a prompt editing interface with:
  * - Preset prompt content editing
  * - Real-time validation and feedback
  * - Save functionality with error handling
  * - Modal-based workflow management
- * 
+ *
  * @param {EditPromptModalProps} props - Component props
  * @returns {JSX.Element | null} The edit prompt modal or null if closed
  */
@@ -109,12 +109,17 @@ const EditPromptModal = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center animate-fadeIn">
       <div className="absolute inset-0 bg-opacity-70 backdrop-blur-md"></div>
-      <div className={`bg-[#1e1c1b] bg-opacity-85 border border-[#534741] rounded-lg shadow-xl p-6 w-full max-w-lg transform transition-all duration-300 animate-slideUp relative z-10 ${serifFontClass}`}>
+      <div
+        className={`bg-[#1e1c1b] bg-opacity-85 border border-[#534741] rounded-lg shadow-xl p-6 w-full max-w-lg transform transition-all duration-300 animate-slideUp relative z-10 ${serifFontClass}`}
+      >
         <h3 className="text-xl font-medium text-[#e9c08d] mb-4">
           {t("preset.editPrompt")} - {prompt.name}
         </h3>
         <div className="mb-4">
-          <label htmlFor="promptContent" className="block text-sm font-medium text-[#a18d6f] mb-2">
+          <label
+            htmlFor="promptContent"
+            className="block text-sm font-medium text-[#a18d6f] mb-2"
+          >
             {t("preset.promptContent")}
           </label>
           <textarea
@@ -145,5 +150,4 @@ const EditPromptModal = ({
   );
 };
 
-export default EditPromptModal; 
- 
+export default EditPromptModal;

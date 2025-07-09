@@ -18,33 +18,35 @@ interface EditDialogueNodeRequest {
 
 export async function editDialaogueNodeContent(input: EditDialogueNodeRequest) {
   try {
-    const { 
-      characterId, 
-      nodeId, 
+    const {
+      characterId,
+      nodeId,
       assistantResponse,
       model_name,
       api_key,
       base_url,
       llm_type,
-      language, 
+      language,
     } = input;
-    
-    const dialogueTree = await LocalCharacterDialogueOperations.getDialogueTreeById(characterId);
+
+    const dialogueTree =
+      await LocalCharacterDialogueOperations.getDialogueTreeById(characterId);
     if (!dialogueTree) {
       throw new Error("Dialogue tree not found");
     }
-    
+
     const node = dialogueTree.nodes.find((n) => n.nodeId === nodeId);
     if (!node) {
       throw new Error("Node not found");
     }
 
-    const characterRecord = await LocalCharacterRecordOperations.getCharacterById(characterId);
+    const characterRecord =
+      await LocalCharacterRecordOperations.getCharacterById(characterId);
     if (!characterRecord) {
       throw new Error(`Character with ID ${characterId} not found`);
     }
     const character = new Character(characterRecord);
-    
+
     const dialogue = new CharacterDialogue(character);
     await dialogue.initialize({
       modelName: model_name,
@@ -53,7 +55,7 @@ export async function editDialaogueNodeContent(input: EditDialogueNodeRequest) {
       llmType: llm_type as "openai" | "ollama",
       language: language as "zh" | "en",
     });
-    
+
     let summary = "";
     try {
       const compressedResult = await dialogue.compressStory(
@@ -73,12 +75,13 @@ export async function editDialaogueNodeContent(input: EditDialogueNodeRequest) {
       },
     };
 
-    const updatedDialogue = await LocalCharacterDialogueOperations.updateNodeInDialogueTree(
-      dialogueTree.id,
-      nodeId,
-      nodeUpdates,
-    );
-    
+    const updatedDialogue =
+      await LocalCharacterDialogueOperations.updateNodeInDialogueTree(
+        dialogueTree.id,
+        nodeId,
+        nodeUpdates,
+      );
+
     if (!updatedDialogue) {
       throw new Error("Failed to update node content");
     }

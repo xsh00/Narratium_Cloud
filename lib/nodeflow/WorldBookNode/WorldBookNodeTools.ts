@@ -13,15 +13,26 @@ export class WorldBookNodeTools extends NodeTool {
     return this.toolType;
   }
 
-  static async executeMethod(methodName: string, ...params: any[]): Promise<any> {
+  static async executeMethod(
+    methodName: string,
+    ...params: any[]
+  ): Promise<any> {
     const method = (this as any)[methodName];
-    
+
     if (typeof method !== "function") {
-      console.error(`Method lookup failed: ${methodName} not found in WorldBookNodeTools`);
-      console.log("Available methods:", Object.getOwnPropertyNames(this).filter(name => 
-        typeof (this as any)[name] === "function" && !name.startsWith("_"),
-      ));
-      throw new Error(`Method ${methodName} not found in ${this.getToolType()}Tool`);
+      console.error(
+        `Method lookup failed: ${methodName} not found in WorldBookNodeTools`,
+      );
+      console.log(
+        "Available methods:",
+        Object.getOwnPropertyNames(this).filter(
+          (name) =>
+            typeof (this as any)[name] === "function" && !name.startsWith("_"),
+        ),
+      );
+      throw new Error(
+        `Method ${methodName} not found in ${this.getToolType()}Tool`,
+      );
     }
 
     try {
@@ -43,11 +54,17 @@ export class WorldBookNodeTools extends NodeTool {
     charName?: string,
   ): Promise<{ systemMessage: string; userMessage: string }> {
     try {
-      const characterRecord = await LocalCharacterRecordOperations.getCharacterById(characterId);
+      const characterRecord =
+        await LocalCharacterRecordOperations.getCharacterById(characterId);
+      
+      if (!characterRecord) {
+        throw new Error(`Character with ID ${characterId} not found`);
+      }
+      
       const character = new Character(characterRecord);
 
       const chatHistory = await this.getChatHistory(characterId, contextWindow);
-      
+
       const promptAssembler = new PromptAssembler({
         language,
         contextWindow,
@@ -68,25 +85,33 @@ export class WorldBookNodeTools extends NodeTool {
     }
   }
 
-  private static async getChatHistory(characterId: string, contextWindow: number = 5): Promise<DialogueMessage[]> {
+  private static async getChatHistory(
+    characterId: string,
+    contextWindow: number = 5,
+  ): Promise<DialogueMessage[]> {
     try {
-      const dialogueTree = await LocalCharacterDialogueOperations.getDialogueTreeById(characterId);
+      const dialogueTree =
+        await LocalCharacterDialogueOperations.getDialogueTreeById(characterId);
       if (!dialogueTree) {
         return [];
       }
 
-      const nodePath = dialogueTree.current_nodeId !== "root"
-        ? await LocalCharacterDialogueOperations.getDialoguePathToNode(characterId, dialogueTree.current_nodeId)
-        : [];
-      
+      const nodePath =
+        dialogueTree.current_nodeId !== "root"
+          ? await LocalCharacterDialogueOperations.getDialoguePathToNode(
+              characterId,
+              dialogueTree.current_nodeId,
+            )
+          : [];
+
       const messages: DialogueMessage[] = [];
       let messageId = 0;
-      
+
       for (const node of nodePath) {
         if (node.parentNodeId === "root" && node.assistantResponse) {
           continue;
         }
-        
+
         if (node.userInput) {
           messages.push({
             role: "user",
@@ -94,10 +119,10 @@ export class WorldBookNodeTools extends NodeTool {
             id: messageId++,
           });
         }
-        
+
         if (node.assistantResponse) {
           messages.push({
-            role: "assistant", 
+            role: "assistant",
             content: node.assistantResponse,
             id: messageId++,
           });
@@ -111,4 +136,4 @@ export class WorldBookNodeTools extends NodeTool {
       return [];
     }
   }
-} 
+}

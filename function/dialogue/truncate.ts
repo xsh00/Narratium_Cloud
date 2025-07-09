@@ -5,21 +5,28 @@ interface SwitchDialogueBranchOptions {
   nodeId: string;
 }
 
-export async function switchDialogueBranch({ characterId, nodeId }: SwitchDialogueBranchOptions) {
-
+export async function switchDialogueBranch({
+  characterId,
+  nodeId,
+}: SwitchDialogueBranchOptions) {
   try {
-    const dialogueTree = await LocalCharacterDialogueOperations.getDialogueTreeById(characterId);
+    const dialogueTree =
+      await LocalCharacterDialogueOperations.getDialogueTreeById(characterId);
 
     if (!dialogueTree) {
       throw new Error("Dialogue not found");
     }
 
-    const updated = await LocalCharacterDialogueOperations.switchBranch(characterId, nodeId);
+    const updated = await LocalCharacterDialogueOperations.switchBranch(
+      characterId,
+      nodeId,
+    );
     if (!updated) {
       throw new Error("Failed to switch to the specified node");
     }
 
-    const updatedDialogueTree = await LocalCharacterDialogueOperations.getDialogueTreeById(characterId);
+    const updatedDialogueTree =
+      await LocalCharacterDialogueOperations.getDialogueTreeById(characterId);
     if (!updatedDialogueTree) {
       throw new Error("Failed to retrieve updated dialogue");
     }
@@ -27,9 +34,9 @@ export async function switchDialogueBranch({ characterId, nodeId }: SwitchDialog
     const currentPath =
       updatedDialogueTree.current_nodeId !== "root"
         ? await LocalCharacterDialogueOperations.getDialoguePathToNode(
-          characterId,
-          updatedDialogueTree.current_nodeId,
-        )
+            characterId,
+            updatedDialogueTree.current_nodeId,
+          )
         : [];
 
     const messages = currentPath.flatMap((node) => {
@@ -51,7 +58,7 @@ export async function switchDialogueBranch({ characterId, nodeId }: SwitchDialog
           role: "assistant",
           thinkingContent: node.thinkingContent ?? "",
           content: node.assistantResponse,
-          parsedContent: node.parsedContent || null, 
+          parsedContent: node.parsedContent || null,
           nodeId: node.nodeId,
         });
       }

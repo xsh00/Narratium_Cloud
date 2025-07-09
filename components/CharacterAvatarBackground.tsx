@@ -1,7 +1,11 @@
 import { useEffect, useState } from "react";
 import { getBlob } from "@/lib/data/local-storage";
 
-export function CharacterAvatarBackground({ avatarPath }: { avatarPath: string }) {
+export function CharacterAvatarBackground({
+  avatarPath,
+}: {
+  avatarPath: string;
+}) {
   const [bgUrl, setBgUrl] = useState<string | null>(null);
 
   useEffect(() => {

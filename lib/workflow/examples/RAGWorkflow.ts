@@ -12,17 +12,17 @@ import { MemoryStorageNode } from "@/lib/nodeflow/MemoryNode/MemoryStorageNode";
 
 /**
  * CorrectRAGWorkflow - Enhanced execution architecture with AFTER nodes
- * 
+ *
  * Execution Flow:
  * 1. ENTRY -> MIDDLE nodes execute sequentially (userInput -> preset -> context -> memoryRetrieval -> worldBook -> llm -> regex)
  * 2. EXIT node (output) executes and workflow returns immediately to user
  * 3. AFTER nodes (memoryStorage) execute in background asynchronously
- * 
+ *
  * Benefits:
  * - User receives immediate response after output node
  * - Memory storage happens asynchronously without blocking user experience
  * - Maintains data consistency while improving response time
- * 
+ *
  * Usage:
  * ```typescript
  * const result = await workflowEngine.execute(params, context, {
@@ -62,31 +62,31 @@ export interface CorrectRAGWorkflowParams {
 export class CorrectRAGWorkflow extends BaseWorkflow {
   protected getNodeRegistry() {
     return {
-      "userInput": {
+      userInput: {
         nodeClass: UserInputNode,
       },
-      "preset": {
+      preset: {
         nodeClass: PresetNode,
       },
-      "context": {
+      context: {
         nodeClass: ContextNode,
       },
-      "memoryRetrieval": {
+      memoryRetrieval: {
         nodeClass: MemoryRetrievalNode,
       },
-      "worldBook": {
+      worldBook: {
         nodeClass: WorldBookNode,
       },
-      "llm": {
+      llm: {
         nodeClass: LLMNode,
       },
-      "regex": {
+      regex: {
         nodeClass: RegexNode,
       },
-      "output": {
+      output: {
         nodeClass: OutputNode,
       },
-      "memoryStorage": {
+      memoryStorage: {
         nodeClass: MemoryStorageNode,
       },
     };
@@ -103,32 +103,32 @@ export class CorrectRAGWorkflow extends BaseWorkflow {
           category: NodeCategory.ENTRY,
           next: ["preset-1"],
           initParams: [
-            "characterId", 
-            "userInput", 
-            "number", 
-            "language", 
-            "username", 
-            "modelName", 
-            "apiKey", 
-            "baseUrl", 
-            "llmType", 
-            "temperature", 
+            "characterId",
+            "userInput",
+            "number",
+            "language",
+            "username",
+            "modelName",
+            "apiKey",
+            "baseUrl",
+            "llmType",
+            "temperature",
             "fastModel",
             "maxMemories",
             "enableMemoryStorage",
           ],
           inputFields: [],
           outputFields: [
-            "characterId", 
-            "userInput", 
-            "number", 
-            "language", 
-            "username", 
-            "modelName", 
-            "apiKey", 
-            "baseUrl", 
-            "llmType", 
-            "temperature", 
+            "characterId",
+            "userInput",
+            "number",
+            "language",
+            "username",
+            "modelName",
+            "apiKey",
+            "baseUrl",
+            "llmType",
+            "temperature",
             "fastModel",
             "maxMemories",
             "enableMemoryStorage",
@@ -140,7 +140,13 @@ export class CorrectRAGWorkflow extends BaseWorkflow {
           category: NodeCategory.MIDDLE,
           next: ["context-1"],
           initParams: [],
-          inputFields: ["characterId", "language", "username", "number", "fastModel"],
+          inputFields: [
+            "characterId",
+            "language",
+            "username",
+            "number",
+            "fastModel",
+          ],
           outputFields: ["systemMessage", "userMessage", "presetId"],
         },
         {
@@ -158,7 +164,16 @@ export class CorrectRAGWorkflow extends BaseWorkflow {
           category: NodeCategory.MIDDLE,
           next: ["world-book-1"],
           initParams: [],
-          inputFields: ["characterId", "userInput", "systemMessage", "apiKey", "baseUrl", "language", "maxMemories", "username"],
+          inputFields: [
+            "characterId",
+            "userInput",
+            "systemMessage",
+            "apiKey",
+            "baseUrl",
+            "language",
+            "maxMemories",
+            "username",
+          ],
           outputFields: ["systemMessage", "memoryPrompt"],
         },
         {
@@ -167,10 +182,17 @@ export class CorrectRAGWorkflow extends BaseWorkflow {
           category: NodeCategory.MIDDLE,
           next: ["llm-1"],
           initParams: [],
-          inputFields: ["systemMessage", "userMessage", "characterId", "language", "username", "userInput"],
+          inputFields: [
+            "systemMessage",
+            "userMessage",
+            "characterId",
+            "language",
+            "username",
+            "userInput",
+          ],
           outputFields: ["systemMessage", "userMessage"],
           inputMapping: {
-            "userInput": "currentUserInput",
+            userInput: "currentUserInput",
           },
         },
         {
@@ -179,7 +201,16 @@ export class CorrectRAGWorkflow extends BaseWorkflow {
           category: NodeCategory.MIDDLE,
           next: ["regex-1"],
           initParams: [],
-          inputFields: ["systemMessage", "userMessage", "modelName", "apiKey", "baseUrl", "llmType", "temperature", "language"],
+          inputFields: [
+            "systemMessage",
+            "userMessage",
+            "modelName",
+            "apiKey",
+            "baseUrl",
+            "llmType",
+            "temperature",
+            "language",
+          ],
           outputFields: ["llmResponse"],
         },
         {
@@ -189,7 +220,13 @@ export class CorrectRAGWorkflow extends BaseWorkflow {
           next: ["output-1"],
           initParams: [],
           inputFields: ["llmResponse", "characterId"],
-          outputFields: ["replacedText", "screenContent", "fullResponse", "nextPrompts", "event"], // 只输出处理后的内容
+          outputFields: [
+            "replacedText",
+            "screenContent",
+            "fullResponse",
+            "nextPrompts",
+            "event",
+          ], // 只输出处理后的内容
         },
         {
           id: "output-1",
@@ -198,19 +235,19 @@ export class CorrectRAGWorkflow extends BaseWorkflow {
           next: [], // No next nodes - workflow completes here for user response
           initParams: [],
           inputFields: [
-            "replacedText", 
-            "screenContent", 
-            "fullResponse", 
-            "nextPrompts", 
-            "event", 
+            "replacedText",
+            "screenContent",
+            "fullResponse",
+            "nextPrompts",
+            "event",
             "presetId",
           ],
           outputFields: [
-            "replacedText", 
-            "screenContent", 
-            "fullResponse", 
-            "nextPrompts", 
-            "event", 
+            "replacedText",
+            "screenContent",
+            "fullResponse",
+            "nextPrompts",
+            "event",
             "presetId",
           ], // User receives immediate response with these fields
         },
@@ -231,7 +268,7 @@ export class CorrectRAGWorkflow extends BaseWorkflow {
             "language",
             "enableMemoryStorage",
             "replacedText",
-            "screenContent", 
+            "screenContent",
             "nextPrompts",
             "event",
             "presetId",
@@ -243,4 +280,4 @@ export class CorrectRAGWorkflow extends BaseWorkflow {
       ],
     };
   }
-} 
+}

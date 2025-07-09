@@ -21,12 +21,15 @@ class VirtualRenderQueue {
   // Schedule processing with throttling
   private scheduleProcessing() {
     if (this.isProcessing) return;
-    
+
     const now = Date.now();
     const timeSinceLastProcess = now - this.lastProcessTime;
-    
+
     if (timeSinceLastProcess < this.processingInterval) {
-      setTimeout(() => this.processQueue(), this.processingInterval - timeSinceLastProcess);
+      setTimeout(
+        () => this.processQueue(),
+        this.processingInterval - timeSinceLastProcess,
+      );
     } else {
       this.processQueue();
     }
@@ -35,22 +38,22 @@ class VirtualRenderQueue {
   // Process queue in batches
   private processQueue() {
     if (this.isProcessing || this.queue.length === 0) return;
-    
+
     this.isProcessing = true;
     this.lastProcessTime = Date.now();
-    
+
     // Process batch of tasks
     const batch = this.queue.splice(0, this.batchSize);
-    batch.forEach(task => {
+    batch.forEach((task) => {
       try {
         task();
       } catch (error) {
         console.error("Virtual queue task error:", error);
       }
     });
-    
+
     this.isProcessing = false;
-    
+
     // Continue processing if more tasks exist
     if (this.queue.length > 0) {
       requestAnimationFrame(() => this.processQueue());
@@ -80,19 +83,19 @@ const globalRenderQueue = new VirtualRenderQueue();
 function convertMarkdown(str: string): string {
   const imagePlaceholders: string[] = [];
 
-  str = str.replace(/!\[\]\(([^)]+)\)/g, (_match,url) => {
+  str = str.replace(/!\[\]\(([^)]+)\)/g, (_match, url) => {
     const placeholder = `__IMAGE_PLACEHOLDER_${imagePlaceholders.length}__`;
     imagePlaceholders.push(`<img src="${url}" alt="Image" />`);
     return placeholder;
   });
   str = str.replace(/^---$/gm, "");
-  str = str.replace(/```[\s\S]*?```/g, (match,_) => {
+  str = str.replace(/```[\s\S]*?```/g, (match, _) => {
     const content = match.replace(/^```\w*\n?/, "").replace(/```$/, "");
     return `<pre>${content}</pre>`;
   });
   str = str.replace(/^>\s*(.+)$/gm, "<blockquote>$1</blockquote>");
   str = str.replace(/<\/blockquote>\s*<blockquote>/g, "\n");
-  str = str.replace(/!\[\]\(([^)]+)\)/g, "<img src=\"$1\" alt=\"Image\" />");
+  str = str.replace(/!\[\]\(([^)]+)\)/g, '<img src="$1" alt="Image" />');
   str = str.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
   str = str.replace(/\*([^*]+)\*/g, "<em>$1</em>");
   str = str.replace(/(<[^>]+>)|(["""][^""]+["""])/g, (_match, tag, quote) => {
@@ -103,10 +106,13 @@ function convertMarkdown(str: string): string {
     if (tag) return tag;
     return `<talk>${quote}</talk>`;
   });
-  str = str.replace(/\[([^\]]+)\]|【([^】]+)】/g, (_match, latinContent, cjkContent) => {
-    const content = latinContent || cjkContent;
-    return `<bracket-content>${content}</bracket-content>`;
-  });
+  str = str.replace(
+    /\[([^\]]+)\]|【([^】]+)】/g,
+    (_match, latinContent, cjkContent) => {
+      const content = latinContent || cjkContent;
+      return `<bracket-content>${content}</bracket-content>`;
+    },
+  );
 
   imagePlaceholders.forEach((html, i) => {
     str = str.replace(`__IMAGE_PLACEHOLDER_${i}__`, html);
@@ -124,23 +130,24 @@ function isCompleteHtmlDocument(str: string): boolean {
 }
 
 function detectHtmlTags(str: string) {
-  const htmlTagRegex = /<\s*([a-zA-Z][a-zA-Z0-9]*)\b[^>]*>([\s\S]*?)<\s*\/\s*\1\s*>/g;
+  const htmlTagRegex =
+    /<\s*([a-zA-Z][a-zA-Z0-9]*)\b[^>]*>([\s\S]*?)<\s*\/\s*\1\s*>/g;
   const selfClosingTagRegex = /<\s*([a-zA-Z][a-zA-Z0-9]*)\b[^>]*\/\s*>/g;
   const tags = new Set<string>();
 
   let match: RegExpExecArray | null;
-  while ((match = htmlTagRegex.exec(str)) !== null) tags.add(match[1].toLowerCase());
-  while ((match = selfClosingTagRegex.exec(str)) !== null) tags.add(match[1].toLowerCase());
+  while ((match = htmlTagRegex.exec(str)) !== null)
+    tags.add(match[1].toLowerCase());
+  while ((match = selfClosingTagRegex.exec(str)) !== null)
+    tags.add(match[1].toLowerCase());
   return [...tags];
 }
-  
+
 // Semantic color categories for intelligent tag mapping
 const SEMANTIC_COLOR_GROUPS = {
   // Communication & dialogue tags
-  communication: [
-    "#e5d7b5",
-  ],
-  // Status & state tags  
+  communication: ["#e5d7b5"],
+  // Status & state tags
   status: [
     "#d4c4a8", // Muted gold - similar brightness to #f4e8c1
   ],
@@ -177,13 +184,13 @@ const OPTIMIZED_COLOR_PALETTE = [
   "#d4c4a8", // Muted gold
   "#e8c8b0", // Soft peach
   "#e0b8a8", // Muted coral
-  
+
   // Cool colors with similar brightness to #f4e8c1
   "#c8d4b0", // Muted sage
   "#d0c8e0", // Soft lavender
   "#d8c0e8", // Soft violet
   "#c0d8e0", // Soft blue-gray
-  
+
   // Neutral colors with similar brightness to #f4e8c1
   "#d8d0c0", // Warm gray
   "#e0d8c8", // Light beige
@@ -192,55 +199,136 @@ const OPTIMIZED_COLOR_PALETTE = [
 ];
 
 // Smart tag categorization for semantic color assignment
-function categorizeTag(tagName: string): keyof typeof SEMANTIC_COLOR_GROUPS | "default" {
+function categorizeTag(
+  tagName: string,
+): keyof typeof SEMANTIC_COLOR_GROUPS | "default" {
   const lowerTag = tagName.toLowerCase();
-  
+
   // Communication patterns
-  if (["speech", "dialogue", "talk", "say", "voice", "whisper", "shout"].includes(lowerTag)) {
+  if (
+    ["speech", "dialogue", "talk", "say", "voice", "whisper", "shout"].includes(
+      lowerTag,
+    )
+  ) {
     return "communication";
   }
-  
+
   // Status patterns
-  if (["status", "state", "condition", "mode", "phase"].includes(lowerTag) || 
-      lowerTag.includes("status") || lowerTag.includes("state")) {
+  if (
+    ["status", "state", "condition", "mode", "phase"].includes(lowerTag) ||
+    lowerTag.includes("status") ||
+    lowerTag.includes("state")
+  ) {
     return "status";
   }
-  
+
   // Emotion patterns
-  if (["emotion", "feeling", "mood", "heart", "soul", "passion", "love", "anger", "joy", "sad"].includes(lowerTag) ||
-      lowerTag.includes("feel") || lowerTag.includes("emotion")) {
+  if (
+    [
+      "emotion",
+      "feeling",
+      "mood",
+      "heart",
+      "soul",
+      "passion",
+      "love",
+      "anger",
+      "joy",
+      "sad",
+    ].includes(lowerTag) ||
+    lowerTag.includes("feel") ||
+    lowerTag.includes("emotion")
+  ) {
     return "emotion";
   }
-  
+
   // Action patterns
-  if (["action", "move", "walk", "run", "jump", "dance", "fight", "attack", "defend"].includes(lowerTag) ||
-      lowerTag.includes("action") || lowerTag.includes("move")) {
+  if (
+    [
+      "action",
+      "move",
+      "walk",
+      "run",
+      "jump",
+      "dance",
+      "fight",
+      "attack",
+      "defend",
+    ].includes(lowerTag) ||
+    lowerTag.includes("action") ||
+    lowerTag.includes("move")
+  ) {
     return "action";
   }
-  
+
   // Thought patterns
-  if (["think", "thought", "mind", "brain", "consider", "ponder", "reflect", "remember"].includes(lowerTag) ||
-      lowerTag.includes("think") || lowerTag.includes("mind")) {
+  if (
+    [
+      "think",
+      "thought",
+      "mind",
+      "brain",
+      "consider",
+      "ponder",
+      "reflect",
+      "remember",
+    ].includes(lowerTag) ||
+    lowerTag.includes("think") ||
+    lowerTag.includes("mind")
+  ) {
     return "thought";
   }
-  
+
   // Narrative patterns
-  if (["screen", "scene", "setting", "background", "environment", "description", "narrative","content"].includes(lowerTag)) {
+  if (
+    [
+      "screen",
+      "scene",
+      "setting",
+      "background",
+      "environment",
+      "description",
+      "narrative",
+      "content",
+    ].includes(lowerTag)
+  ) {
     return "narrative";
   }
-  
+
   // Emphasis patterns
-  if (["emphasis", "important", "urgent", "warning", "alert", "critical"].includes(lowerTag) ||
-      lowerTag.includes("emphasis") || lowerTag.includes("important")) {
+  if (
+    [
+      "emphasis",
+      "important",
+      "urgent",
+      "warning",
+      "alert",
+      "critical",
+    ].includes(lowerTag) ||
+    lowerTag.includes("emphasis") ||
+    lowerTag.includes("important")
+  ) {
     return "emphasis";
   }
-  
+
   // Mystical patterns
-  if (["magic", "mystical", "spell", "enchant", "divine", "sacred", "ritual", "prophecy"].includes(lowerTag) ||
-      lowerTag.includes("magic") || lowerTag.includes("mystical")) {
+  if (
+    [
+      "magic",
+      "mystical",
+      "spell",
+      "enchant",
+      "divine",
+      "sacred",
+      "ritual",
+      "prophecy",
+    ].includes(lowerTag) ||
+    lowerTag.includes("magic") ||
+    lowerTag.includes("mystical")
+  ) {
     return "mystical";
   }
-  
+
   return "default";
 }
 
@@ -257,7 +345,7 @@ function generateCacheKey(tags: string[]): string {
 function pruneCache(): void {
   if (colorPaletteCache.size >= CACHE_MAX_SIZE) {
     const keysToDelete = Array.from(colorPaletteCache.keys()).slice(0, 10);
-    keysToDelete.forEach(key => colorPaletteCache.delete(key));
+    keysToDelete.forEach((key) => colorPaletteCache.delete(key));
   }
 }
 
@@ -269,17 +357,19 @@ function generatePalette(uniqueTags: string[]): Record<string, string> {
     return cachedPalette;
   }
 
-  const { symbolColors, getColorForHtmlTag, addCustomTag } = useSymbolColorStore.getState();
+  const { symbolColors, getColorForHtmlTag, addCustomTag } =
+    useSymbolColorStore.getState();
   const colours: Record<string, string> = {};
   const usedColors = new Set<string>();
 
   // First pass: assign existing colors from store
-  uniqueTags.forEach(tag => {
+  uniqueTags.forEach((tag) => {
     try {
       const lowerTag = tag.toLowerCase();
       const mappedColor = getColorForHtmlTag(lowerTag);
-      
-      if (mappedColor && /^#[0-9A-Fa-f]{6}$/.test(mappedColor)) { // Validate hex color format
+
+      if (mappedColor && /^#[0-9A-Fa-f]{6}$/.test(mappedColor)) {
+        // Validate hex color format
         colours[lowerTag] = mappedColor;
         usedColors.add(mappedColor);
       }
@@ -289,69 +379,87 @@ function generatePalette(uniqueTags: string[]): Record<string, string> {
   });
 
   // Second pass: smart semantic assignment for unassigned tags
-  const unassignedTags = uniqueTags.filter(tag => !colours[tag.toLowerCase()]);
-  const availableColors = OPTIMIZED_COLOR_PALETTE.filter(color => !usedColors.has(color));
-  
+  const unassignedTags = uniqueTags.filter(
+    (tag) => !colours[tag.toLowerCase()],
+  );
+  const availableColors = OPTIMIZED_COLOR_PALETTE.filter(
+    (color) => !usedColors.has(color),
+  );
+
   // Group unassigned tags by semantic category
   const categorizedTags: Record<string, string[]> = {};
-  unassignedTags.forEach(tag => {
+  unassignedTags.forEach((tag) => {
     const category = categorizeTag(tag);
     if (!categorizedTags[category]) categorizedTags[category] = [];
     categorizedTags[category].push(tag.toLowerCase());
   });
 
   let colorIndex = 0;
-  
+
   // Assign colors by semantic groups first
   Object.entries(categorizedTags).forEach(([category, tags]) => {
-    if (category !== "default" && SEMANTIC_COLOR_GROUPS[category as keyof typeof SEMANTIC_COLOR_GROUPS]) {
-      const categoryColors = SEMANTIC_COLOR_GROUPS[category as keyof typeof SEMANTIC_COLOR_GROUPS]
-        .filter(color => !usedColors.has(color));
-      
-      tags.sort((a, b) => a.localeCompare(b)).forEach((tag, i) => {
-        if (!colours[tag]) {
-          let selectedColor: string;
-          
-          if (categoryColors.length > 0) {
-            selectedColor = categoryColors[i % categoryColors.length];
-          } else {
-            selectedColor = availableColors[colorIndex % availableColors.length];
-            colorIndex++;
+    if (
+      category !== "default" &&
+      SEMANTIC_COLOR_GROUPS[category as keyof typeof SEMANTIC_COLOR_GROUPS]
+    ) {
+      const categoryColors = SEMANTIC_COLOR_GROUPS[
+        category as keyof typeof SEMANTIC_COLOR_GROUPS
+      ].filter((color) => !usedColors.has(color));
+
+      tags
+        .sort((a, b) => a.localeCompare(b))
+        .forEach((tag, i) => {
+          if (!colours[tag]) {
+            let selectedColor: string;
+
+            if (categoryColors.length > 0) {
+              selectedColor = categoryColors[i % categoryColors.length];
+            } else {
+              selectedColor =
+                availableColors[colorIndex % availableColors.length];
+              colorIndex++;
+            }
+
+            colours[tag] = selectedColor;
+            usedColors.add(selectedColor);
+
+            try {
+              addCustomTag(tag, selectedColor);
+            } catch (error) {
+              console.warn(`Error adding custom tag "${tag}":`, error);
+            }
           }
-          
+        });
+    }
+  });
+
+  // Assign remaining colors to 'default' category tags
+  if (categorizedTags.default) {
+    categorizedTags.default
+      .sort((a, b) => a.localeCompare(b))
+      .forEach((tag) => {
+        if (!colours[tag]) {
+          const remainingColors = availableColors.filter(
+            (color) => !usedColors.has(color),
+          );
+          const selectedColor =
+            remainingColors.length > 0
+              ? remainingColors[colorIndex % remainingColors.length]
+              : OPTIMIZED_COLOR_PALETTE[
+                  colorIndex % OPTIMIZED_COLOR_PALETTE.length
+                ];
+
           colours[tag] = selectedColor;
           usedColors.add(selectedColor);
-          
+
           try {
             addCustomTag(tag, selectedColor);
           } catch (error) {
             console.warn(`Error adding custom tag "${tag}":`, error);
           }
+          colorIndex++;
         }
       });
-    }
-  });
-  
-  // Assign remaining colors to 'default' category tags
-  if (categorizedTags.default) {
-    categorizedTags.default.sort((a, b) => a.localeCompare(b)).forEach(tag => {
-      if (!colours[tag]) {
-        const remainingColors = availableColors.filter(color => !usedColors.has(color));
-        const selectedColor = remainingColors.length > 0 
-          ? remainingColors[colorIndex % remainingColors.length]
-          : OPTIMIZED_COLOR_PALETTE[colorIndex % OPTIMIZED_COLOR_PALETTE.length];
-        
-        colours[tag] = selectedColor;
-        usedColors.add(selectedColor);
-        
-        try {
-          addCustomTag(tag, selectedColor);
-        } catch (error) {
-          console.warn(`Error adding custom tag "${tag}":`, error);
-        }
-        colorIndex++;
-      }
-    });
   }
 
   // Cache the result for future use
@@ -369,136 +477,162 @@ function replaceTags(html: string) {
 
   function processHtml(htmlStr: string): string {
     htmlStr = htmlStr.replace(/>\s*\n\s*</g, "><");
-    
+
     const tagRegex = /<([a-zA-Z][a-zA-Z0-9]*)\b([^>]*)>([\s\S]*?)<\/\1>/g;
-    
-    return htmlStr.replace(tagRegex, (match, tagName: string, attributes: string, innerContent: string) => {
-      const lowerTagName = tagName.toLowerCase();
 
-      const skipTags = ["script", "style", "head", "meta", "link", "title"];
-      if (skipTags.includes(lowerTagName)) {
-        return match;
-      }
+    return htmlStr.replace(
+      tagRegex,
+      (match, tagName: string, attributes: string, innerContent: string) => {
+        const lowerTagName = tagName.toLowerCase();
 
-      const processedInner = processHtml(innerContent);
-
-      let className = "";
-      const classMatch = attributes.match(/class\s*=\s*["']([^"']*)["']/i);
-      if (classMatch) {
-        className = classMatch[1];
-      }
-
-      let tagColor = getColorForHtmlTag(lowerTagName, className);
-      
-      if (!tagColor && colours[lowerTagName]) {
-        tagColor = colours[lowerTagName];
-      }
-
-      if (tagColor) {
-        const preservedAttrs = attributes.trim();
-        const styleAttr = `style="color:${tagColor}"`;
-        const dataAttr = `data-tag="${tagName}"`;
-        const classAttr = "class=\"tag-styled\"";
-        
-        let finalAttrs = "";
-        if (preservedAttrs) {
-          const styleMatch = preservedAttrs.match(/style\s*=\s*["']([^"']*)["']/i);
-          const classMatch = preservedAttrs.match(/class\s*=\s*["']([^"']*)["']/i);
-          
-          let modifiedAttrs = preservedAttrs;
-          
-          if (styleMatch) {
-            const existingStyle = styleMatch[1];
-            const newStyle = `${existingStyle}; color:${tagColor}`;
-            modifiedAttrs = modifiedAttrs.replace(styleMatch[0], `style="${newStyle}"`);
-          } else {
-            modifiedAttrs += ` ${styleAttr}`;
-          }
-          
-          if (classMatch) {
-            const existingClass = classMatch[1];
-            const newClass = `${existingClass} tag-styled`;
-            modifiedAttrs = modifiedAttrs.replace(classMatch[0], `class="${newClass}"`);
-          } else {
-            modifiedAttrs += ` ${classAttr}`;
-          }
-          
-          finalAttrs = modifiedAttrs + ` ${dataAttr}`;
-        } else {
-          finalAttrs = `${classAttr} ${styleAttr} ${dataAttr}`;
+        const skipTags = ["script", "style", "head", "meta", "link", "title"];
+        if (skipTags.includes(lowerTagName)) {
+          return match;
         }
-        
-        return `<${tagName}${finalAttrs ? " " + finalAttrs : ""}>${processedInner}</${tagName}>`;
-      } else {
-        return `<${tagName}${attributes ? " " + attributes : ""}>${processedInner}</${tagName}>`;
-      }
-    });
+
+        const processedInner = processHtml(innerContent);
+
+        let className = "";
+        const classMatch = attributes.match(/class\s*=\s*["']([^"']*)["']/i);
+        if (classMatch) {
+          className = classMatch[1];
+        }
+
+        let tagColor = getColorForHtmlTag(lowerTagName, className);
+
+        if (!tagColor && colours[lowerTagName]) {
+          tagColor = colours[lowerTagName];
+        }
+
+        if (tagColor) {
+          const preservedAttrs = attributes.trim();
+          const styleAttr = `style="color:${tagColor}"`;
+          const dataAttr = `data-tag="${tagName}"`;
+          const classAttr = 'class="tag-styled"';
+
+          let finalAttrs = "";
+          if (preservedAttrs) {
+            const styleMatch = preservedAttrs.match(
+              /style\s*=\s*["']([^"']*)["']/i,
+            );
+            const classMatch = preservedAttrs.match(
+              /class\s*=\s*["']([^"']*)["']/i,
+            );
+
+            let modifiedAttrs = preservedAttrs;
+
+            if (styleMatch) {
+              const existingStyle = styleMatch[1];
+              const newStyle = `${existingStyle}; color:${tagColor}`;
+              modifiedAttrs = modifiedAttrs.replace(
+                styleMatch[0],
+                `style="${newStyle}"`,
+              );
+            } else {
+              modifiedAttrs += ` ${styleAttr}`;
+            }
+
+            if (classMatch) {
+              const existingClass = classMatch[1];
+              const newClass = `${existingClass} tag-styled`;
+              modifiedAttrs = modifiedAttrs.replace(
+                classMatch[0],
+                `class="${newClass}"`,
+              );
+            } else {
+              modifiedAttrs += ` ${classAttr}`;
+            }
+
+            finalAttrs = modifiedAttrs + ` ${dataAttr}`;
+          } else {
+            finalAttrs = `${classAttr} ${styleAttr} ${dataAttr}`;
+          }
+
+          return `<${tagName}${finalAttrs ? " " + finalAttrs : ""}>${processedInner}</${tagName}>`;
+        } else {
+          return `<${tagName}${attributes ? " " + attributes : ""}>${processedInner}</${tagName}>`;
+        }
+      },
+    );
   }
-  
+
   function processSelfClosingTags(htmlStr: string): string {
     const selfClosingRegex = /<([a-zA-Z][a-zA-Z0-9]*)\b([^>]*)\s*\/\s*>/g;
-    
-    return htmlStr.replace(selfClosingRegex, (match, tagName: string, attributes: string) => {
-      const lowerTagName = tagName.toLowerCase();
-      
-      const skipTags = ["br", "hr", "img", "input", "meta", "link"];
-      if (skipTags.includes(lowerTagName)) {
-        return match;
-      }
-      
-      let className = "";
-      const classMatch = attributes.match(/class\s*=\s*["']([^"']*)["']/i);
-      if (classMatch) {
-        className = classMatch[1];
-      }
 
-      let tagColor = getColorForHtmlTag(lowerTagName, className);
-      
-      if (!tagColor && colours[lowerTagName]) {
-        tagColor = colours[lowerTagName];
-      }
-      
-      if (tagColor) {
-        const preservedAttrs = attributes.trim();
-        const styleAttr = `style="color:${tagColor}"`;
-        const dataAttr = `data-tag="${tagName}"`;
-        const classAttr = "class=\"tag-styled\"";
-        
-        let finalAttrs = "";
-        if (preservedAttrs) {
-          const styleMatch = preservedAttrs.match(/style\s*=\s*["']([^"']*)["']/i);
-          const classMatch = preservedAttrs.match(/class\s*=\s*["']([^"']*)["']/i);
-          
-          let modifiedAttrs = preservedAttrs;
-          
-          if (styleMatch) {
-            const existingStyle = styleMatch[1];
-            const newStyle = `${existingStyle}; color:${tagColor}`;
-            modifiedAttrs = modifiedAttrs.replace(styleMatch[0], `style="${newStyle}"`);
-          } else {
-            modifiedAttrs += ` ${styleAttr}`;
-          }
-          
-          if (classMatch) {
-            const existingClass = classMatch[1];
-            const newClass = `${existingClass} tag-styled`;
-            modifiedAttrs = modifiedAttrs.replace(classMatch[0], `class="${newClass}"`);
-          } else {
-            modifiedAttrs += ` ${classAttr}`;
-          }
-          
-          finalAttrs = modifiedAttrs + ` ${dataAttr}`;
-        } else {
-          finalAttrs = `${classAttr} ${styleAttr} ${dataAttr}`;
+    return htmlStr.replace(
+      selfClosingRegex,
+      (match, tagName: string, attributes: string) => {
+        const lowerTagName = tagName.toLowerCase();
+
+        const skipTags = ["br", "hr", "img", "input", "meta", "link"];
+        if (skipTags.includes(lowerTagName)) {
+          return match;
         }
-        
-        return `<${tagName}${finalAttrs ? " " + finalAttrs : ""} />`;
-      } else {
-        return match;
-      }
-    });
+
+        let className = "";
+        const classMatch = attributes.match(/class\s*=\s*["']([^"']*)["']/i);
+        if (classMatch) {
+          className = classMatch[1];
+        }
+
+        let tagColor = getColorForHtmlTag(lowerTagName, className);
+
+        if (!tagColor && colours[lowerTagName]) {
+          tagColor = colours[lowerTagName];
+        }
+
+        if (tagColor) {
+          const preservedAttrs = attributes.trim();
+          const styleAttr = `style="color:${tagColor}"`;
+          const dataAttr = `data-tag="${tagName}"`;
+          const classAttr = 'class="tag-styled"';
+
+          let finalAttrs = "";
+          if (preservedAttrs) {
+            const styleMatch = preservedAttrs.match(
+              /style\s*=\s*["']([^"']*)["']/i,
+            );
+            const classMatch = preservedAttrs.match(
+              /class\s*=\s*["']([^"']*)["']/i,
+            );
+
+            let modifiedAttrs = preservedAttrs;
+
+            if (styleMatch) {
+              const existingStyle = styleMatch[1];
+              const newStyle = `${existingStyle}; color:${tagColor}`;
+              modifiedAttrs = modifiedAttrs.replace(
+                styleMatch[0],
+                `style="${newStyle}"`,
+              );
+            } else {
+              modifiedAttrs += ` ${styleAttr}`;
+            }
+
+            if (classMatch) {
+              const existingClass = classMatch[1];
+              const newClass = `${existingClass} tag-styled`;
+              modifiedAttrs = modifiedAttrs.replace(
+                classMatch[0],
+                `class="${newClass}"`,
+              );
+            } else {
+              modifiedAttrs += ` ${classAttr}`;
+            }
+
+            finalAttrs = modifiedAttrs + ` ${dataAttr}`;
+          } else {
+            finalAttrs = `${classAttr} ${styleAttr} ${dataAttr}`;
+          }
+
+          return `<${tagName}${finalAttrs ? " " + finalAttrs : ""} />`;
+        } else {
+          return match;
+        }
+      },
+    );
   }
-  
+
   let result = processHtml(html);
   result = processSelfClosingTags(result);
 
@@ -525,7 +659,7 @@ export default memo(function ChatHtmlBubble({
   );
   const frameRef = useRef<HTMLIFrameElement>(null);
   const { serifFontClass } = useLanguage();
-  
+
   // Virtual queue integration for rendering optimization
   const renderQueueRef = useRef<VirtualRenderQueue>(globalRenderQueue);
   const lastProcessedHtmlRef = useRef<string>("");
@@ -537,7 +671,7 @@ export default memo(function ChatHtmlBubble({
     if (rawHtml === lastProcessedHtmlRef.current) {
       return lastProcessedHtmlRef.current;
     }
-    
+
     const md = convertMarkdown(rawHtml);
     const tagged = replaceTags(md);
     const result = tagged.replace(/^[\s\r\n]+|[\s\r\n]+$/g, "");
@@ -552,14 +686,14 @@ export default memo(function ChatHtmlBubble({
       renderQueueRef.current.enqueue(updateFn);
       return;
     }
-    
+
     isUpdatingRef.current = true;
-    
+
     // Clear any pending timeout
     if (pendingUpdateRef.current) {
       clearTimeout(pendingUpdateRef.current);
     }
-    
+
     // Batch the update with a small delay to collect multiple changes
     pendingUpdateRef.current = setTimeout(() => {
       try {
@@ -567,7 +701,7 @@ export default memo(function ChatHtmlBubble({
       } finally {
         isUpdatingRef.current = false;
         pendingUpdateRef.current = null;
-        
+
         // Process any queued updates
         if (renderQueueRef.current.length > 0) {
           requestAnimationFrame(() => {
@@ -585,7 +719,7 @@ export default memo(function ChatHtmlBubble({
   const adjustHeightOptimized = useCallback(() => {
     const frame = frameRef.current;
     if (!frame) return;
-    
+
     batchedUpdate(() => {
       try {
         const doc = frame.contentDocument || frame.contentWindow?.document;
@@ -609,7 +743,7 @@ export default memo(function ChatHtmlBubble({
   const adjustHeightOnce = useCallback(() => {
     adjustHeightOptimized();
   }, [adjustHeightOptimized]);
-  
+
   const isFullDoc = isCompleteHtmlDocument(rawHtml);
   if (isFullDoc) {
     return (
@@ -878,11 +1012,12 @@ window.addEventListener('message', function(e) {
 
   useEffect(() => {
     if (showLoader) return;
-    
+
     if (frameRef.current) {
-      containerWidthRef.current = frameRef.current.parentElement?.clientWidth || null;
+      containerWidthRef.current =
+        frameRef.current.parentElement?.clientWidth || null;
     }
-    
+
     const handler = (e: MessageEvent) => {
       if (
         e.source === frameRef.current?.contentWindow &&
@@ -894,11 +1029,12 @@ window.addEventListener('message', function(e) {
           frameRef.current!.style.height = `${e.data.__chatBubbleHeight + 30}px`; // Add extra space for padding
           onContentChange?.();
         });
-        
+
         const currentWidth = frameRef.current.parentElement?.clientWidth || 0;
         if (
-          containerWidthRef.current && 
-          Math.abs(currentWidth - containerWidthRef.current) > (containerWidthRef.current * 0.1)
+          containerWidthRef.current &&
+          Math.abs(currentWidth - containerWidthRef.current) >
+            containerWidthRef.current * 0.1
         ) {
           const now = Date.now();
           if (now - lastResizeTimeRef.current > 500) {
@@ -906,20 +1042,23 @@ window.addEventListener('message', function(e) {
             containerWidthRef.current = currentWidth;
             // Use virtual queue for recalculation requests
             renderQueueRef.current.enqueue(() => {
-              frameRef.current?.contentWindow?.postMessage({ __recalculateHeight: true }, "*");
+              frameRef.current?.contentWindow?.postMessage(
+                { __recalculateHeight: true },
+                "*",
+              );
             });
           }
         }
       }
     };
-    
+
     window.addEventListener("message", handler);
 
     const resizeHandler = () => {
       if (resizeTimeoutRef.current) {
         clearTimeout(resizeTimeoutRef.current);
       }
-      
+
       resizeTimeoutRef.current = setTimeout(() => {
         if (frameRef.current && frameRef.current.contentWindow) {
           const now = Date.now();
@@ -927,15 +1066,18 @@ window.addEventListener('message', function(e) {
             lastResizeTimeRef.current = now;
             // Use virtual queue for resize handling
             renderQueueRef.current.enqueue(() => {
-              frameRef.current?.contentWindow?.postMessage({ __recalculateHeight: true }, "*");
+              frameRef.current?.contentWindow?.postMessage(
+                { __recalculateHeight: true },
+                "*",
+              );
             });
           }
         }
       }, 200);
     };
-    
+
     window.addEventListener("resize", resizeHandler);
-    
+
     return () => {
       if (resizeTimeoutRef.current) {
         clearTimeout(resizeTimeoutRef.current);
@@ -949,7 +1091,7 @@ window.addEventListener('message', function(e) {
     if (!onContentChange) return;
     const frame = frameRef.current;
     if (!frame) return;
-    
+
     // Use virtual queue for ResizeObserver updates
     const ro = new ResizeObserver(() => {
       renderQueueRef.current.enqueue(() => onContentChange());
@@ -978,7 +1120,7 @@ window.addEventListener('message', function(e) {
   useEffect(() => {
     // Clear color cache to ensure new color configuration takes effect
     colorPaletteCache.clear();
-    
+
     return () => {
       if (pendingUpdateRef.current) {
         clearTimeout(pendingUpdateRef.current);
@@ -990,15 +1132,21 @@ window.addEventListener('message', function(e) {
   if (showLoader) {
     return (
       <div className="flex flex-col items-center justify-center py-6 px-4">
-        <div className={`text-[15px] text-gray-400 font-medium leading-relaxed text-center ${serifFontClass}`}>
-          No response received. Please check your network connection or API configuration.
+        <div
+          className={`text-[15px] text-gray-400 font-medium leading-relaxed text-center ${serifFontClass}`}
+        >
+          No response received. Please check your network connection or API
+          configuration.
         </div>
       </div>
     );
   }
 
   return (
-    <div className="chat-bubble-container" style={{ maxWidth: "calc(100% - 10px)", margin: "0 auto" }}>
+    <div
+      className="chat-bubble-container"
+      style={{ maxWidth: "calc(100% - 10px)", margin: "0 auto" }}
+    >
       <style jsx>{`
         .chat-bubble-container {
           width: 100%;
@@ -1020,10 +1168,10 @@ window.addEventListener('message', function(e) {
           ref={frameRef}
           sandbox="allow-scripts allow-same-origin"
           srcDoc={srcDoc}
-          style={{ 
-            width: "100%", 
-            border: 0, 
-            overflow: "hidden", 
+          style={{
+            width: "100%",
+            border: 0,
+            overflow: "hidden",
             height: "150px",
             background: "transparent",
           }}
@@ -1032,4 +1180,3 @@ window.addEventListener('message', function(e) {
     </div>
   );
 });
-

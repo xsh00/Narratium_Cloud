@@ -2,8 +2,8 @@ import { WorldBookOperations } from "@/lib/data/roleplay/world-book-operation";
 import { WorldBookEntry } from "@/lib/models/world-book-model";
 
 export async function saveAdvancedWorldBookEntry(
-  characterId: string, 
-  entry: Partial<WorldBookEntry> & { 
+  characterId: string,
+  entry: Partial<WorldBookEntry> & {
     entry_id: string;
     keys: string[];
     content: string;
@@ -16,13 +16,15 @@ export async function saveAdvancedWorldBookEntry(
   try {
     const now = Date.now();
     const entryId = entry.entry_id;
-    
-    const worldBook = await WorldBookOperations.getWorldBook(characterId) || {};
+
+    const worldBook =
+      (await WorldBookOperations.getWorldBook(characterId)) || {};
 
     const updatedEntry: WorldBookEntry = {
       content: entry.content.trim(),
-      keys: entry.keys.filter(key => key.trim() !== ""),
-      secondary_keys: entry.secondary_keys?.filter(key => key.trim() !== "") || [],
+      keys: entry.keys.filter((key) => key.trim() !== ""),
+      secondary_keys:
+        entry.secondary_keys?.filter((key) => key.trim() !== "") || [],
       selective: entry.selective !== undefined ? entry.selective : false,
       constant: entry.constant !== undefined ? entry.constant : false,
       position: entry.position !== undefined ? entry.position : 4,
@@ -40,11 +42,14 @@ export async function saveAdvancedWorldBookEntry(
         createdAt: entry.extensions?.createdAt || now,
       },
     };
-    
+
     worldBook[entryId] = updatedEntry;
-    
-    const result = await WorldBookOperations.updateWorldBook(characterId, worldBook);
-    
+
+    const result = await WorldBookOperations.updateWorldBook(
+      characterId,
+      worldBook,
+    );
+
     return {
       success: result,
       entryId,
@@ -52,6 +57,8 @@ export async function saveAdvancedWorldBookEntry(
     };
   } catch (error: any) {
     console.error("Failed to save advanced world book entry:", error);
-    throw new Error(`Failed to save advanced world book entry: ${error.message}`);
+    throw new Error(
+      `Failed to save advanced world book entry: ${error.message}`,
+    );
   }
-} 
+}

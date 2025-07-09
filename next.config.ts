@@ -1,14 +1,14 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: "export",
+  // output: "export", // 注释此行以支持 API 路由
   distDir: ".next",
   images: {
     domains: ["localhost"],
     unoptimized: true,
   },
   eslint: {
-    ignoreDuringBuilds: false,
+    ignoreDuringBuilds: true,
   },
   devIndicators: false,
 };

@@ -42,11 +42,12 @@ export async function importWorldBookFromJson(
       return result;
     }
 
-    const worldBook = await WorldBookOperations.getWorldBook(characterId) || {};
+    const worldBook =
+      (await WorldBookOperations.getWorldBook(characterId)) || {};
     const now = Date.now();
 
     let entries: any[] = [];
-    
+
     if (jsonData.entries && typeof jsonData.entries === "object") {
       entries = Object.values(jsonData.entries);
     } else if (Array.isArray(jsonData)) {
@@ -62,7 +63,7 @@ export async function importWorldBookFromJson(
     for (const entryData of entries) {
       try {
         const entryId = `entry_${uuidv4()}`;
-        
+
         let keys: string[] = [];
         let secondary_keys: string[] = [];
         let content = "";
@@ -76,13 +77,20 @@ export async function importWorldBookFromJson(
         let insertion_order = 0;
 
         if (entryData.key !== undefined) {
-          keys = Array.isArray(entryData.key) ? entryData.key.filter((k: string) => k && k.trim()) : [];
+          keys = Array.isArray(entryData.key)
+            ? entryData.key.filter((k: string) => k && k.trim())
+            : [];
         }
         if (entryData.keysecondary !== undefined) {
-          secondary_keys = Array.isArray(entryData.keysecondary) ? entryData.keysecondary.filter((k: string) => k && k.trim()) : [];
+          secondary_keys = Array.isArray(entryData.keysecondary)
+            ? entryData.keysecondary.filter((k: string) => k && k.trim())
+            : [];
         }
         if (entryData.content !== undefined) {
-          content = typeof entryData.content === "string" ? entryData.content : String(entryData.content || "");
+          content =
+            typeof entryData.content === "string"
+              ? entryData.content
+              : String(entryData.content || "");
         }
         if (entryData.comment !== undefined) {
           comment = String(entryData.comment || "");
@@ -107,10 +115,14 @@ export async function importWorldBookFromJson(
         }
 
         if (entryData.keys !== undefined) {
-          keys = Array.isArray(entryData.keys) ? entryData.keys.filter((k: string) => k && k.trim()) : [];
+          keys = Array.isArray(entryData.keys)
+            ? entryData.keys.filter((k: string) => k && k.trim())
+            : [];
         }
         if (entryData.secondary_keys !== undefined) {
-          secondary_keys = Array.isArray(entryData.secondary_keys) ? entryData.secondary_keys.filter((k: string) => k && k.trim()) : [];
+          secondary_keys = Array.isArray(entryData.secondary_keys)
+            ? entryData.secondary_keys.filter((k: string) => k && k.trim())
+            : [];
         }
         if (entryData.content !== undefined) {
           content = String(entryData.content || "");
@@ -161,11 +173,14 @@ export async function importWorldBookFromJson(
     }
 
     if (result.importedCount > 0) {
-      const updateResult = await WorldBookOperations.updateWorldBook(characterId, worldBook);
+      const updateResult = await WorldBookOperations.updateWorldBook(
+        characterId,
+        worldBook,
+      );
       if (updateResult) {
         result.success = true;
         result.message = `Successfully imported ${result.importedCount} entries`;
-        
+
         if (options?.saveAsGlobal && options.globalName) {
           try {
             const globalResult = await saveAsGlobalWorldBook(
@@ -179,7 +194,9 @@ export async function importWorldBookFromJson(
               result.message += ` and saved as global world book "${options.globalName}"`;
             }
           } catch (globalError: any) {
-            result.errors.push(`Failed to save as global: ${globalError.message}`);
+            result.errors.push(
+              `Failed to save as global: ${globalError.message}`,
+            );
           }
         }
       } else {
@@ -200,7 +217,10 @@ export async function importWorldBookFromJson(
   }
 }
 
-export function validateWorldBookJson(jsonData: any): { valid: boolean; errors: string[] } {
+export function validateWorldBookJson(jsonData: any): {
+  valid: boolean;
+  errors: string[];
+} {
   const errors: string[] = [];
 
   if (!jsonData || typeof jsonData !== "object") {
@@ -219,7 +239,12 @@ export function validateWorldBookJson(jsonData: any): { valid: boolean; errors: 
     for (const entry of entries) {
       if (typeof entry === "object" && entry !== null) {
         const entryObj = entry as any;
-        if (entryObj.content || (entryObj.key && Array.isArray(entryObj.key) && entryObj.key.length > 0)) {
+        if (
+          entryObj.content ||
+          (entryObj.key &&
+            Array.isArray(entryObj.key) &&
+            entryObj.key.length > 0)
+        ) {
           hasValidEntry = true;
           break;
         }
@@ -243,7 +268,10 @@ export function validateWorldBookJson(jsonData: any): { valid: boolean; errors: 
     let hasValidEntry = false;
     for (const entry of jsonData) {
       if (typeof entry === "object" && entry !== null) {
-        if (entry.content || (entry.keys && Array.isArray(entry.keys) && entry.keys.length > 0)) {
+        if (
+          entry.content ||
+          (entry.keys && Array.isArray(entry.keys) && entry.keys.length > 0)
+        ) {
           hasValidEntry = true;
           break;
         }

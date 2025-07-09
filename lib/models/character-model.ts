@@ -9,5 +9,5 @@ export interface CharacterData {
   avatar: string;
   creator_notes?: string;
   imagePath?: string;
-  alternate_greetings:string[];
+  alternate_greetings: string[];
 }

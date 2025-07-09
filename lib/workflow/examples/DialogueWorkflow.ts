@@ -35,25 +35,25 @@ export interface DialogueWorkflowParams {
 export class DialogueWorkflow extends BaseWorkflow {
   protected getNodeRegistry() {
     return {
-      "userInput": {
+      userInput: {
         nodeClass: UserInputNode,
       },
-      "context": {
+      context: {
         nodeClass: ContextNode,
       },
-      "worldBook": {
+      worldBook: {
         nodeClass: WorldBookNode,
       },
-      "preset": {
+      preset: {
         nodeClass: PresetNode,
       },
-      "llm": {
+      llm: {
         nodeClass: LLMNode,
       },
-      "regex": {
+      regex: {
         nodeClass: RegexNode,
       },
-      "output": {
+      output: {
         nodeClass: OutputNode,
       },
     };
@@ -69,9 +69,35 @@ export class DialogueWorkflow extends BaseWorkflow {
           name: "userInput",
           category: NodeCategory.ENTRY,
           next: ["preset-1"],
-          initParams: ["characterId", "userInput", "number", "language", "username", "modelName", "apiKey", "baseUrl", "llmType", "temperature", "fastModel", "systemPresetType"],
+          initParams: [
+            "characterId",
+            "userInput",
+            "number",
+            "language",
+            "username",
+            "modelName",
+            "apiKey",
+            "baseUrl",
+            "llmType",
+            "temperature",
+            "fastModel",
+            "systemPresetType",
+          ],
           inputFields: [],
-          outputFields: ["characterId", "userInput", "number", "language", "username", "modelName", "apiKey", "baseUrl", "llmType", "temperature", "fastModel", "systemPresetType"],
+          outputFields: [
+            "characterId",
+            "userInput",
+            "number",
+            "language",
+            "username",
+            "modelName",
+            "apiKey",
+            "baseUrl",
+            "llmType",
+            "temperature",
+            "fastModel",
+            "systemPresetType",
+          ],
         },
         {
           id: "preset-1",
@@ -79,7 +105,14 @@ export class DialogueWorkflow extends BaseWorkflow {
           category: NodeCategory.MIDDLE,
           next: ["context-1"],
           initParams: [],
-          inputFields: ["characterId", "language", "username", "number", "fastModel", "systemPresetType"],
+          inputFields: [
+            "characterId",
+            "language",
+            "username",
+            "number",
+            "fastModel",
+            "systemPresetType",
+          ],
           outputFields: ["systemMessage", "userMessage", "presetId"],
         },
         {
@@ -97,10 +130,17 @@ export class DialogueWorkflow extends BaseWorkflow {
           category: NodeCategory.MIDDLE,
           next: ["llm-1"],
           initParams: [],
-          inputFields: ["systemMessage", "userMessage", "characterId", "language", "username", "userInput"],
+          inputFields: [
+            "systemMessage",
+            "userMessage",
+            "characterId",
+            "language",
+            "username",
+            "userInput",
+          ],
           outputFields: ["systemMessage", "userMessage"],
           inputMapping: {
-            "userInput": "currentUserInput",
+            userInput: "currentUserInput",
           },
         },
         {
@@ -109,7 +149,16 @@ export class DialogueWorkflow extends BaseWorkflow {
           category: NodeCategory.MIDDLE,
           next: ["regex-1"],
           initParams: [],
-          inputFields: ["systemMessage", "userMessage", "modelName", "apiKey", "baseUrl", "llmType", "temperature", "language"],
+          inputFields: [
+            "systemMessage",
+            "userMessage",
+            "modelName",
+            "apiKey",
+            "baseUrl",
+            "llmType",
+            "temperature",
+            "language",
+          ],
           outputFields: ["llmResponse"],
         },
         {
@@ -119,7 +168,13 @@ export class DialogueWorkflow extends BaseWorkflow {
           next: ["output-1"],
           initParams: [],
           inputFields: ["llmResponse", "characterId"],
-          outputFields: ["thinkingContent", "screenContent", "fullResponse", "nextPrompts", "event"],
+          outputFields: [
+            "thinkingContent",
+            "screenContent",
+            "fullResponse",
+            "nextPrompts",
+            "event",
+          ],
         },
         {
           id: "output-1",
@@ -127,10 +182,22 @@ export class DialogueWorkflow extends BaseWorkflow {
           category: NodeCategory.EXIT,
           next: [],
           initParams: [],
-          inputFields: ["thinkingContent", "screenContent", "fullResponse", "nextPrompts", "event"],
-          outputFields: ["thinkingContent", "screenContent", "fullResponse", "nextPrompts", "event"],
+          inputFields: [
+            "thinkingContent",
+            "screenContent",
+            "fullResponse",
+            "nextPrompts",
+            "event",
+          ],
+          outputFields: [
+            "thinkingContent",
+            "screenContent",
+            "fullResponse",
+            "nextPrompts",
+            "event",
+          ],
         },
       ],
     };
   }
-} 
+}

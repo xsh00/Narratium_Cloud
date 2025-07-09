@@ -1,6 +1,6 @@
 /**
  * Edit Character Modal Component
- * 
+ *
  * This component provides a comprehensive character editing interface with the following features:
  * - Character information editing (name, personality, scenario, etc.)
  * - Avatar display and character preview
@@ -8,7 +8,7 @@
  * - Real-time character updates
  * - Modal-based editing workflow
  * - Responsive design with animations
- * 
+ *
  * The component handles:
  * - Character data editing and validation
  * - Character updates and persistence
@@ -16,7 +16,7 @@
  * - Error handling and user feedback
  * - Form state management and cleanup
  * - Avatar display and character preview
- * 
+ *
  * Dependencies:
  * - useLanguage: For internationalization
  * - updateCharacter: For character update functionality
@@ -52,14 +52,14 @@ interface EditCharacterModalProps {
 
 /**
  * Edit character modal component
- * 
+ *
  * Provides a comprehensive character editing interface with:
  * - Character information editing
  * - Avatar display and preview
  * - Form validation and error handling
  * - Real-time updates and persistence
  * - Modal-based workflow management
- * 
+ *
  * @param {EditCharacterModalProps} props - Component props
  * @returns {JSX.Element | null} The edit character modal or null if closed
  */
@@ -74,7 +74,7 @@ const EditCharacterModal: React.FC<EditCharacterModalProps> = ({
   const [name, setName] = useState("");
   const [personality, setPersonality] = useState("");
   const [scenario, setScenario] = useState("");
-  const [firstMessage, setFirstMessage] = useState(""); 
+  const [firstMessage, setFirstMessage] = useState("");
   const [creatorComment, setCreatorComment] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -137,7 +137,10 @@ const EditCharacterModal: React.FC<EditCharacterModalProps> = ({
           >
             <div className="absolute top-2 right-2 z-20">
               <button
-                onClick={(e) => {trackButtonClick("EditCharacterModal", "关闭编辑角色");onClose();}}
+                onClick={(e) => {
+                  trackButtonClick("EditCharacterModal", "关闭编辑角色");
+                  onClose();
+                }}
                 className="text-[#a18d6f] hover:text-[#eae6db] transition-colors bg-[#1a1816] rounded-full p-1"
               >
                 <svg
@@ -167,32 +170,52 @@ const EditCharacterModal: React.FC<EditCharacterModalProps> = ({
               <div className="md:w-2/5 lg:w-1/3 relative">
                 <div className="h-full">
                   {characterData.avatar_path ? (
-                    <CharacterAvatarBackground avatarPath={characterData.avatar_path} />
+                    <CharacterAvatarBackground
+                      avatarPath={characterData.avatar_path}
+                    />
                   ) : (
                     <div className="w-full h-full min-h-[500px] flex items-center justify-center bg-[#252220]">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-32 w-32 text-[#534741]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-32 w-32 text-[#534741]"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={1.5}
+                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                        />
                       </svg>
                     </div>
                   )}
-                  <div className={`absolute bottom-4 w-full text-center text-[#eae6db] ${serifFontClass} text-xl magical-text`}>
+                  <div
+                    className={`absolute bottom-4 w-full text-center text-[#eae6db] ${serifFontClass} text-xl magical-text`}
+                  >
                     {name || characterData.name}
                   </div>
                 </div>
               </div>
-              
+
               <div className="md:w-3/5 lg:w-2/3 bg-[#1a1816] p-6">
-                <h2 className={`text-xl font-semibold text-[#eae6db] magical-text mb-6 ${serifFontClass}`}>
+                <h2
+                  className={`text-xl font-semibold text-[#eae6db] magical-text mb-6 ${serifFontClass}`}
+                >
                   {t("editCharacterModal.title")}
                 </h2>
-                
+
                 {error && (
                   <div className="mb-4 p-3 bg-red-900/30 border border-red-800 rounded text-red-200 text-sm">
                     {error}
                   </div>
                 )}
-                
-                <form onSubmit={handleSubmit} className="max-h-[70vh] overflow-y-auto pr-2 space-y-5">
+
+                <form
+                  onSubmit={handleSubmit}
+                  className="max-h-[70vh] overflow-y-auto pr-2 space-y-5"
+                >
                   <div>
                     <label
                       htmlFor="character-name"
@@ -225,7 +248,7 @@ const EditCharacterModal: React.FC<EditCharacterModalProps> = ({
                       className={`w-full bg-[#252220] border border-[#534741] rounded p-3 text-[#eae6db] focus:outline-none focus:ring-1 focus:ring-[#c0a480] ${fontClass}`}
                     />
                   </div>
-              
+
                   <div>
                     <label
                       htmlFor="character-scenario"
@@ -241,7 +264,7 @@ const EditCharacterModal: React.FC<EditCharacterModalProps> = ({
                       className={`w-full bg-[#252220] border border-[#534741] rounded p-3 text-[#eae6db] focus:outline-none focus:ring-1 focus:ring-[#c0a480] ${fontClass}`}
                     />
                   </div>
-              
+
                   <div>
                     <label
                       htmlFor="character-first-message"
@@ -257,7 +280,7 @@ const EditCharacterModal: React.FC<EditCharacterModalProps> = ({
                       className={`w-full bg-[#252220] border border-[#534741] rounded p-3 text-[#eae6db] focus:outline-none focus:ring-1 focus:ring-[#c0a480] ${fontClass}`}
                     />
                   </div>
-              
+
                   <div>
                     <label
                       htmlFor="character-creator-comment"
@@ -277,7 +300,10 @@ const EditCharacterModal: React.FC<EditCharacterModalProps> = ({
                   <div className="flex justify-end space-x-4 pt-4">
                     <button
                       type="button"
-                      onClick={(e) => {trackButtonClick("EditCharacterModal", "关闭编辑角色");onClose();}}
+                      onClick={(e) => {
+                        trackButtonClick("EditCharacterModal", "关闭编辑角色");
+                        onClose();
+                      }}
                       className={`text-[#8a8a8a] hover:text-[#f4e8c1] transition-colors duration-300 ${serifFontClass}`}
                     >
                       {t("editCharacterModal.cancel")}
@@ -285,7 +311,10 @@ const EditCharacterModal: React.FC<EditCharacterModalProps> = ({
                     <button
                       type="submit"
                       disabled={isLoading}
-                      onClick={(e) => {trackButtonClick("EditCharacterModal", "保存编辑角色");onClose();}}
+                      onClick={(e) => {
+                        trackButtonClick("EditCharacterModal", "保存编辑角色");
+                        onClose();
+                      }}
                       className={`text-amber-400 hover:text-amber-300 transition-colors duration-300 ${serifFontClass}`}
                     >
                       {isLoading ? (

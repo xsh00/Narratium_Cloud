@@ -65,13 +65,13 @@
 [Narratium.ai](https://narratium.org/) is an open-source platform for creating AI characters, immersive worlds, and dynamic conversations.It's your creative studio for building personalized roleplay adventures — from emotional journeys to epic sagas.
 
 | Version Information |
-| :---------------- |
+| :------------------ |
 
 - **main**: Stable version branch, regularly builds desktop versions through pake.
 - **dev**: Development version branch, with multiple commits daily.
 
 | Quickly Start |
-| :---------- |
+| :------------ |
 
 For detailed installation and setup instructions, please refer to our [Getting Started Guide](./docs/GETTING_STARTED.md).
 
@@ -84,12 +84,14 @@ For Download Version: please refer to the [Download for Mac, Windows, Linux](htt
 To set up your own character community repository:
 
 ### Quick Setup
+
 ```bash
 # Run the setup wizard
 node scripts/setup-github-repo.js
 ```
 
 ### Manual Setup
+
 1. Create a GitHub repository for your character cards
 2. Edit `lib/config/github-config.ts` with your repository details
 3. Upload character cards in PNG format (SillyTavern compatible)
@@ -105,9 +107,10 @@ For detailed instructions, see [GitHub Repository Setup Guide](./docs/GITHUB_REP
 - **Character Cards & Lore**: Compatible with SillyTavern cards, manage everything in one place.
 
 | API Recommendations & Configuration |
-| :-------------- |
+| :---------------------------------- |
 
 **Recommended API Services**:
+
 - **OpenAI**: Directly supports models using the OpenAI API format.
 - **OpenRouter**: Recommended to use [OpenRouter](https://openrouter.ai/) for unified access to various models.
 - **Relay Service Deployment**: Recommended [new-api](https://github.com/QuantumNous/new-api).
@@ -195,9 +198,9 @@ This project consists of two distinct parts with independent licenses:
 | Contact & Support |
 | :---------------- |
 
-* 如果你喜欢这个项目，我们非常欢迎你加入
-* If you like this project, we warmly welcome you to join us
-[Discord community](https://discord.gg/PP7EpSzDfU)
+- 如果你喜欢这个项目，我们非常欢迎你加入
+- If you like this project, we warmly welcome you to join us
+  [Discord community](https://discord.gg/PP7EpSzDfU)
 
 | Code Contributer |
 | :--------------- |
@@ -213,4 +216,3 @@ Thanks all Official Website Test API Sponsor
 | :---------- |
 
 [![Stargazers over time](https://starchart.cc/Narratium/Narratium.ai.svg?variant=adaptive)](https://starchart.cc/Narratium/Narratium.ai)
-

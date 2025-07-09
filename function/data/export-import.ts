@@ -54,4 +54,4 @@ export function downloadFile(blob: Blob, filename: string): void {
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
-} 
+}

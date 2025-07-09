@@ -9,15 +9,15 @@
 // ============================================================================
 
 export enum ToolType {
-  SEARCH = "SEARCH",     // Search and gather information
+  SEARCH = "SEARCH", // Search and gather information
   ASK_USER = "ASK_USER", // Get user input
   CHARACTER = "CHARACTER", // Generate/update character card
   STATUS = "STATUS", // Create world status entry (mandatory)
   USER_SETTING = "USER_SETTING", // Create player setting entry (mandatory)
   WORLD_VIEW = "WORLD_VIEW", // Create world structure entry (mandatory)
   SUPPLEMENT = "SUPPLEMENT", // Create supplementary entries (minimum 5)
-  REFLECT = "REFLECT",    // Reflect on progress and update tasks
-  COMPLETE = "COMPLETE"   // Final completion - clear all tasks and end session
+  REFLECT = "REFLECT", // Reflect on progress and update tasks
+  COMPLETE = "COMPLETE", // Final completion - clear all tasks and end session
 }
 
 /**
@@ -26,10 +26,10 @@ export enum ToolType {
 export enum SessionStatus {
   IDLE = "idle",
   THINKING = "thinking",
-  EXECUTING = "executing", 
+  EXECUTING = "executing",
   WAITING_USER = "waiting_user",
   COMPLETED = "completed",
-  FAILED = "failed"
+  FAILED = "failed",
 }
 
 // ============================================================================
@@ -93,14 +93,14 @@ export interface TaskEntry {
 export interface ResearchState {
   id: string;
   session_id: string;
-  
+
   // Current research objective
   main_objective: string;
-  
+
   // Sequential task management
-  task_queue: TaskEntry[];        // Pending tasks in execution insert_order
-  completed_tasks: string[];      // Descriptions of finished tasks
-  
+  task_queue: TaskEntry[]; // Pending tasks in execution insert_order
+  completed_tasks: string[]; // Descriptions of finished tasks
+
   // Research artifacts
   knowledge_base: KnowledgeEntry[];
 }
@@ -207,7 +207,13 @@ export interface Message {
   id: string;
   role: "user" | "agent" | "system";
   content: string;
-  type: "user_input" | "agent_thinking" | "agent_action" | "system_info" | "quality_evaluation" | "tool_failure";
+  type:
+    | "user_input"
+    | "agent_thinking"
+    | "agent_action"
+    | "system_info"
+    | "quality_evaluation"
+    | "tool_failure";
 }
 
 /**
@@ -228,11 +234,11 @@ export interface GenerationOutput {
     tags?: string[];
     [key: string]: any;
   };
-  
+
   // Separated worldbook data structures
-  status_data?: StatusEntry;           // Single STATUS entry (mandatory)
+  status_data?: StatusEntry; // Single STATUS entry (mandatory)
   user_setting_data?: UserSettingEntry; // Single USER_SETTING entry (mandatory)
-  world_view_data?: WorldViewEntry;    // Single WORLD_VIEW entry (mandatory)
+  world_view_data?: WorldViewEntry; // Single WORLD_VIEW entry (mandatory)
   supplement_data?: SupplementEntry[]; // Multiple SUPPLEMENT entries (minimum 5)
 }
 
@@ -249,12 +255,12 @@ export interface ResearchSession {
   id: string;
   title: string;
   status: SessionStatus;
-  
+
   // Core session data
   messages: Message[];
   research_state: ResearchState;
   generation_output: GenerationOutput;
-  
+
   // Execution tracking
   execution_info: {
     current_iteration: number;
@@ -264,5 +270,4 @@ export interface ResearchSession {
     total_tokens_used: number;
     token_budget: number;
   };
-  
 }

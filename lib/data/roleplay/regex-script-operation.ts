@@ -1,4 +1,8 @@
-import { readData, writeData, REGEX_SCRIPTS_FILE } from "@/lib/data/local-storage";
+import {
+  readData,
+  writeData,
+  REGEX_SCRIPTS_FILE,
+} from "@/lib/data/local-storage";
 import { RegexScript } from "@/lib/models/regex-script-model";
 
 export interface RegexScriptSettings {
@@ -25,7 +29,9 @@ export class RegexScriptOperations {
     }
   }
 
-  private static async saveRegexScriptStore(store: Record<string, any>): Promise<boolean> {
+  private static async saveRegexScriptStore(
+    store: Record<string, any>,
+  ): Promise<boolean> {
     try {
       await writeData(REGEX_SCRIPTS_FILE, [store]);
       return true;
@@ -35,10 +41,12 @@ export class RegexScriptOperations {
     }
   }
 
-  static async getRegexScripts(ownerId: string): Promise<Record<string, RegexScript> | null> {
+  static async getRegexScripts(
+    ownerId: string,
+  ): Promise<Record<string, RegexScript> | null> {
     try {
       const store = await this.getRegexScriptStore();
-      return store[ownerId] as Record<string, RegexScript> || null;
+      return (store[ownerId] as Record<string, RegexScript>) || null;
     } catch (error) {
       console.error("Error getting regex scripts:", error);
       return null;
@@ -51,13 +59,13 @@ export class RegexScriptOperations {
     updates: Partial<RegexScript>,
   ): Promise<boolean> {
     const scripts = await this.getRegexScripts(ownerId);
-    
+
     if (!scripts || !scripts[scriptId]) {
       return false;
     }
-    
+
     scripts[scriptId] = { ...scripts[scriptId], ...updates };
-    
+
     return this.updateOwnerScripts(ownerId, scripts);
   }
 
@@ -65,7 +73,7 @@ export class RegexScriptOperations {
     ownerId: string,
     script: RegexScript,
   ): Promise<string | null> {
-    const scripts = await this.getRegexScripts(ownerId) || {};
+    const scripts = (await this.getRegexScripts(ownerId)) || {};
 
     const scriptId = `script_${Object.keys(scripts).length}_${Date.now().toString().slice(-4)}`;
 
@@ -73,25 +81,31 @@ export class RegexScriptOperations {
       ...script,
       id: scriptId,
     };
-    
+
     scripts[scriptId] = newScript;
-    
+
     const success = await this.updateOwnerScripts(ownerId, scripts);
     return success ? scriptId : null;
   }
 
-  static async deleteRegexScript(ownerId: string, scriptId: string): Promise<boolean> {
+  static async deleteRegexScript(
+    ownerId: string,
+    scriptId: string,
+  ): Promise<boolean> {
     const scripts = await this.getRegexScripts(ownerId);
-    
+
     if (!scripts || !scripts[scriptId]) {
       return false;
     }
-    
+
     delete scripts[scriptId];
     return this.updateOwnerScripts(ownerId, scripts);
   }
 
-  private static async updateOwnerScripts(ownerId: string, scripts: Record<string, RegexScript>): Promise<boolean> {
+  private static async updateOwnerScripts(
+    ownerId: string,
+    scripts: Record<string, RegexScript>,
+  ): Promise<boolean> {
     const store = await this.getRegexScriptStore();
     store[ownerId] = scripts;
     return this.saveRegexScriptStore(store);
@@ -102,7 +116,7 @@ export class RegexScriptOperations {
     regexScripts: Record<string, RegexScript> | RegexScript[],
   ): Promise<boolean> {
     const scriptStore = await this.getRegexScriptStore();
-    
+
     const processScript = (script: RegexScript): RegexScript => {
       return {
         ...script,
@@ -112,43 +126,50 @@ export class RegexScriptOperations {
         placement: script.placement || [999],
       } as RegexScript;
     };
-    
+
     const scripts = Array.isArray(regexScripts)
-      ? regexScripts.reduce((acc, script, i) => {
-        if (!script.findRegex) {
-          console.warn("Skipping invalid regex script", script);
-          return acc;
-        }
-        const processedScript = processScript(script);
-        return {
-          ...acc,
-          [`script_${i}`]: processedScript,
-        };
-      }, {} as Record<string, RegexScript>)
+      ? regexScripts.reduce(
+          (acc, script, i) => {
+            if (!script.findRegex) {
+              console.warn("Skipping invalid regex script", script);
+              return acc;
+            }
+            const processedScript = processScript(script);
+            return {
+              ...acc,
+              [`script_${i}`]: processedScript,
+            };
+          },
+          {} as Record<string, RegexScript>,
+        )
       : Object.fromEntries(
-        Object.entries(regexScripts).map(([key, script]) => {
-          if (!script.findRegex) {
-            console.warn("Skipping invalid regex script", script);
-            return [key, null];
-          }
-          const processedScript = processScript(script);
-          return [key, processedScript];
-        }).filter(([_, script]) => script !== null),
-      );
-    
+          Object.entries(regexScripts)
+            .map(([key, script]) => {
+              if (!script.findRegex) {
+                console.warn("Skipping invalid regex script", script);
+                return [key, null];
+              }
+              const processedScript = processScript(script);
+              return [key, processedScript];
+            })
+            .filter(([_, script]) => script !== null),
+        );
+
     scriptStore[ownerId] = scripts;
     await this.saveRegexScriptStore(scriptStore);
     return true;
   }
 
-  static async getRegexScriptSettings(ownerId: string): Promise<RegexScriptSettings> {
+  static async getRegexScriptSettings(
+    ownerId: string,
+  ): Promise<RegexScriptSettings> {
     const store = await this.getRegexScriptStore();
     const settings = store[`${ownerId}_settings`] as RegexScriptSettings;
-    
+
     if (!settings) {
       return { ...DEFAULT_SETTINGS };
     }
-    
+
     return {
       ...DEFAULT_SETTINGS,
       ...settings,
@@ -162,25 +183,24 @@ export class RegexScriptOperations {
     const store = await this.getRegexScriptStore();
     const currentSettings = await this.getRegexScriptSettings(ownerId);
     const newSettings = { ...currentSettings, ...updates };
-    
+
     store[`${ownerId}_settings`] = newSettings;
     await this.saveRegexScriptStore(store);
-    
+
     return newSettings;
   }
 
   static async getAllScriptsForProcessing(
     ownerId: string,
   ): Promise<RegexScript[]> {
-    const ownerScripts = await this.getRegexScripts(ownerId) || {};
-    const globalScripts = await this.getRegexScripts("global") || {};
+    const ownerScripts = (await this.getRegexScripts(ownerId)) || {};
+    const globalScripts = (await this.getRegexScripts("global")) || {};
 
     const allScripts: RegexScript[] = [
       ...Object.values(ownerScripts),
       ...Object.values(globalScripts),
     ];
-    
+
     return allScripts;
   }
-
 }

@@ -5,13 +5,17 @@ interface SaveCharacterPromptsOptions {
   prompts: any;
 }
 
-export async function saveCharacterPrompts({ characterId, prompts }: SaveCharacterPromptsOptions) {
+export async function saveCharacterPrompts({
+  characterId,
+  prompts,
+}: SaveCharacterPromptsOptions) {
   if (!characterId || !prompts) {
     throw new Error("Missing required fields");
   }
 
   try {
-    const character = await LocalCharacterRecordOperations.getCharacterById(characterId);
+    const character =
+      await LocalCharacterRecordOperations.getCharacterById(characterId);
     if (!character) {
       throw new Error("Character not found");
     }
@@ -21,7 +25,11 @@ export async function saveCharacterPrompts({ characterId, prompts }: SaveCharact
       custom_prompts: prompts,
     };
 
-    const updatedCharacter = await LocalCharacterRecordOperations.updateCharacter(characterId, updatedData);
+    const updatedCharacter =
+      await LocalCharacterRecordOperations.updateCharacter(
+        characterId,
+        updatedData,
+      );
 
     return { success: true, character: updatedCharacter };
   } catch (error) {

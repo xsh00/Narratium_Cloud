@@ -1,6 +1,6 @@
-import { 
-  ToolType, 
-  ExecutionContext, 
+import {
+  ToolType,
+  ExecutionContext,
   ExecutionResult,
 } from "../../models/agent-model";
 import { BaseTool, ToolParameter, DetailedToolInfo } from "../base-tool";
@@ -10,16 +10,17 @@ import { BaseTool, ToolParameter, DetailedToolInfo } from "../base-tool";
  * Validates completion status and signals when session should end
  */
 export class CompleteTool extends BaseTool {
-  
   readonly toolType = ToolType.COMPLETE;
   readonly name = "COMPLETE";
-  readonly description = "Final completion tool that signals when the generation is complete and session should end. Use this tool when character and worldbook creation are finished and the system should terminate.";
-  
+  readonly description =
+    "Final completion tool that signals when the generation is complete and session should end. Use this tool when character and worldbook creation are finished and the system should terminate.";
+
   readonly parameters: ToolParameter[] = [
     {
       name: "finished",
-      type: "boolean", 
-      description: "Set to true when generation is complete and session should end.",
+      type: "boolean",
+      description:
+        "Set to true when generation is complete and session should end.",
       required: true,
     },
   ];
@@ -33,13 +34,18 @@ export class CompleteTool extends BaseTool {
     };
   }
 
-  protected async doWork(parameters: Record<string, any>, context: ExecutionContext): Promise<ExecutionResult> {
+  protected async doWork(
+    parameters: Record<string, any>,
+    context: ExecutionContext,
+  ): Promise<ExecutionResult> {
     const finished = parameters.finished;
-    
+
     if (typeof finished !== "boolean") {
-      return this.createFailureResult("COMPLETE tool requires 'finished' parameter as a boolean value.");
+      return this.createFailureResult(
+        "COMPLETE tool requires 'finished' parameter as a boolean value.",
+      );
     }
-    
+
     if (finished) {
       return this.createSuccessResult({
         message: "Session completion confirmed. Ready to end session.",
@@ -52,4 +58,4 @@ export class CompleteTool extends BaseTool {
       });
     }
   }
-} 
+}

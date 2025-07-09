@@ -1,13 +1,19 @@
 import { WorldBookOperations } from "@/lib/data/roleplay/world-book-operation";
 
-export async function deleteWorldBookEntry(characterId: string, entryId: string) {
+export async function deleteWorldBookEntry(
+  characterId: string,
+  entryId: string,
+) {
   if (!characterId || !entryId) {
     throw new Error("Character ID and Entry ID are required");
   }
 
   try {
-    const success = await WorldBookOperations.deleteWorldBookEntry(characterId, entryId);
-    
+    const success = await WorldBookOperations.deleteWorldBookEntry(
+      characterId,
+      entryId,
+    );
+
     return {
       success,
     };

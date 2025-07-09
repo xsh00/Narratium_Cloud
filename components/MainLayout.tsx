@@ -1,6 +1,6 @@
 /**
  * Main layout component for the Narratium application
- * 
+ *
  * This component provides the core layout structure including:
  * - Responsive sidebar navigation
  * - Model settings sidebar
@@ -8,10 +8,10 @@
  * - Settings dropdown
  * - Mobile responsiveness handling
  * - Mobile bottom navigation
- * 
+ *
  * The layout uses a fantasy-themed UI with dynamic sidebar states
  * and responsive design considerations.
- * 
+ *
  * Dependencies:
  * - Sidebar: Main navigation component
  * - ModelSidebar: Model settings panel
@@ -32,12 +32,16 @@ import "@/app/styles/fantasy-ui.css";
 
 /**
  * Main layout wrapper component that manages the application's core structure
- * 
+ *
  * @param {Object} props - Component props
  * @param {React.ReactNode} props.children - Child components to be rendered in the main content area
  * @returns {JSX.Element} The complete layout structure with sidebars and content area
  */
-export default function MainLayout({ children }: { children: React.ReactNode }) {
+export default function MainLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [modelSidebarOpen, setModelSidebarOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
@@ -46,15 +50,15 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
 
   useEffect(() => {
     setMounted(true);
-    
+
     const checkIfMobile = () => {
       setIsMobile(window.innerWidth < 768);
     };
 
     checkIfMobile();
-    
+
     window.addEventListener("resize", checkIfMobile);
-    
+
     return () => window.removeEventListener("resize", checkIfMobile);
   }, []);
 
@@ -71,17 +75,17 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   }
 
   return (
-    <div className="flex h-full overflow-hidden fantasy-bg relative"> 
-      <LoginModal 
-        isOpen={isLoginModalOpen} 
-        onClose={() => setIsLoginModalOpen(false)} 
+    <div className="flex h-full overflow-hidden fantasy-bg relative">
+      <LoginModal
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
       />
       {/* Sidebar - hidden on mobile, visible on desktop */}
       <div className="fixed left-0 top-0 h-full z-10 hidden md:block">
-        <Sidebar 
-          isOpen={sidebarOpen} 
-          toggleSidebar={toggleSidebar} 
-          openLoginModal={() => setIsLoginModalOpen(true)} 
+        <Sidebar
+          isOpen={sidebarOpen}
+          toggleSidebar={toggleSidebar}
+          openLoginModal={() => setIsLoginModalOpen(true)}
         />
       </div>
       <main
@@ -101,7 +105,10 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
       </main>
 
       <div className="fixed right-0 top-0 h-full z-40">
-        <ModelSidebar isOpen={modelSidebarOpen} toggleSidebar={toggleModelSidebar} />
+        <ModelSidebar
+          isOpen={modelSidebarOpen}
+          toggleSidebar={toggleModelSidebar}
+        />
       </div>
 
       {/* Mobile Bottom Navigation */}

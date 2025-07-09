@@ -60,12 +60,12 @@
 <img src="https://raw.githubusercontent.com/Narratium/Narratium.ai/main/assets/welcome_star.gif" style="width: 100%" />
 
 | 什么是Narratium |
-| :---------------- |
+| :-------------- |
 
 [Narratium.ai](https://narratium.org/) 是一个用于创建AI角色、沉浸式世界和动态对话的开源平台。它是您构建个性化角色扮演冒险的创意工作室 — 从情感旅程到史诗传奇。
 
 | 版本说明 |
-| :---------------- |
+| :------- |
 
 项目采用双分支开发模式：
 
@@ -73,7 +73,7 @@
 - **dev**: 开发版本分支，每天会有多次提交。
 
 | 快速开始 |
-| :---------- |
+| :------- |
 
 如需详细的安装和设置说明，请参阅我们的[快速开始指南](./docs/GETTING_STARTED.md)。
 
@@ -89,16 +89,17 @@
 - **角色卡片与背景**: 兼容SillyTavern卡片，在一处管理所有内容。
 
 | API 推荐与配置 |
-| :-------------- |
+| :------------- |
 
 **推荐API服务**:
+
 - **OpenAI**: 直接支持 OpenAI API 格式的模型。
 - **OpenRouter**: 推荐使用 [OpenRouter](https://openrouter.ai/) 统一访问多种模型。
 - **中转站部署**: 推荐 [new-api](https://github.com/QuantumNous/new-api)。
 - **本地部署**: 支持 Ollama、LM Studio 等本地推理服务。
 
 | Narratium与其他AI角色扮演平台对比 |
-| :---------------------------------------- |
+| :-------------------------------- |
 
 <table style="width: 100%;">
   <tr>
@@ -167,7 +168,7 @@
 </table>
 
 | 许可证概览 |
-| :--------------- |
+| :--------- |
 
 本项目由两个具有独立许可证的不同部分组成：
 
@@ -177,24 +178,23 @@
 > 有关完整许可证详情，请参阅 [LICENSE](./LICENSE)。
 
 | 联系与支持 |
-| :---------------- |
+| :--------- |
 
-* 如果你喜欢这个项目，我们非常欢迎你加入
-* If you like this project, we warmly welcome you to join us
-[Discord社区](https://discord.gg/PP7EpSzDfU)
+- 如果你喜欢这个项目，我们非常欢迎你加入
+- If you like this project, we warmly welcome you to join us
+  [Discord社区](https://discord.gg/PP7EpSzDfU)
 
 | 代码贡献者 |
-| :--------------- |
+| :--------- |
 
 [![Contributors](https://contrib.rocks/image?repo=Narratium/Narratium.ai)](https://github.com/Narratium/Narratium.ai/graphs/contributors)
 
 | 其他 |
-| :----- |
+| :--- |
 
 感谢所有官方网站测试API赞助商
 
 | 星标增长 |
-| :---------- |
+| :------- |
 
 [![Stargazers over time](https://starchart.cc/Narratium/Narratium.ai.svg?variant=adaptive)](https://starchart.cc/Narratium/Narratium.ai)
-

@@ -1,6 +1,6 @@
 /**
  * Character Card Grid Component
- * 
+ *
  * This component provides a grid layout display for character cards with the following features:
  * - Responsive grid layout (1-3 columns based on screen size)
  * - Animated card appearance with staggered loading
@@ -8,13 +8,13 @@
  * - Quick action buttons for chat, edit, and delete
  * - Avatar display with fallback
  * - Character name and personality preview
- * 
+ *
  * The component handles:
  * - Character card rendering and layout
  * - Interactive animations and effects
  * - Action button event handling
  * - Responsive design adaptation
- * 
+ *
  * Dependencies:
  * - framer-motion: For animations
  * - react-parallax-tilt: For card tilt effect
@@ -52,7 +52,7 @@ interface CharacterCardGridProps {
 
 /**
  * Main grid component for displaying character cards
- * 
+ *
  * @param {CharacterCardGridProps} props - Component props
  * @returns {JSX.Element} The rendered grid of character cards
  */
@@ -100,17 +100,42 @@ const CharacterCardGrid: React.FC<CharacterCardGridProps> = ({
                   title={t("characterCardsPage.chat")}
                   aria-label={t("characterCardsPage.chat")}
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#c0a480] hover:text-[#ffd475] transition-colors sm:w-3.5 sm:h-3.5">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="text-[#c0a480] hover:text-[#ffd475] transition-colors sm:w-3.5 sm:h-3.5"
+                  >
                     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
                   </svg>
                 </Link>
                 <button
-                  onClick={(e) => {trackButtonClick("edit_character_btn", "编辑角色"); onEditClick(character, e);}}
+                  onClick={(e) => {
+                    trackButtonClick("edit_character_btn", "编辑角色");
+                    onEditClick(character, e);
+                  }}
                   className="p-1 sm:p-1.5 bg-[#252220] hover:bg-[#3a2a2a] rounded-full text-[#c0a480] hover:text-[#ffd475] transition-colors"
                   title={t("characterCardsPage.edit")}
                   aria-label={t("characterCardsPage.edit")}
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="sm:w-3.5 sm:h-3.5">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="sm:w-3.5 sm:h-3.5"
+                  >
                     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                     <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                   </svg>
@@ -125,13 +150,24 @@ const CharacterCardGrid: React.FC<CharacterCardGridProps> = ({
                   title={t("characterCardsPage.delete")}
                   aria-label={t("characterCardsPage.delete")}
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="sm:w-3.5 sm:h-3.5">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="sm:w-3.5 sm:h-3.5"
+                  >
                     <polyline points="3 6 5 6 21 6"></polyline>
                     <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
                   </svg>
                 </button>
               </div>
-            
+
               {/* Character card content */}
               <Link
                 href={`/character?id=${character.id}`}
@@ -139,21 +175,42 @@ const CharacterCardGrid: React.FC<CharacterCardGridProps> = ({
               >
                 <div className="relative w-full overflow-hidden rounded aspect-[4/5]">
                   {character.avatar_path ? (
-                    <CharacterAvatarBackground avatarPath={character.avatar_path} />
+                    <CharacterAvatarBackground
+                      avatarPath={character.avatar_path}
+                    />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center bg-[#252220]">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 sm:h-24 sm:w-24 text-[#534741]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-16 w-16 sm:h-24 sm:w-24 text-[#534741]"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={1.5}
+                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                        />
                       </svg>
                     </div>
                   )}
                 </div>
-              
+
                 <div className="p-2 sm:p-4">
-                  <h2 className={`text-sm sm:text-lg text-[#eae6db] line-clamp-1 magical-text ${serifFontClass}`}>{character.name}</h2>
-                  <div className={`text-[10px] sm:text-xs text-[#a18d6f] mt-1 sm:mt-2 italic ${fontClass}`}>
+                  <h2
+                    className={`text-sm sm:text-lg text-[#eae6db] line-clamp-1 magical-text ${serifFontClass}`}
+                  >
+                    {character.name}
+                  </h2>
+                  <div
+                    className={`text-[10px] sm:text-xs text-[#a18d6f] mt-1 sm:mt-2 italic ${fontClass}`}
+                  >
                     <span className="inline-block mr-1 opacity-70">✨</span>
-                    <span className="line-clamp-2">{character.personality}</span>
+                    <span className="line-clamp-2">
+                      {character.personality}
+                    </span>
                   </div>
                 </div>
               </Link>
@@ -165,4 +222,4 @@ const CharacterCardGrid: React.FC<CharacterCardGridProps> = ({
   );
 };
 
-export default CharacterCardGrid; 
+export default CharacterCardGrid;

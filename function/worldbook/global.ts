@@ -1,4 +1,7 @@
-import { WorldBookOperations, WorldBookSettings } from "@/lib/data/roleplay/world-book-operation";
+import {
+  WorldBookOperations,
+  WorldBookSettings,
+} from "@/lib/data/roleplay/world-book-operation";
 import { WorldBookEntry } from "@/lib/models/world-book-model";
 
 export interface GlobalWorldBook {
@@ -32,7 +35,7 @@ export async function getNextGlobalId(): Promise<string> {
       return "global_1";
     }
 
-    const existingIds = result.globalWorldBooks.map(book => {
+    const existingIds = result.globalWorldBooks.map((book) => {
       const match = book.id.match(/^global_(\d+)$/);
       return match ? parseInt(match[1], 10) : 0;
     });
@@ -119,11 +122,11 @@ export async function listGlobalWorldBooks(): Promise<ListGlobalWorldBooksResult
     const globalWorldBooks: GlobalWorldBook[] = [];
 
     const worldBooksData = await WorldBookOperations.getWorldBooks();
-    
+
     for (const key of Object.keys(worldBooksData)) {
       if (key.startsWith("global_") && key.endsWith("_settings")) {
         const settings = worldBooksData[key] as WorldBookSettings;
-        
+
         if (settings && settings.metadata) {
           globalWorldBooks.push(settings.metadata as GlobalWorldBook);
         }
@@ -202,13 +205,14 @@ export async function importFromGlobalWorldBook(
       };
     }
 
-    const characterWorldBook = await WorldBookOperations.getWorldBook(characterId) || {};
+    const characterWorldBook =
+      (await WorldBookOperations.getWorldBook(characterId)) || {};
     const now = Date.now();
     let importedCount = 0;
 
     for (const [entryId, entry] of Object.entries(globalResult.worldBook)) {
       const newEntryId = `entry_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      
+
       characterWorldBook[newEntryId] = {
         ...entry,
         extensions: {
@@ -223,7 +227,10 @@ export async function importFromGlobalWorldBook(
       importedCount++;
     }
 
-    const saveResult = await WorldBookOperations.updateWorldBook(characterId, characterWorldBook);
+    const saveResult = await WorldBookOperations.updateWorldBook(
+      characterId,
+      characterWorldBook,
+    );
     if (!saveResult) {
       return {
         success: false,
@@ -260,7 +267,7 @@ export async function deleteGlobalWorldBook(globalId: string): Promise<{
     }
 
     await WorldBookOperations.updateWorldBook(globalId, {});
-    
+
     await WorldBookOperations.updateWorldBookSettings(globalId, {
       enabled: false,
       contextWindow: 5,
@@ -278,4 +285,4 @@ export async function deleteGlobalWorldBook(globalId: string): Promise<{
       message: `Failed to delete global world book: ${error.message}`,
     };
   }
-} 
+}

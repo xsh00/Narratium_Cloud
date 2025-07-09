@@ -1,5 +1,10 @@
 import { NodeBase } from "@/lib/nodeflow/NodeBase";
-import { NodeConfig, NodeInput, NodeOutput, NodeCategory } from "@/lib/nodeflow/types";
+import {
+  NodeConfig,
+  NodeInput,
+  NodeOutput,
+  NodeCategory,
+} from "@/lib/nodeflow/types";
 import { RegexNodeTools } from "./RegexNodeTools";
 import { NodeToolRegistry } from "../NodeTool";
 
@@ -13,7 +18,7 @@ export class RegexNode extends NodeBase {
     super(config);
     this.toolClass = RegexNodeTools;
   }
-  
+
   protected getDefaultCategory(): NodeCategory {
     return NodeCategory.MIDDLE;
   }
@@ -32,7 +37,9 @@ export class RegexNode extends NodeBase {
 
     // Extract thinking content from LLM response
     let thinkingContent = "";
-    const thinkingMatch = llmResponse.match(/<(?:think|thinking)>([\s\S]*?)<\/(?:think|thinking)>/);
+    const thinkingMatch = llmResponse.match(
+      /<(?:think|thinking)>([\s\S]*?)<\/(?:think|thinking)>/,
+    );
     if (thinkingMatch) {
       thinkingContent = thinkingMatch[1].trim();
     }
@@ -52,14 +59,21 @@ export class RegexNode extends NodeBase {
       .replace(/\s*<\/?outputFormat>\s*/g, "")
       .trim();
 
-    const nextPromptsMatch = cleanedResponse.match(/<next_prompts>([\s\S]*?)<\/next_prompts>/);
+    const nextPromptsMatch = cleanedResponse.match(
+      /<next_prompts>([\s\S]*?)<\/next_prompts>/,
+    );
     if (nextPromptsMatch) {
       nextPrompts = nextPromptsMatch[1]
         .trim()
         .split("\n")
         .map((l: string) => l.trim())
         .filter((l: string) => l.length > 0)
-        .map((l: string) => l.replace(/^[-*]\s*/, "").replace(/^\s*\[|\]\s*$/g, "").trim());
+        .map((l: string) =>
+          l
+            .replace(/^[-*]\s*/, "")
+            .replace(/^\s*\[|\]\s*$/g, "")
+            .trim(),
+        );
     }
 
     const eventsMatch = cleanedResponse.match(/<events>([\s\S]*?)<\/events>/);
@@ -72,11 +86,11 @@ export class RegexNode extends NodeBase {
       .replace(/\n*\s*<events>[\s\S]*?<\/events>\s*\n*/g, "")
       .trim();
 
-    const processedResult = await this.executeTool(
+    const processedResult = (await this.executeTool(
       "processRegex",
       mainContent,
       characterId,
-    ) as { replacedText: string };
+    )) as { replacedText: string };
 
     return {
       thinkingContent,
@@ -87,4 +101,4 @@ export class RegexNode extends NodeBase {
       characterId,
     };
   }
-} 
+}

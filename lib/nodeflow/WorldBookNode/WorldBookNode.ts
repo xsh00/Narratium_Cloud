@@ -1,11 +1,17 @@
 import { NodeBase } from "@/lib/nodeflow/NodeBase";
-import { NodeConfig, NodeInput, NodeOutput, NodeCategory } from "@/lib/nodeflow/types";
+import {
+  NodeConfig,
+  NodeInput,
+  NodeOutput,
+  NodeCategory,
+} from "@/lib/nodeflow/types";
 import { WorldBookNodeTools } from "./WorldBookNodeTools";
 import { NodeToolRegistry } from "../NodeTool";
 
 export class WorldBookNode extends NodeBase {
   static readonly nodeName = "worldBook";
-  static readonly description = "Assembles world book content into system and user messages";
+  static readonly description =
+    "Assembles world book content into system and user messages";
   static readonly version = "1.0.0";
 
   constructor(config: NodeConfig) {
@@ -13,7 +19,7 @@ export class WorldBookNode extends NodeBase {
     super(config);
     this.toolClass = WorldBookNodeTools;
   }
-  
+
   protected getDefaultCategory(): NodeCategory {
     return NodeCategory.MIDDLE;
   }
@@ -35,7 +41,7 @@ export class WorldBookNode extends NodeBase {
     if (!characterId) {
       throw new Error("Character ID is required for WorldBookNode");
     }
-    const result = await this.executeTool(
+    const result = (await this.executeTool(
       "assemblePromptWithWorldBook",
       characterId,
       systemMessage,
@@ -45,7 +51,7 @@ export class WorldBookNode extends NodeBase {
       contextWindow,
       username,
       charName,
-    ) as { systemMessage: string; userMessage: string };
+    )) as { systemMessage: string; userMessage: string };
 
     return {
       systemMessage: result.systemMessage,
@@ -58,4 +64,4 @@ export class WorldBookNode extends NodeBase {
       currentUserInput,
     };
   }
-} 
+}

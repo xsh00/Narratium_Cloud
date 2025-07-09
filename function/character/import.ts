@@ -19,32 +19,40 @@ export async function handleCharacterUpload(file: File) {
     const imagePath = `${characterId}.png`;
 
     if (characterJson.data?.character_book?.entries) {
-      await WorldBookOperations.updateWorldBook(characterId, characterJson.data.character_book.entries);
+      await WorldBookOperations.updateWorldBook(
+        characterId,
+        characterJson.data.character_book.entries,
+      );
     }
 
     if (characterJson.data?.extensions?.regex_scripts) {
       const regexScripts = characterJson.data.extensions.regex_scripts;
 
       if (Array.isArray(regexScripts)) {
-        regexScripts.forEach(script => {
+        regexScripts.forEach((script) => {
           if (!script.scriptKey) {
             script.scriptKey = `script_${uuidv4()}`;
           }
         });
-        await RegexScriptOperations.updateRegexScripts(characterId, regexScripts);
-      } 
-      else if (typeof regexScripts === "object") {
-        const scriptsArray = Object.values(regexScripts).filter(script => 
-          script && typeof script === "object",
+        await RegexScriptOperations.updateRegexScripts(
+          characterId,
+          regexScripts,
+        );
+      } else if (typeof regexScripts === "object") {
+        const scriptsArray = Object.values(regexScripts).filter(
+          (script) => script && typeof script === "object",
         ) as RegexScript[];
-        
+
         if (scriptsArray.length > 0) {
-          scriptsArray.forEach(script => {
+          scriptsArray.forEach((script) => {
             if (!script.scriptKey) {
               script.scriptKey = `script_${uuidv4()}`;
             }
           });
-          await RegexScriptOperations.updateRegexScripts(characterId, scriptsArray);
+          await RegexScriptOperations.updateRegexScripts(
+            characterId,
+            scriptsArray,
+          );
         }
       }
     }

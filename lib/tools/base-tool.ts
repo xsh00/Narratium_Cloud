@@ -1,4 +1,4 @@
-import { 
+import {
   ToolType,
   ExecutionContext,
   ExecutionResult,
@@ -39,8 +39,11 @@ export interface SimpleTool {
   readonly description: string;
   readonly toolType: ToolType;
   readonly parameters: ToolParameter[];
-  
-  execute(context: ExecutionContext, parameters: Record<string, any>): Promise<ExecutionResult>;
+
+  execute(
+    context: ExecutionContext,
+    parameters: Record<string, any>,
+  ): Promise<ExecutionResult>;
 }
 
 /**
@@ -56,16 +59,17 @@ export abstract class BaseTool implements SimpleTool {
   /**
    * Pure execution method - no LLM calls, just execute with given parameters
    */
-  async execute(context: ExecutionContext, parameters: Record<string, any>): Promise<ExecutionResult> {
+  async execute(
+    context: ExecutionContext,
+    parameters: Record<string, any>,
+  ): Promise<ExecutionResult> {
     try {
-      
       // Direct execution with provided parameters
       const result = await this.doWork(parameters, context);
-      
+
       console.log(`✅ [${this.name}] Execution completed`);
-      
+
       return result;
-      
     } catch (error) {
       console.error(`❌ [${this.name}] Execution failed:`, error);
       return this.createFailureResult(error);
@@ -76,7 +80,10 @@ export abstract class BaseTool implements SimpleTool {
    * Core work logic - implement this in your tool
    * This should be pure execution without any LLM calls
    */
-  protected abstract doWork(parameters: Record<string, any>, context: ExecutionContext): Promise<any>;
+  protected abstract doWork(
+    parameters: Record<string, any>,
+    context: ExecutionContext,
+  ): Promise<any>;
 
   // ============================================================================
   // HELPER METHODS - Pure utilities without LLM calls
@@ -96,28 +103,24 @@ export abstract class BaseTool implements SimpleTool {
       source,
       content,
       url,
-      relevance_score: relevanceScore,  
+      relevance_score: relevanceScore,
     };
   }
 
   /**
    * Create success result
    */
-  protected createSuccessResult(
-    result: any,
-  ): ExecutionResult {
+  protected createSuccessResult(result: any): ExecutionResult {
     return {
       success: true,
       result,
-    };  
+    };
   }
 
   /**
    * Create failure result
    */
-  protected createFailureResult(
-    error: any,
-  ): ExecutionResult {
+  protected createFailureResult(error: any): ExecutionResult {
     const errorMessage = error instanceof Error ? error.message : String(error);
 
     return {
@@ -133,10 +136,10 @@ export abstract class BaseTool implements SimpleTool {
     if (knowledgeBase.length === 0) {
       return "No knowledge gathered yet.";
     }
-    
+
     return knowledgeBase
       .slice(0, 5)
-      .map(k => `- ${k.source}: ${k.content.substring(0, 100)}...`)
+      .map((k) => `- ${k.source}: ${k.content.substring(0, 100)}...`)
       .join("\n");
   }
-} 
+}

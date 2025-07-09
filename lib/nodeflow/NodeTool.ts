@@ -15,26 +15,50 @@ export abstract class NodeTool {
   }
 
   protected static handleError(error: Error, methodName: string): never {
-    const enhancedError = new Error(`[${this.getToolType()}Tool.${methodName}] ${error.message}`);
+    const enhancedError = new Error(
+      `[${this.getToolType()}Tool.${methodName}] ${error.message}`,
+    );
     enhancedError.stack = error.stack;
     throw enhancedError;
   }
 
   static getAvailableMethods(): string[] {
     const methods = Object.getOwnPropertyNames(NodeTool)
-      .filter(name => typeof NodeTool[name as keyof typeof NodeTool] === "function")
-      .filter(name => !name.startsWith("_") && !["constructor", "prototype"].includes(name))
-      .filter(name => !["getToolType", "getVersion", "logExecution", "handleError", "getMetadata", "getAvailableMethods"].includes(name));
-    
+      .filter(
+        (name) => typeof NodeTool[name as keyof typeof NodeTool] === "function",
+      )
+      .filter(
+        (name) =>
+          !name.startsWith("_") && !["constructor", "prototype"].includes(name),
+      )
+      .filter(
+        (name) =>
+          ![
+            "getToolType",
+            "getVersion",
+            "logExecution",
+            "handleError",
+            "getMetadata",
+            "getAvailableMethods",
+          ].includes(name),
+      );
+
     return methods;
   }
 
-  static async executeMethod(methodName: string, ...params: any[]): Promise<any> {
+  static async executeMethod(
+    methodName: string,
+    ...params: any[]
+  ): Promise<any> {
     const method = (this as any)[methodName];
-    
+
     if (typeof method !== "function") {
-      console.error(`方法查找失败: ${methodName} 在 ${this.getToolType()}Tool 中不存在`);
-      throw new Error(`Method ${methodName} not found in ${this.getToolType()}Tool`);
+      console.error(
+        `方法查找失败: ${methodName} 在 ${this.getToolType()}Tool 中不存在`,
+      );
+      throw new Error(
+        `Method ${methodName} not found in ${this.getToolType()}Tool`,
+      );
     }
 
     try {
@@ -67,10 +91,17 @@ export interface ToolParameterDescriptor {
   defaultValue?: any;
 }
 
-export function ToolMethod(description: string, parameters: ToolParameterDescriptor[] = []) {
-  return function(target: any, propertyKey?: string | symbol, descriptor?: PropertyDescriptor) {
+export function ToolMethod(
+  description: string,
+  parameters: ToolParameterDescriptor[] = [],
+) {
+  return function (
+    target: any,
+    propertyKey?: string | symbol,
+    descriptor?: PropertyDescriptor,
+  ) {
     let methodName: string;
-    
+
     if (typeof propertyKey === "string") {
       methodName = propertyKey;
     } else if (typeof propertyKey === "symbol") {

@@ -1,18 +1,18 @@
 import { Language } from "./index";
 
 export const languageFontMap: Record<Language, string> = {
-  "zh": "font-noto-sans-sc",
-  "en": "font-source-sans",
+  zh: "font-noto-sans-sc",
+  en: "font-source-sans",
 };
 
 export const languageSerifFontMap: Record<Language, string> = {
-  "zh": "font-noto-serif-sc",
-  "en": "font-source-serif",
+  zh: "font-noto-serif-sc",
+  en: "font-source-serif",
 };
 
 export const languageTitleFontMap: Record<Language, string> = {
-  "zh": "font-noto-serif-sc",
-  "en": "font-cinzel",
+  zh: "font-noto-serif-sc",
+  en: "font-cinzel",
 };
 
 export const getLanguageFont = (language: Language): string => {

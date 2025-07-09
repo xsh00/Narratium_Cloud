@@ -4,14 +4,27 @@ import { useState, useRef, useEffect } from "react";
 import { useLanguage } from "@/app/i18n";
 import { useSoundContext } from "@/contexts/SoundContext";
 import { useTour } from "@/hooks/useTour";
-import { exportDataToFile, importDataFromFile, generateExportFilename, downloadFile } from "@/function/data/export-import";
-import { backupToGoogle, getFolderList, getGoogleCodeByUrl, getGoogleLoginUrl, getBackUpFile } from "@/function/data/google-control";
+import {
+  exportDataToFile,
+  importDataFromFile,
+  generateExportFilename,
+  downloadFile,
+} from "@/function/data/export-import";
+import {
+  backupToGoogle,
+  getFolderList,
+  getGoogleCodeByUrl,
+  getGoogleLoginUrl,
+  getBackUpFile,
+} from "@/function/data/google-control";
 
 interface SettingsDropdownProps {
   toggleModelSidebar: () => void;
 }
 
-export default function SettingsDropdown({ toggleModelSidebar }: SettingsDropdownProps) {
+export default function SettingsDropdown({
+  toggleModelSidebar,
+}: SettingsDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { language, setLanguage, t } = useLanguage();
@@ -20,7 +33,10 @@ export default function SettingsDropdown({ toggleModelSidebar }: SettingsDropdow
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
       }
     }
@@ -76,11 +92,11 @@ export default function SettingsDropdown({ toggleModelSidebar }: SettingsDropdow
 
   async function handleImportDataFromGoogle() {
     const token = localStorage.getItem("google_drive_token");
-    if(token) {
+    if (token) {
       const res = await getFolderList();
-      if(res?.id) {
+      if (res?.id) {
         const file = await getBackUpFile(res.id);
-        if(file) {
+        if (file) {
           await importDataFromFile(file);
           setIsOpen(false);
           alert("导入成功！");
@@ -95,11 +111,11 @@ export default function SettingsDropdown({ toggleModelSidebar }: SettingsDropdow
 
   async function handleExportDataToGoogle() {
     const token = localStorage.getItem("google_drive_token");
-    if(token) {
+    if (token) {
       const blob = await exportDataToFile();
       const filename = generateExportFilename();
       const res = await getFolderList();
-      if(res?.id) {
+      if (res?.id) {
         await backupToGoogle({
           blob,
           filename,
@@ -107,7 +123,7 @@ export default function SettingsDropdown({ toggleModelSidebar }: SettingsDropdow
         });
         // todo
         alert("上传成功");
-      } 
+      }
     } else {
       const url = getGoogleLoginUrl();
       window.location.href = url;
@@ -116,7 +132,7 @@ export default function SettingsDropdown({ toggleModelSidebar }: SettingsDropdow
 
   const useFirst = useRef(false);
   useEffect(() => {
-    if(useFirst.current) return;
+    if (useFirst.current) return;
     useFirst.current = true;
     getGoogleCodeByUrl(window.location);
   }, []);
@@ -130,7 +146,18 @@ export default function SettingsDropdown({ toggleModelSidebar }: SettingsDropdow
         aria-label={t("common.settings")}
         aria-expanded={isOpen}
       >
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform duration-300 ${isOpen ? "rotate-90" : ""}`}>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className={`transition-transform duration-300 ${isOpen ? "rotate-90" : ""}`}
+        >
           <circle cx="12" cy="12" r="3" />
           <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
         </svg>
@@ -143,7 +170,18 @@ export default function SettingsDropdown({ toggleModelSidebar }: SettingsDropdow
               onClick={toggleLanguage}
               className="flex items-center w-full px-4 py-2 text-sm text-[#f4e8c1] hover:bg-[#252525] transition-colors"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="mr-2"
+              >
                 <path d="M5 8l6 6"></path>
                 <path d="M4 14l6-6 2-3"></path>
                 <path d="M2 5h12"></path>
@@ -151,26 +189,50 @@ export default function SettingsDropdown({ toggleModelSidebar }: SettingsDropdow
                 <path d="M22 22l-5-10-5 10"></path>
                 <path d="M14 18h6"></path>
               </svg>
-              {language === "zh" ? t("common.switchToEnglish") : t("common.switchToChinese")}
+              {language === "zh"
+                ? t("common.switchToEnglish")
+                : t("common.switchToChinese")}
             </button>
-            
+
             <button
               onClick={openModelSettings}
               className="flex items-center w-full px-4 py-2 text-sm text-[#f4e8c1] hover:bg-[#252525] transition-colors"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="mr-2"
+              >
                 <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
                 <line x1="3" y1="9" x2="21" y2="9"></line>
                 <line x1="9" y1="21" x2="9" y2="9"></line>
               </svg>
               {t("modelSettings.title")}
             </button>
-            
+
             <button
               onClick={toggleSound}
               className="flex items-center w-full px-4 py-2 text-sm text-[#f4e8c1] hover:bg-[#252525] transition-colors"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="mr-2"
+              >
                 {soundEnabled ? (
                   <>
                     <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
@@ -187,7 +249,7 @@ export default function SettingsDropdown({ toggleModelSidebar }: SettingsDropdow
               </svg>
               {soundEnabled ? t("common.soundOff") : t("common.soundOn")}
             </button>
-            
+
             <button
               onClick={() => {
                 resetTour();
@@ -196,7 +258,18 @@ export default function SettingsDropdown({ toggleModelSidebar }: SettingsDropdow
               }}
               className="flex items-center w-full px-4 py-2 text-sm text-[#f4e8c1] hover:bg-[#252525] transition-colors"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="mr-2"
+              >
                 <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
                 <path d="M21 3v5h-5" />
                 <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
@@ -204,14 +277,25 @@ export default function SettingsDropdown({ toggleModelSidebar }: SettingsDropdow
               </svg>
               {t("tour.resetTour")}
             </button>
-            
+
             <div className="border-t border-[#333333] my-1"></div>
-            
+
             <button
               onClick={handleExportData}
               className="flex items-center w-full px-4 py-2 text-sm text-[#f4e8c1] hover:bg-[#252525] transition-colors"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="mr-2"
+              >
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                 <polyline points="7 10 12 15 17 10"></polyline>
                 <line x1="12" y1="15" x2="12" y2="3"></line>
@@ -223,7 +307,18 @@ export default function SettingsDropdown({ toggleModelSidebar }: SettingsDropdow
               onClick={handleImportData}
               className="flex items-center w-full px-4 py-2 text-sm text-[#f4e8c1] hover:bg-[#252525] transition-colors"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="mr-2"
+              >
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                 <polyline points="17 8 12 3 7 8"></polyline>
                 <line x1="12" y1="3" x2="12" y2="15"></line>
@@ -235,7 +330,18 @@ export default function SettingsDropdown({ toggleModelSidebar }: SettingsDropdow
               onClick={handleExportDataToGoogle}
               className="flex items-center w-full px-4 py-2 text-sm text-[#f4e8c1] hover:bg-[#252525] transition-colors"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="mr-2"
+              >
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                 <polyline points="7 10 12 15 17 10"></polyline>
                 <line x1="12" y1="15" x2="12" y2="3"></line>
@@ -247,7 +353,18 @@ export default function SettingsDropdown({ toggleModelSidebar }: SettingsDropdow
               onClick={handleImportDataFromGoogle}
               className="flex items-center w-full px-4 py-2 text-sm text-[#f4e8c1] hover:bg-[#252525] transition-colors"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="mr-2"
+              >
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                 <polyline points="17 8 12 3 7 8"></polyline>
                 <line x1="12" y1="3" x2="12" y2="15"></line>
@@ -256,7 +373,7 @@ export default function SettingsDropdown({ toggleModelSidebar }: SettingsDropdow
             </button>
           </div>
         </div>
-      )}      
+      )}
     </div>
   );
 }

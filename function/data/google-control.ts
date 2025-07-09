@@ -7,18 +7,27 @@ const refresh_token_url = "https://oauth2.googleapis.com/token";
 // Use environment variables for sensitive credentials
 const client_id = process.env.GOOGLE_OAUTH_CLIENT_ID || "";
 const client_secret = process.env.GOOGLE_OAUTH_CLIENT_SECRET || "";
-const redirect_uri = process.env.GOOGLE_OAUTH_REDIRECT_URI || "https://www.narratium.org/oauth2callback";
+const redirect_uri =
+  process.env.GOOGLE_OAUTH_REDIRECT_URI ||
+  "https://www.narratium.org/oauth2callback";
 
 export function getGoogleAjaxUrl(url: string, params: Record<string, string>) {
   const newUrl = new URL(url);
-  for(const key in params) {
+  for (const key in params) {
     newUrl.searchParams.append(key, params[key]);
   }
   return newUrl.toString();
 }
 
 export function getGoogleLoginUrl() {
-  return getGoogleAjaxUrl(login_url, { client_id, redirect_uri, response_type: "code", scope: "https://www.googleapis.com/auth/drive", access_type: "offline", prompt: "consent" });
+  return getGoogleAjaxUrl(login_url, {
+    client_id,
+    redirect_uri,
+    response_type: "code",
+    scope: "https://www.googleapis.com/auth/drive",
+    access_type: "offline",
+    prompt: "consent",
+  });
 }
 
 export function getGoogleToken(code: string) {
@@ -36,11 +45,13 @@ export function getGoogleToken(code: string) {
       "Content-Type": "application/x-www-form-urlencoded",
     },
     body: new URLSearchParams(info),
-  }).then(res => res.json());
+  }).then((res) => res.json());
 }
 
 export function refreshGoogleToken() {
-  const refresh_token = localStorage.getItem("google_drive_refresh_token") as string;
+  const refresh_token = localStorage.getItem(
+    "google_drive_refresh_token",
+  ) as string;
   const info = {
     client_id: client_id,
     client_secret: client_secret,
@@ -53,21 +64,24 @@ export function refreshGoogleToken() {
       "Content-Type": "application/x-www-form-urlencoded",
     },
     body: new URLSearchParams(info),
-  }).then(res => res.json());
+  }).then((res) => res.json());
 }
 
 export async function getGoogleCodeByUrl(url: Location) {
   const { search } = url;
-  if(search) {
-    const info = (search.replace("?", "").split("&") || []).reduce((o: Record<string, string>, e:string) => {
-      const [key, value] = e.split("=");
-      if(key) o[key] = value;
-      return o;
-    }, {});
-    if(info.code) {
+  if (search) {
+    const info = (search.replace("?", "").split("&") || []).reduce(
+      (o: Record<string, string>, e: string) => {
+        const [key, value] = e.split("=");
+        if (key) o[key] = value;
+        return o;
+      },
+      {},
+    );
+    if (info.code) {
       try {
         const res = await getGoogleToken(info.code);
-        if(res?.access_token) {
+        if (res?.access_token) {
           localStorage.setItem("google_drive_token", res.access_token);
           localStorage.setItem("google_drive_refresh_token", res.refresh_token);
 
@@ -84,19 +98,31 @@ export async function getGoogleCodeByUrl(url: Location) {
   }
 }
 
-export async function backupToGoogle(info: { blob: Blob, filename: string, folderId: string }) {  
+export async function backupToGoogle(info: {
+  blob: Blob;
+  filename: string;
+  folderId: string;
+}) {
   const formData = new FormData();
   const metadata = {
     name: info.filename,
     parents: [info.folderId], // 关键：指定目标文件夹ID
   };
-  const file = new File([info.blob], info.filename, { type: "application/json" });
-  formData.append("metadata", new Blob([JSON.stringify(metadata)], { type: "application/json" }));
-  formData.append("file", file);
-  await createRequest("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart", {
-    method: "POST",
-    body: formData,
+  const file = new File([info.blob], info.filename, {
+    type: "application/json",
   });
+  formData.append(
+    "metadata",
+    new Blob([JSON.stringify(metadata)], { type: "application/json" }),
+  );
+  formData.append("file", file);
+  await createRequest(
+    "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart",
+    {
+      method: "POST",
+      body: formData,
+    },
+  );
 }
 
 export async function getFolderList() {
@@ -106,7 +132,7 @@ export async function getFolderList() {
     q: "mimeType='application/vnd.google-apps.folder' and name = 'NarratiumBackup'",
   });
   const res = await createRequest<{ files: any[] }>(url, {});
-  if(res.files.length) {
+  if (res.files.length) {
     const folder = res.files[0];
     return folder;
   } else {
@@ -125,20 +151,23 @@ async function createDefaultFolder() {
   });
 }
 
-export async function getBackUpFile(folderId:string) {
+export async function getBackUpFile(folderId: string) {
   const url = getGoogleAjaxUrl("https://www.googleapis.com/drive/v3/files", {
-    q: `'${folderId}' in parents`,  // 核心：按父文件夹ID筛选
+    q: `'${folderId}' in parents`, // 核心：按父文件夹ID筛选
     fields: "files(id, name, mimeType, modifiedTime, size, webViewLink)",
     pageSize: "10", // 最大允许值
     orderBy: "createdTime desc",
   });
   const res = await createRequest<{ files: any[] }>(url, {});
-  if(res?.files?.[0]) {
-    const blob = await fetch(`https://www.googleapis.com/drive/v3/files/${res.files[0].id}?alt=media`, {
-      headers: {
-        "Authorization": "Bearer " + localStorage.getItem("google_drive_token"),
+  if (res?.files?.[0]) {
+    const blob = await fetch(
+      `https://www.googleapis.com/drive/v3/files/${res.files[0].id}?alt=media`,
+      {
+        headers: {
+          Authorization: "Bearer " + localStorage.getItem("google_drive_token"),
+        },
       },
-    }).then(res => res.blob());
+    ).then((res) => res.blob());
     const file = new File([blob], "backup.json", { type: "application/json" });
     return file;
   } else {

@@ -19,7 +19,12 @@ interface UserTourProps {
   onSkip: () => void;
 }
 
-export default function UserTour({ steps, isVisible, onComplete, onSkip }: UserTourProps) {
+export default function UserTour({
+  steps,
+  isVisible,
+  onComplete,
+  onSkip,
+}: UserTourProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
   const { t, serifFontClass, setLanguage, language } = useLanguage();
@@ -37,15 +42,18 @@ export default function UserTour({ steps, isVisible, onComplete, onSkip }: UserT
         x: window.scrollX,
         y: window.scrollY,
       };
-      
+
       document.body.style.overflow = "hidden";
       document.body.style.position = "relative";
     } else {
       document.body.style.overflow = "";
       document.body.style.position = "";
-      
+
       if (originalScrollPos.current) {
-        window.scrollTo(originalScrollPos.current.x, originalScrollPos.current.y);
+        window.scrollTo(
+          originalScrollPos.current.x,
+          originalScrollPos.current.y,
+        );
         originalScrollPos.current = null;
       }
     }
@@ -72,19 +80,18 @@ export default function UserTour({ steps, isVisible, onComplete, onSkip }: UserT
           const elementBottom = rect.bottom;
           const elementLeft = rect.left;
           const elementRight = rect.right;
-          
-          const isVisible = (
+
+          const isVisible =
             elementTop >= 0 &&
             elementLeft >= 0 &&
             elementBottom <= viewportHeight &&
-            elementRight <= viewportWidth
-          );
-          
+            elementRight <= viewportWidth;
+
           if (!isVisible) {
-            target.scrollIntoView({ 
-              behavior: "smooth", 
-              block: "center", 
-              inline: "center", 
+            target.scrollIntoView({
+              behavior: "smooth",
+              block: "center",
+              inline: "center",
             });
           }
         }
@@ -129,7 +136,7 @@ export default function UserTour({ steps, isVisible, onComplete, onSkip }: UserT
 
   if (!isVisible || currentStep >= steps.length || !targetRect) {
     return null;
-  };
+  }
 
   const currentStepData = steps[currentStep];
 
@@ -155,59 +162,63 @@ export default function UserTour({ steps, isVisible, onComplete, onSkip }: UserT
     let left = 0;
     let adjustedPosition = currentStepData.position;
 
-    if (isNearTop && (currentStepData.position === "top")) {
+    if (isNearTop && currentStepData.position === "top") {
       adjustedPosition = "bottom";
     }
-    if (isNearBottom && (currentStepData.position === "bottom")) {
+    if (isNearBottom && currentStepData.position === "bottom") {
       adjustedPosition = "top";
     }
-    if (isNearLeft && (currentStepData.position === "left")) {
+    if (isNearLeft && currentStepData.position === "left") {
       adjustedPosition = "right";
     }
-    if (isNearRight && (currentStepData.position === "right" || currentStepData.position === "left")) {
+    if (
+      isNearRight &&
+      (currentStepData.position === "right" ||
+        currentStepData.position === "left")
+    ) {
       adjustedPosition = "bottom";
     }
 
     switch (adjustedPosition) {
-    case "top":
-      top = targetRect.top - tooltipHeight - minDistanceFromTarget;
-      left = targetRect.left + (targetRect.width - tooltipWidth) / 2;
-      break;
-    case "bottom":
-      top = targetRect.bottom + minDistanceFromTarget;
-      left = targetRect.left + (targetRect.width - tooltipWidth) / 2;
-      break;
-    case "left":
-      top = targetRect.top + (targetRect.height - tooltipHeight) / 2;
-      left = targetRect.left - tooltipWidth - minDistanceFromTarget;
-      break;
-    case "right":
-      top = targetRect.top + (targetRect.height - tooltipHeight) / 2;
-      left = targetRect.right + minDistanceFromTarget;
-      break;
+      case "top":
+        top = targetRect.top - tooltipHeight - minDistanceFromTarget;
+        left = targetRect.left + (targetRect.width - tooltipWidth) / 2;
+        break;
+      case "bottom":
+        top = targetRect.bottom + minDistanceFromTarget;
+        left = targetRect.left + (targetRect.width - tooltipWidth) / 2;
+        break;
+      case "left":
+        top = targetRect.top + (targetRect.height - tooltipHeight) / 2;
+        left = targetRect.left - tooltipWidth - minDistanceFromTarget;
+        break;
+      case "right":
+        top = targetRect.top + (targetRect.height - tooltipHeight) / 2;
+        left = targetRect.right + minDistanceFromTarget;
+        break;
     }
 
     const viewportPadding = 30;
-    
+
     if (top < viewportPadding) {
       if (adjustedPosition === "top") {
         top = targetRect.bottom + minDistanceFromTarget;
       }
     }
-    
+
     if (top + tooltipHeight > window.innerHeight - viewportPadding) {
       if (adjustedPosition === "bottom") {
         top = targetRect.top - tooltipHeight - minDistanceFromTarget;
       }
     }
-    
+
     if (left < viewportPadding) {
       if (adjustedPosition === "left") {
         left = targetRect.right + minDistanceFromTarget;
       }
     }
-    
-    if (left + tooltipWidth > window.innerWidth - viewportPadding) {  
+
+    if (left + tooltipWidth > window.innerWidth - viewportPadding) {
       if (adjustedPosition === "right") {
         left = targetRect.left - tooltipWidth - minDistanceFromTarget;
       }
@@ -216,8 +227,14 @@ export default function UserTour({ steps, isVisible, onComplete, onSkip }: UserT
       }
     }
 
-    top = Math.max(viewportPadding, Math.min(top, window.innerHeight - tooltipHeight - viewportPadding));
-    left = Math.max(viewportPadding, Math.min(left, window.innerWidth - tooltipWidth - viewportPadding));
+    top = Math.max(
+      viewportPadding,
+      Math.min(top, window.innerHeight - tooltipHeight - viewportPadding),
+    );
+    left = Math.max(
+      viewportPadding,
+      Math.min(left, window.innerWidth - tooltipWidth - viewportPadding),
+    );
 
     return { top, left };
   };
@@ -226,13 +243,14 @@ export default function UserTour({ steps, isVisible, onComplete, onSkip }: UserT
 
   return (
     <div className="fixed inset-0 z-[9999] pointer-events-auto">
-      <div 
+      <div
         ref={overlayRef}
         className="absolute inset-0 bg-opacity-75 pointer-events-none"
         style={{
-          background: currentStepData.target === "body" 
-            ? "rgba(0, 0, 0, 0.75)"
-            : `
+          background:
+            currentStepData.target === "body"
+              ? "rgba(0, 0, 0, 0.75)"
+              : `
               radial-gradient(
                 circle at ${targetRect.left + targetRect.width / 2}px ${targetRect.top + targetRect.height / 2}px,
                 transparent ${Math.max(targetRect.width, targetRect.height) / 2 + 10}px,
@@ -260,17 +278,22 @@ export default function UserTour({ steps, isVisible, onComplete, onSkip }: UserT
         style={{
           top: tooltipPosition.top,
           left: tooltipPosition.left,
-          boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.1)",
+          boxShadow:
+            "0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.1)",
           // 增加渐变效果属性
           transform: "scale(1)",
           opacity: targetRect ? 1 : 0,
         }}
       >
         <div className="mb-4">
-          <h3 className={`text-lg font-semibold text-[#f4e8c1] mb-2 ${serifFontClass}`}>
+          <h3
+            className={`text-lg font-semibold text-[#f4e8c1] mb-2 ${serifFontClass}`}
+          >
             {currentStepData.title}
           </h3>
-          <p className={`text-[#c0a480] text-sm leading-relaxed ${serifFontClass}`}>
+          <p
+            className={`text-[#c0a480] text-sm leading-relaxed ${serifFontClass}`}
+          >
             {currentStepData.content}
           </p>
         </div>
@@ -281,8 +304,11 @@ export default function UserTour({ steps, isVisible, onComplete, onSkip }: UserT
               <div
                 key={index}
                 className={`w-2 h-2 rounded-full ${
-                  index === currentStep ? "bg-[#f9c86d]" : 
-                    index < currentStep ? "bg-[#c0a480]" : "bg-[#534741]"
+                  index === currentStep
+                    ? "bg-[#f9c86d]"
+                    : index < currentStep
+                      ? "bg-[#c0a480]"
+                      : "bg-[#534741]"
                 }`}
               />
             ))}
@@ -311,7 +337,7 @@ export default function UserTour({ steps, isVisible, onComplete, onSkip }: UserT
               </button>
             )}
           </div>
-          
+
           {/* Language selection buttons */}
           {currentStepData.isLanguageSelection ? (
             <div className="flex space-x-3">
@@ -343,14 +369,13 @@ export default function UserTour({ steps, isVisible, onComplete, onSkip }: UserT
               onClick={nextStep}
               className={`px-4 py-1.5 text-sm bg-[#f9c86d] text-[#1a1816] rounded hover:bg-[#c0a480] transition-colors font-medium ${serifFontClass}`}
             >
-              {currentStep === steps.length - 1 
-                ? (t("tour.finish") || "完成") 
-                : (t("tour.next") || "下一步")
-              }
+              {currentStep === steps.length - 1
+                ? t("tour.finish") || "完成"
+                : t("tour.next") || "下一步"}
             </button>
           )}
         </div>
       </div>
     </div>
   );
-} 
+}

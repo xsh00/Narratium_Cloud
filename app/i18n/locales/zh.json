@@ -341,7 +341,7 @@
     "loadingTimeHint": "首次加载时间在 5-40 秒之间，角色卡内容越大加载时间越长，如果长时间未加载，请检查 API 配置是否正确",
     "error": "错误",
     "characterNotFound": "未找到角色",
-    "loading":"加载中……正在解析状态，请稍等……",
+    "loading": "加载中……正在解析状态，请稍等……",
     "worldBook": "世界书",
     "regex": "正则脚本",
     "preset": "预设",
@@ -496,18 +496,18 @@
     "responsePlaceholder": "编辑回复内容...",
     "resetLayout": "重置布局",
     "manualPositions": "手动位置"
-  },  
+  },
   "downloadModal": {
-      "title": "从社区仓库下载角色",
-      "loading": "加载中…",
-      "fetchError": "无法获取角色列表",
-      "downloadFailed": "下载失败",
-      "importFailed": "导入失败",
-      "importing": "导入中…",
-      "downloadAndImport": "下载并导入",
-      "filterByTags": "按标签筛选",
-      "allTags": "全部",
-      "charactersFound": "个角色"
+    "title": "从社区仓库下载角色",
+    "loading": "加载中…",
+    "fetchError": "无法获取角色列表",
+    "downloadFailed": "下载失败",
+    "importFailed": "导入失败",
+    "importing": "导入中…",
+    "downloadAndImport": "下载并导入",
+    "filterByTags": "按标签筛选",
+    "allTags": "全部",
+    "charactersFound": "个角色"
   },
   "creatorInput": {
     "title": "Creator Studio",

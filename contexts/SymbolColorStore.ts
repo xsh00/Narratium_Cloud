@@ -7,7 +7,7 @@ export interface SymbolColor {
 }
 
 export const symbolToHtmlTagMap: Record<string, string[]> = {
-  "\"...\"": ["talk"],
+  '"..."': ["talk"],
   "*...*": ["em"],
   "**...**": ["strong"],
   "[...]": ["bracket-content"],
@@ -17,7 +17,7 @@ export const symbolToHtmlTagMap: Record<string, string[]> = {
 };
 
 export const PREDEFINED_COLORS: Record<string, string[]> = {
-  "\"...\"": ["#fda4af", "#fb7185", "#f43f5e", "#e11d48"],
+  '"..."': ["#fda4af", "#fb7185", "#f43f5e", "#e11d48"],
   "*...*": ["#c4b5fd", "#a78bfa", "#8b5cf6", "#7c3aed"],
   "**...**": ["#fb7185", "#f43f5e", "#e11d48", "#be123c"],
   "[...]": ["#93c5fd", "#60a5fa", "#3b82f6", "#2563eb"],
@@ -30,13 +30,16 @@ interface SymbolColorStore {
   symbolColors: SymbolColor[];
   updateSymbolColors: (colors: SymbolColor[]) => void;
   getColorForSymbol: (symbol: string) => string | undefined;
-  getColorForHtmlTag: (tagName: string, className?: string) => string | undefined;
+  getColorForHtmlTag: (
+    tagName: string,
+    className?: string,
+  ) => string | undefined;
   getPredefinedColors: (symbol: string) => string[];
   addCustomTag: (tagName: string, color?: string) => void;
 }
 
 const DEFAULT_SYMBOL_COLORS: SymbolColor[] = [
-  { symbol: "\"...\"", color: "#fda4af" },
+  { symbol: '"..."', color: "#fda4af" },
   { symbol: "*...*", color: "#c4b5fd" },
   { symbol: "**...**", color: "#fb7185" },
   { symbol: "[...]", color: "#93c5fd" },
@@ -52,7 +55,7 @@ export const useSymbolColorStore = create<SymbolColorStore>()(
       updateSymbolColors: (colors) => set({ symbolColors: colors }),
       getColorForSymbol: (symbol) => {
         const { symbolColors } = get();
-        return symbolColors.find(sc => sc.symbol === symbol)?.color;
+        return symbolColors.find((sc) => sc.symbol === symbol)?.color;
       },
       getColorForHtmlTag: (tagName, className) => {
         const { symbolColors } = get();
@@ -64,8 +67,10 @@ export const useSymbolColorStore = create<SymbolColorStore>()(
             for (const mapping of tagMappings) {
               if (mapping.includes(".")) {
                 const [mappedTag, mappedClass] = mapping.split(".");
-                if (lowerTagName === mappedTag.toLowerCase() &&
-                    className?.includes(mappedClass)) {
+                if (
+                  lowerTagName === mappedTag.toLowerCase() &&
+                  className?.includes(mappedClass)
+                ) {
                   return sc.color;
                 }
               } else if (lowerTagName === mapping.toLowerCase()) {
@@ -86,7 +91,12 @@ export const useSymbolColorStore = create<SymbolColorStore>()(
       addCustomTag: (tagName: string, color?: string) => {
         const { symbolColors } = get();
         const trimmedTagName = tagName.trim();
-        if (trimmedTagName && !symbolColors.some(sc => sc.symbol.toLowerCase() === trimmedTagName.toLowerCase())) {
+        if (
+          trimmedTagName &&
+          !symbolColors.some(
+            (sc) => sc.symbol.toLowerCase() === trimmedTagName.toLowerCase(),
+          )
+        ) {
           const newSymbolColor: SymbolColor = {
             symbol: trimmedTagName,
             color: color || "#CCCCCC",

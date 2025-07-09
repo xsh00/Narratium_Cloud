@@ -10,7 +10,7 @@ interface LoginModalProps {
 }
 
 export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
-  const { t,  fontClass, titleFontClass, serifFontClass } = useLanguage();
+  const { t, fontClass, titleFontClass, serifFontClass } = useLanguage();
   const [activeTab, setActiveTab] = useState("password");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -38,13 +38,16 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
 
     checkIfMobile();
     window.addEventListener("resize", checkIfMobile);
-    
+
     return () => window.removeEventListener("resize", checkIfMobile);
   }, []);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
+      if (
+        modalRef.current &&
+        !modalRef.current.contains(event.target as Node)
+      ) {
         onClose();
       }
     };
@@ -59,7 +62,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
       document.addEventListener("mousedown", handleClickOutside);
       document.addEventListener("keydown", handleEscape);
     }
-    
+
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
       document.removeEventListener("keydown", handleEscape);
@@ -74,16 +77,18 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
     },
     {
       id: 2,
-      text: activeTab === "password"
-        ? t("auth.spellQuestion")
-        : t("auth.codeQuestion"),
-      placeholder: activeTab === "password"
-        ? t("auth.passwordPlaceholder")
-        : t("auth.codePlaceholder"),
+      text:
+        activeTab === "password"
+          ? t("auth.spellQuestion")
+          : t("auth.codeQuestion"),
+      placeholder:
+        activeTab === "password"
+          ? t("auth.passwordPlaceholder")
+          : t("auth.codePlaceholder"),
     },
   ];
 
-  const currentQuestion = questions.find(q => q.id === step) || questions[0];
+  const currentQuestion = questions.find((q) => q.id === step) || questions[0];
 
   const handleNext = () => {
     if (step < questions.length) {
@@ -119,16 +124,16 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
     const { value } = e.target;
 
     switch (step) {
-    case 1:
-      setUsername(value);
-      break;
-    case 2:
-      if (activeTab === "password") {
-        setPassword(value);
-      } else {
-        setVerificationCode(value);
-      }
-      break;
+      case 1:
+        setUsername(value);
+        break;
+      case 2:
+        if (activeTab === "password") {
+          setPassword(value);
+        } else {
+          setVerificationCode(value);
+        }
+        break;
     }
   };
 
@@ -144,7 +149,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
 
     try {
       const userId = Math.floor(Math.random() * 10000).toString();
-      
+
       localStorage.setItem("username", username);
       localStorage.setItem("userId", userId);
       localStorage.setItem("isLoggedIn", "true");
@@ -186,7 +191,13 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
           type={step === 2 && activeTab === "password" ? "password" : "text"}
           className={`bg-transparent border-0 outline-none w-full text-center text-base sm:text-lg text-[#eae6db] placeholder-[#a18d6f] shadow-none focus:ring-0 focus:border-0 ${serifFontClass}`}
           placeholder={placeholder}
-          value={step === 1 ? username : (activeTab === "password" ? password : verificationCode)}
+          value={
+            step === 1
+              ? username
+              : activeTab === "password"
+                ? password
+                : verificationCode
+          }
           onChange={handleInputChange}
           onKeyDown={handleKeyPress}
           disabled={isLoading}
@@ -213,7 +224,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
     <AnimatePresence>
       {isOpen && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -228,18 +239,39 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
             transition={{ type: "spring", damping: 20, stiffness: 300 }}
             className="fantasy-bg bg-opacity-75 border border-[#534741] rounded-lg shadow-lg p-4 sm:p-8 w-full max-w-sm sm:max-w-md relative z-10 backdrop-filter backdrop-blur-sm mx-4"
           >
-            <button 
+            <button
               onClick={onClose}
               className="absolute top-2 right-2 sm:top-4 sm:right-4 text-[#a18d6f] hover:text-[#f9c86d] transition-colors"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" className="sm:w-5 sm:h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                className="sm:w-5 sm:h-5"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
                 <line x1="18" y1="6" x2="6" y2="18"></line>
                 <line x1="6" y1="6" x2="18" y2="18"></line>
               </svg>
             </button>
             <div className="text-center mb-4 sm:mb-6">
-              <h1 className={"text-2xl sm:text-3xl font-bold text-[#f9c86d] mb-2 font-cinzel"}>Welcome Back</h1>
-              <p className={`text-sm sm:text-base text-[#c0a480] ${serifFontClass}`}>{t("auth.continueJourney")}</p>
+              <h1
+                className={
+                  "text-2xl sm:text-3xl font-bold text-[#f9c86d] mb-2 font-cinzel"
+                }
+              >
+                Welcome Back
+              </h1>
+              <p
+                className={`text-sm sm:text-base text-[#c0a480] ${serifFontClass}`}
+              >
+                {t("auth.continueJourney")}
+              </p>
             </div>
 
             {error && (
@@ -263,7 +295,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                     transition={{ duration: 0.4, ease: "easeOut" }}
                     className="text-center"
                   >
-                    <h2 
+                    <h2
                       className={`text-lg sm:text-xl magical-login-text mb-6 sm:mb-8 tracking-wide ${serifFontClass}`}
                       dangerouslySetInnerHTML={{
                         __html: currentQuestion.text
@@ -312,7 +344,8 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                         animate={{ opacity: 1 }}
                         className={`mt-6 sm:mt-8 text-sm sm:text-base text-[#c0a480] ${serifFontClass}`}
                       >
-                        <span className="inline-block animate-pulse">✨</span> {t("auth.openingMagicDoor")}
+                        <span className="inline-block animate-pulse">✨</span>{" "}
+                        {t("auth.openingMagicDoor")}
                       </motion.div>
                     )}
                   </motion.div>
@@ -352,12 +385,24 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                 </button>
               </div> */}
 
-              <div className={`text-center mt-6 sm:mt-8 text-xs text-[#a18d6f] ${fontClass}`}>
+              <div
+                className={`text-center mt-6 sm:mt-8 text-xs text-[#a18d6f] ${fontClass}`}
+              >
                 <p className="text-xs">{t("auth.agreementText")}</p>
                 <div className="flex justify-center space-x-2 mt-1">
-                  <a href="#" className="text-[#c0a480] hover:text-[#f9c86d] transition-colors text-xs">{t("auth.termsOfService")}</a>
+                  <a
+                    href="#"
+                    className="text-[#c0a480] hover:text-[#f9c86d] transition-colors text-xs"
+                  >
+                    {t("auth.termsOfService")}
+                  </a>
                   <span>•</span>
-                  <a href="#" className="text-[#c0a480] hover:text-[#f9c86d] transition-colors text-xs">{t("auth.privacyPolicy")}</a>
+                  <a
+                    href="#"
+                    className="text-[#c0a480] hover:text-[#f9c86d] transition-colors text-xs"
+                  >
+                    {t("auth.privacyPolicy")}
+                  </a>
                 </div>
               </div>
 

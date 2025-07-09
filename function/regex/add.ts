@@ -1,7 +1,10 @@
 import { RegexScript } from "@/lib/models/regex-script-model";
 import { RegexScriptOperations } from "@/lib/data/roleplay/regex-script-operation";
 
-export async function addRegexScript(characterId: string, script: RegexScript): Promise<string | null> {
+export async function addRegexScript(
+  characterId: string,
+  script: RegexScript,
+): Promise<string | null> {
   try {
     return await RegexScriptOperations.addRegexScript(characterId, script);
   } catch (error) {

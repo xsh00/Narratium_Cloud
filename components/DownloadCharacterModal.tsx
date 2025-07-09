@@ -1,6 +1,6 @@
 /**
  * Download Character Modal Component
- * 
+ *
  * This component provides a character download interface with the following features:
  * - GitHub character repository integration
  * - Character preview and selection
@@ -10,7 +10,7 @@
  * - Grid-based character display
  * - Tag-based categorization and filtering
  * - Enhanced UI with larger modal size
- * 
+ *
  * The component handles:
  * - GitHub API integration for character fetching
  * - Character file download and processing
@@ -19,7 +19,7 @@
  * - Loading states and error management
  * - Modal state management and animations
  * - Tag extraction and filtering
- * 
+ *
  * Dependencies:
  * - useLanguage: For internationalization
  * - handleCharacterUpload: For character import functionality
@@ -57,7 +57,7 @@ interface CharacterInfo {
 
 /**
  * Download character modal component
- * 
+ *
  * Provides a character download interface with:
  * - GitHub character repository integration
  * - Character preview and selection
@@ -66,11 +66,15 @@ interface CharacterInfo {
  * - Grid-based display and loading states
  * - Tag-based categorization and filtering
  * - Enhanced UI with larger modal size
- * 
+ *
  * @param {DownloadCharacterModalProps} props - Component props
  * @returns {JSX.Element | null} The download character modal or null if closed
  */
-export default function DownloadCharacterModal({ isOpen, onClose, onImport }: DownloadCharacterModalProps) {
+export default function DownloadCharacterModal({
+  isOpen,
+  onClose,
+  onImport,
+}: DownloadCharacterModalProps) {
   const { t, fontClass, serifFontClass } = useLanguage();
   const [characterFiles, setCharacterFiles] = useState<GithubFile[]>([]);
   const [loading, setLoading] = useState(false);
@@ -83,10 +87,12 @@ export default function DownloadCharacterModal({ isOpen, onClose, onImport }: Do
     setLoading(true);
     setError(null);
     fetch(GITHUB_API_URL)
-      .then(res => res.json())
+      .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data)) {
-          setCharacterFiles(data.filter((item: any) => item.name.endsWith(".png")));
+          setCharacterFiles(
+            data.filter((item: any) => item.name.endsWith(".png")),
+          );
         } else {
           setError(t("downloadModal.fetchError"));
         }
@@ -116,17 +122,20 @@ export default function DownloadCharacterModal({ isOpen, onClose, onImport }: Do
   const extractCharacterInfo = (fileName: string): CharacterInfo => {
     const nameWithoutExt = fileName.replace(/\.png$/, "");
     const parts = nameWithoutExt.split(/--/);
-    
+
     let displayName = nameWithoutExt;
     let tags: string[] = [];
-    
+
     if (parts.length >= 1) {
       displayName = parts[0].trim();
-      
+
       // 提取标签（如果有的话）
       if (parts.length > 1) {
         const tagPart = parts.slice(1).join("--");
-        tags = tagPart.split(/[,，、]/).map(tag => tag.trim()).filter(tag => tag.length > 0);
+        tags = tagPart
+          .split(/[,，、]/)
+          .map((tag) => tag.trim())
+          .filter((tag) => tag.length > 0);
       }
     }
 
@@ -136,9 +145,9 @@ export default function DownloadCharacterModal({ isOpen, onClose, onImport }: Do
   // 提取所有可用的标签
   const allTags = useMemo(() => {
     const tagSet = new Set<string>();
-    characterFiles.forEach(file => {
+    characterFiles.forEach((file) => {
       const { tags } = extractCharacterInfo(file.name);
-      tags.forEach(tag => tagSet.add(tag));
+      tags.forEach((tag) => tagSet.add(tag));
     });
     return Array.from(tagSet).sort();
   }, [characterFiles]);
@@ -148,7 +157,7 @@ export default function DownloadCharacterModal({ isOpen, onClose, onImport }: Do
     if (selectedTag === "all") {
       return characterFiles;
     }
-    return characterFiles.filter(file => {
+    return characterFiles.filter((file) => {
       const { tags } = extractCharacterInfo(file.name);
       return tags.includes(selectedTag);
     });
@@ -165,18 +174,20 @@ export default function DownloadCharacterModal({ isOpen, onClose, onImport }: Do
         className="absolute inset-0 backdrop-blur-sm bg-black bg-opacity-50"
         onClick={onClose}
       />
-      <motion.div 
-        initial={{ scale: 0.95, opacity: 0 }} 
-        animate={{ scale: 1, opacity: 1 }} 
+      <motion.div
+        initial={{ scale: 0.95, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
         className="bg-[#1a1714] rounded-lg shadow-2xl p-4 sm:p-6 w-full max-w-6xl max-h-[90vh] relative z-10 flex flex-col"
       >
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
-          <h2 className={`text-xl sm:text-2xl text-[#eae6db] font-bold ${serifFontClass}`}>
+          <h2
+            className={`text-xl sm:text-2xl text-[#eae6db] font-bold ${serifFontClass}`}
+          >
             {t("downloadModal.title")}
           </h2>
-          <button 
-            className="text-[#c0a480] hover:text-[#ffd475] text-2xl sm:text-3xl transition-colors" 
+          <button
+            className="text-[#c0a480] hover:text-[#ffd475] text-2xl sm:text-3xl transition-colors"
             onClick={onClose}
           >
             ×
@@ -200,7 +211,7 @@ export default function DownloadCharacterModal({ isOpen, onClose, onImport }: Do
               >
                 {t("downloadModal.allTags")} ({characterFiles.length})
               </button>
-              {allTags.map(tag => (
+              {allTags.map((tag) => (
                 <button
                   key={tag}
                   onClick={() => setSelectedTag(tag)}
@@ -210,7 +221,13 @@ export default function DownloadCharacterModal({ isOpen, onClose, onImport }: Do
                       : "bg-[#252220] text-[#c0a480] border border-[#534741] hover:bg-[#3a2a2a] hover:text-[#ffd475]"
                   } ${fontClass}`}
                 >
-                  {tag} ({characterFiles.filter(file => extractCharacterInfo(file.name).tags.includes(tag)).length})
+                  {tag} (
+                  {
+                    characterFiles.filter((file) =>
+                      extractCharacterInfo(file.name).tags.includes(tag),
+                    ).length
+                  }
+                  )
                 </button>
               ))}
             </div>
@@ -239,18 +256,20 @@ export default function DownloadCharacterModal({ isOpen, onClose, onImport }: Do
                     className="bg-[#252220] rounded-lg p-3 flex flex-col items-center hover:bg-[#2a1f1f] transition-colors duration-200"
                   >
                     <div className="relative w-full aspect-square mb-3">
-                      <img 
-                        src={RAW_BASE_URL + file.name} 
-                        alt={file.name} 
-                        className="w-full h-full object-cover rounded border border-[#534741]" 
+                      <img
+                        src={RAW_BASE_URL + file.name}
+                        alt={file.name}
+                        className="w-full h-full object-cover rounded border border-[#534741]"
                       />
                     </div>
-                    <div className={`text-[#eae6db] text-sm mb-1 line-clamp-1 text-center ${fontClass}`}>
+                    <div
+                      className={`text-[#eae6db] text-sm mb-1 line-clamp-1 text-center ${fontClass}`}
+                    >
                       {displayName}
                     </div>
                     {tags.length > 0 && (
                       <div className="flex flex-wrap gap-1 mb-2 justify-center">
-                        {tags.slice(0, 2).map(tag => (
+                        {tags.slice(0, 2).map((tag) => (
                           <span
                             key={tag}
                             className="px-1.5 py-0.5 text-xs bg-[#3a2a2a] text-[#a18d6f] rounded"
@@ -272,7 +291,9 @@ export default function DownloadCharacterModal({ isOpen, onClose, onImport }: Do
                       }`}
                       onClick={() => handleDownloadAndImport(file)}
                     >
-                      {importing === file.name ? t("downloadModal.importing") : t("downloadModal.downloadAndImport")}
+                      {importing === file.name
+                        ? t("downloadModal.importing")
+                        : t("downloadModal.downloadAndImport")}
                     </button>
                   </motion.div>
                 );

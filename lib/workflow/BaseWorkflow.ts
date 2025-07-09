@@ -47,9 +47,9 @@ export abstract class BaseWorkflow {
 
   protected validateWorkflowConfig(): void {
     const { nodes } = this.config;
-    
+
     const availableOutputs = new Set<string>();
-    
+
     nodes.forEach((node, index) => {
       if (node.category === NodeCategory.ENTRY) {
         this.validateEntryNode(node);
@@ -57,7 +57,7 @@ export abstract class BaseWorkflow {
         this.validateInputFields(node, availableOutputs);
       }
 
-      node.outputFields.forEach(field => availableOutputs.add(field));
+      node.outputFields.forEach((field) => availableOutputs.add(field));
 
       this.validateNodeConnections(node, index, nodes);
     });
@@ -81,7 +81,7 @@ export abstract class BaseWorkflow {
       );
     }
 
-    node.initParams.forEach(param => {
+    node.initParams.forEach((param) => {
       if (!outputSet.has(param)) {
         throw new ValidationError(
           `Entry node '${node.id}' output fields must contain init param: ${param}`,
@@ -90,8 +90,11 @@ export abstract class BaseWorkflow {
     });
   }
 
-  private validateInputFields(node: WorkflowNode, availableOutputs: Set<string>): void {
-    node.inputFields.forEach(field => {
+  private validateInputFields(
+    node: WorkflowNode,
+    availableOutputs: Set<string>,
+  ): void {
+    node.inputFields.forEach((field) => {
       if (!availableOutputs.has(field)) {
         throw new ValidationError(
           `Node '${node.id}' requires input field '${field}' which is not available from previous nodes. Available fields: ${Array.from(availableOutputs).join(", ")}`,
@@ -100,9 +103,13 @@ export abstract class BaseWorkflow {
     });
   }
 
-  private validateNodeConnections(node: WorkflowNode, index: number, nodes: WorkflowNode[]): void {
-    node.next.forEach(nextNodeId => {
-      const nextNode = nodes.find(n => n.id === nextNodeId);
+  private validateNodeConnections(
+    node: WorkflowNode,
+    index: number,
+    nodes: WorkflowNode[],
+  ): void {
+    node.next.forEach((nextNodeId) => {
+      const nextNode = nodes.find((n) => n.id === nextNodeId);
       if (!nextNode) {
         throw new ValidationError(
           `Node '${node.id}' references non-existent next node: ${nextNodeId}`,
@@ -118,8 +125,8 @@ export abstract class BaseWorkflow {
   }
 
   private validateNodeCategories(nodes: WorkflowNode[]): void {
-    const hasEntry = nodes.some(node => node.category === NodeCategory.ENTRY);
-    const hasExit = nodes.some(node => node.category === NodeCategory.EXIT);
+    const hasEntry = nodes.some((node) => node.category === NodeCategory.ENTRY);
+    const hasExit = nodes.some((node) => node.category === NodeCategory.EXIT);
 
     if (!hasEntry) {
       throw new ValidationError("Workflow must have at least one entry node");
@@ -132,7 +139,11 @@ export abstract class BaseWorkflow {
 
   public async execute(params: WorkflowParams): Promise<any> {
     try {
-      const engine = new WorkflowEngine(this.config, this.registry, this.context);
+      const engine = new WorkflowEngine(
+        this.config,
+        this.registry,
+        this.context,
+      );
       const result = await engine.execute(params, this.context);
       return result;
     } catch (error) {

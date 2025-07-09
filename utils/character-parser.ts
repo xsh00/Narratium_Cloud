@@ -10,7 +10,7 @@ const encodeBase64 = (str: string): string => {
 
 const decodeBase64 = (b64: string): string => {
   const binary = atob(b64);
-  const bytes = new Uint8Array([...binary].map(char => char.charCodeAt(0)));
+  const bytes = new Uint8Array([...binary].map((char) => char.charCodeAt(0)));
   return new TextDecoder().decode(bytes);
 };
 
@@ -46,11 +46,11 @@ export const readCharacterFromPng = async (file: File): Promise<string> => {
   const chunks = extract(buffer);
 
   const textChunks = chunks
-    .filter(chunk => chunk.name === "tEXt")
-    .map(chunk => PNGtext.decode(chunk.data));
+    .filter((chunk) => chunk.name === "tEXt")
+    .map((chunk) => PNGtext.decode(chunk.data));
 
-  const ccv3 = textChunks.find(c => c.keyword.toLowerCase() === "ccv3");
-  const chara = textChunks.find(c => c.keyword.toLowerCase() === "chara");
+  const ccv3 = textChunks.find((c) => c.keyword.toLowerCase() === "ccv3");
+  const chara = textChunks.find((c) => c.keyword.toLowerCase() === "chara");
 
   const raw = ccv3?.text || chara?.text;
   if (!raw) throw new Error("No PNG metadata found.");

@@ -52,15 +52,19 @@ export async function deletePreset(presetId: string) {
 
 export async function togglePresetEnabled(presetId: string, enabled: boolean) {
   try {
-
     if (enabled) {
       const allPresets = await PresetOperations.getAllPresets();
 
       for (const preset of allPresets) {
         if (preset.id && preset.id !== presetId && preset.enabled !== false) {
-          const disableSuccess = await PresetOperations.updatePreset(preset.id, { enabled: false });
+          const disableSuccess = await PresetOperations.updatePreset(
+            preset.id,
+            { enabled: false },
+          );
           if (!disableSuccess) {
-            console.warn(`Failed to disable preset ${preset.id} while enabling ${presetId}`);
+            console.warn(
+              `Failed to disable preset ${preset.id} while enabling ${presetId}`,
+            );
           }
         }
       }
@@ -70,7 +74,7 @@ export async function togglePresetEnabled(presetId: string, enabled: boolean) {
     if (!success) {
       return { success: false, error: "Failed to toggle preset" };
     }
-    
+
     return { success: true };
   } catch (error) {
     console.error("Error toggling preset:", error);
@@ -80,7 +84,8 @@ export async function togglePresetEnabled(presetId: string, enabled: boolean) {
 
 export async function getPromptsForDisplay(presetId: string) {
   try {
-    const prompts = await PresetOperations.getPromptsOrderedForDisplay(presetId);
+    const prompts =
+      await PresetOperations.getPromptsOrderedForDisplay(presetId);
     return { success: true, data: prompts };
   } catch (error) {
     console.error("Error getting prompts for display:", error);

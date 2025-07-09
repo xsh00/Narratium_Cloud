@@ -1,20 +1,23 @@
-import { 
-  ResearchSession, 
-  SessionStatus, 
-  Message, 
-  ResearchState,      
+import {
+  ResearchSession,
+  SessionStatus,
+  Message,
+  ResearchState,
   KnowledgeEntry,
   GenerationOutput,
   TaskEntry,
 } from "../../models/agent-model";
-import { readData, writeData, AGENT_CONVERSATIONS_FILE } from "../local-storage";
+import {
+  readData,
+  writeData,
+  AGENT_CONVERSATIONS_FILE,
+} from "../local-storage";
 import { v4 as uuidv4 } from "uuid";
 
 /**
  * Agent Conversation Operations - Simplified for Real-time Architecture
  */
 export class ResearchSessionOperations {
-
   /**
    * Create a new agent conversation with simplified initial state
    */
@@ -36,8 +39,7 @@ export class ResearchSessionOperations {
     };
 
     // Create initial character progress
-    const GenerationOutput: GenerationOutput = {
-    };
+    const GenerationOutput: GenerationOutput = {};
 
     // Create initial user message
     const initialMessage: Message = {
@@ -70,9 +72,11 @@ export class ResearchSessionOperations {
   /**
    * Get conversation by ID
    */
-  static async getSessionById(sessionId: string): Promise<ResearchSession | null> {
+  static async getSessionById(
+    sessionId: string,
+  ): Promise<ResearchSession | null> {
     const sessions = await this.getAllSessions();
-    return sessions.find(s => s.id === sessionId) || null;
+    return sessions.find((s) => s.id === sessionId) || null;
   }
 
   /**
@@ -93,8 +97,8 @@ export class ResearchSessionOperations {
    */
   static async saveSession(session: ResearchSession): Promise<void> {
     const sessions = await this.getAllSessions();
-    const existingIndex = sessions.findIndex(s => s.id === session.id);
-    
+    const existingIndex = sessions.findIndex((s) => s.id === session.id);
+
     if (existingIndex >= 0) {
       sessions[existingIndex] = session;
     } else {
@@ -107,7 +111,10 @@ export class ResearchSessionOperations {
   /**
    * Update conversation status
    */
-  static async updateStatus(sessionId: string, status: SessionStatus): Promise<void> {
+  static async updateStatus(
+    sessionId: string,
+    status: SessionStatus,
+  ): Promise<void> {
     const session = await this.getSessionById(sessionId);
     if (!session) {
       throw new Error(`Session not found: ${sessionId}`);
@@ -136,7 +143,7 @@ export class ResearchSessionOperations {
 
     session.messages.push(message);
     await this.saveSession(session);
-    
+
     return message;
   }
 
@@ -174,16 +181,17 @@ export class ResearchSessionOperations {
 
     // Handle character_data with intelligent merging
     if (updates.character_data) {
-      const existingCharacterData = session.generation_output.character_data || {};
+      const existingCharacterData =
+        session.generation_output.character_data || {};
       // Merge new character fields with existing ones, new fields override existing ones
       session.generation_output.character_data = {
         ...existingCharacterData,
         ...updates.character_data,
       };
-      
+
       // Remove character_data from updates to avoid double processing
       const { character_data, ...otherUpdates } = updates;
-      
+
       // Apply other updates normally
       if (Object.keys(otherUpdates).length > 0) {
         Object.assign(session.generation_output, otherUpdates);
@@ -224,14 +232,17 @@ export class ResearchSessionOperations {
 
     session.execution_info.current_iteration++;
     await this.saveSession(session);
-    
+
     return session.execution_info.current_iteration;
   }
 
   /**
    * Record token usage
    */
-  static async recordTokenUsage(sessionId: string, tokensUsed: number): Promise<void> {
+  static async recordTokenUsage(
+    sessionId: string,
+    tokensUsed: number,
+  ): Promise<void> {
     const session = await this.getSessionById(sessionId);
     if (!session) {
       throw new Error(`Session not found: ${sessionId}`);
@@ -244,7 +255,10 @@ export class ResearchSessionOperations {
   /**
    * Record error
    */
-  static async recinsert_orderror(sessionId: string, error: string): Promise<void> {
+  static async recinsert_orderror(
+    sessionId: string,
+    error: string,
+  ): Promise<void> {
     const session = await this.getSessionById(sessionId);
     if (!session) {
       throw new Error(`Session not found: ${sessionId}`);
@@ -260,7 +274,7 @@ export class ResearchSessionOperations {
    */
   static async deleteSession(sessionId: string): Promise<void> {
     const sessions = await this.getAllSessions();
-    const updatedSessions = sessions.filter(s => s.id !== sessionId);
+    const updatedSessions = sessions.filter((s) => s.id !== sessionId);
     await writeData(AGENT_CONVERSATIONS_FILE, updatedSessions);
   }
 
@@ -293,10 +307,13 @@ export class ResearchSessionOperations {
       status: session.status,
       messageCount: session.messages.length,
       hasCharacter: !!session.generation_output.character_data,
-      hasWorldbook: !!(session.generation_output.status_data || 
-                       session.generation_output.user_setting_data || 
-                       session.generation_output.world_view_data || 
-                       (session.generation_output.supplement_data && session.generation_output.supplement_data.length > 0)),
+      hasWorldbook: !!(
+        session.generation_output.status_data ||
+        session.generation_output.user_setting_data ||
+        session.generation_output.world_view_data ||
+        (session.generation_output.supplement_data &&
+          session.generation_output.supplement_data.length > 0)
+      ),
       completionPercentage: Math.round(averageCompletion),
       knowledgeBaseSize: session.research_state.knowledge_base.length,
     };
@@ -310,43 +327,41 @@ export class ResearchSessionOperations {
     newTasks: TaskEntry[],
   ): Promise<void> {
     const sessions = await this.getAllSessions();
-    const sessionIndex = sessions.findIndex(s => s.id === sessionId);
-    
+    const sessionIndex = sessions.findIndex((s) => s.id === sessionId);
+
     if (sessionIndex === -1) {
       throw new Error(`Session not found: ${sessionId}`);
     }
 
     const session = sessions[sessionIndex];
     const currentQueue = session.research_state.task_queue || [];
-    
+
     // Add new tasks to the end of current queue
     session.research_state.task_queue = [...currentQueue, ...newTasks];
-    
+
     // Save only the updated session
     await writeData(AGENT_CONVERSATIONS_FILE, sessions);
   }
-  
+
   /**
    * Complete current task efficiently by moving it to completed_tasks
    */
-  static async completeCurrentTask(
-    sessionId: string,
-  ): Promise<void> {
+  static async completeCurrentTask(sessionId: string): Promise<void> {
     const session = await this.getSessionById(sessionId);
     if (!session) {
       throw new Error(`Session not found: ${sessionId}`);
     }
 
     const taskQueue = session.research_state.task_queue || [];
-    
+
     if (taskQueue.length > 0) {
       const completedTask = taskQueue[0];
       const remainingTasks = taskQueue.slice(1);
-      
+
       // Update research state
       session.research_state.task_queue = remainingTasks;
       session.research_state.completed_tasks.push(completedTask.description);
-      
+
       await this.saveSession(session);
     }
   }
@@ -372,30 +387,40 @@ export class ResearchSessionOperations {
     if (worldbookData.status_data) {
       session.generation_output.status_data = worldbookData.status_data;
     }
-    
+
     if (worldbookData.user_setting_data) {
-      session.generation_output.user_setting_data = worldbookData.user_setting_data;
+      session.generation_output.user_setting_data =
+        worldbookData.user_setting_data;
     }
-    
+
     if (worldbookData.world_view_data) {
       session.generation_output.world_view_data = worldbookData.world_view_data;
     }
-    
-    if (worldbookData.supplement_data && worldbookData.supplement_data.length > 0) {
-      const currentSupplements = session.generation_output.supplement_data || [];
-      session.generation_output.supplement_data = [...currentSupplements, ...worldbookData.supplement_data];
+
+    if (
+      worldbookData.supplement_data &&
+      worldbookData.supplement_data.length > 0
+    ) {
+      const currentSupplements =
+        session.generation_output.supplement_data || [];
+      session.generation_output.supplement_data = [
+        ...currentSupplements,
+        ...worldbookData.supplement_data,
+      ];
     }
-    
+
     await this.saveSession(session);
   }
 
   /**
    * Get generation output without fetching entire session
    */
-  static async getGenerationOutput(sessionId: string): Promise<GenerationOutput | null> {
+  static async getGenerationOutput(
+    sessionId: string,
+  ): Promise<GenerationOutput | null> {
     const session = await this.getSessionById(sessionId);
     if (!session) return null;
-    
+
     return session.generation_output;
   }
 
@@ -409,23 +434,25 @@ export class ResearchSessionOperations {
     }
 
     const taskQueue = session.research_state.task_queue || [];
-    
+
     if (taskQueue.length > 0 && taskQueue[0].sub_problems.length > 0) {
       const currentTask = taskQueue[0];
       const completedSubProblem = currentTask.sub_problems[0]; // First sub-problem
-      
+
       // Remove the first sub-problem
       currentTask.sub_problems = currentTask.sub_problems.slice(1);
-      
+
       // If no more sub-problems in this task, move the task to completed
       if (currentTask.sub_problems.length === 0) {
         session.research_state.task_queue = taskQueue.slice(1);
         session.research_state.completed_tasks.push(currentTask.description);
       }
-      
+
       await this.saveSession(session);
-      
-      console.log(`✅ Sub-problem completed: ${completedSubProblem.description}`);
+
+      console.log(
+        `✅ Sub-problem completed: ${completedSubProblem.description}`,
+      );
       if (currentTask.sub_problems.length === 0) {
         console.log(`✅ Task completed: ${currentTask.description}`);
       }
@@ -435,12 +462,16 @@ export class ResearchSessionOperations {
   /**
    * Get current sub-problem from the first task in queue
    */
-  static async getCurrentSubProblem(sessionId: string): Promise<{ 
-    task?: TaskEntry, 
-    subProblem?: any 
+  static async getCurrentSubProblem(sessionId: string): Promise<{
+    task?: TaskEntry;
+    subProblem?: any;
   }> {
     const session = await this.getSessionById(sessionId);
-    if (!session || !session.research_state.task_queue || session.research_state.task_queue.length === 0) {
+    if (
+      !session ||
+      !session.research_state.task_queue ||
+      session.research_state.task_queue.length === 0
+    ) {
       return {};
     }
 
@@ -449,29 +480,33 @@ export class ResearchSessionOperations {
       return { task: currentTask };
     }
 
-    return { 
-      task: currentTask, 
-      subProblem: currentTask.sub_problems[0], 
+    return {
+      task: currentTask,
+      subProblem: currentTask.sub_problems[0],
     };
   }
 
   /**
    * Modify current task description and replace sub-problems
    */
-  static async modifyCurrentTaskAndSubproblems(sessionId: string, newDescription: string, newSubproblems: string[]): Promise<void> {
+  static async modifyCurrentTaskAndSubproblems(
+    sessionId: string,
+    newDescription: string,
+    newSubproblems: string[],
+  ): Promise<void> {
     const session = await this.getSessionById(sessionId);
     if (!session) {
       throw new Error(`Session not found: ${sessionId}`);
     }
 
     const taskQueue = session.research_state.task_queue || [];
-    
+
     if (taskQueue.length > 0) {
       const currentTask = taskQueue[0];
-      
+
       // Update task description
       currentTask.description = newDescription;
-      
+
       // Replace sub-problems with new ones
       if (newSubproblems.length > 0) {
         currentTask.sub_problems = newSubproblems.map((description, index) => ({
@@ -485,14 +520,18 @@ export class ResearchSessionOperations {
         session.research_state.task_queue = taskQueue.slice(1);
         session.research_state.completed_tasks.push(currentTask.description);
       }
-      
+
       await this.saveSession(session);
       console.log(`✅ Modified current task to: ${newDescription}`);
-      
+
       if (newSubproblems.length > 0) {
-        console.log(`✅ Updated with ${newSubproblems.length} new sub-problems`);
+        console.log(
+          `✅ Updated with ${newSubproblems.length} new sub-problems`,
+        );
       } else {
-        console.log(`✅ Task completed with no sub-problems: ${currentTask.description}`);
+        console.log(
+          `✅ Task completed with no sub-problems: ${currentTask.description}`,
+        );
       }
     }
   }
@@ -509,4 +548,4 @@ export class ResearchSessionOperations {
     session.research_state.task_queue = [];
     await this.saveSession(session);
   }
-} 
+}

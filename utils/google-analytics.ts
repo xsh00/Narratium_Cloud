@@ -13,12 +13,12 @@ export const initGA = () => {
   if (window.dataLayer) return;
 
   window.dataLayer = window.dataLayer || [];
-  window.gtag = function() {
+  window.gtag = function () {
     window.dataLayer.push(arguments);
   };
 
   window.gtag("js", new Date());
-  
+
   window.gtag("config", GA_MEASUREMENT_ID, {
     page_path: window.location.pathname,
     anonymize_ip: true,
@@ -26,14 +26,24 @@ export const initGA = () => {
 };
 
 export const pageview = (url: string) => {
-  if (!GA_MEASUREMENT_ID || typeof window === "undefined" || typeof window.gtag !== "function") return;
+  if (
+    !GA_MEASUREMENT_ID ||
+    typeof window === "undefined" ||
+    typeof window.gtag !== "function"
+  )
+    return;
   window.gtag("config", GA_MEASUREMENT_ID, {
     page_path: url,
   });
 };
 
 export const gtagEvent = (eventName: string, params: Record<string, any>) => {
-  if (!GA_MEASUREMENT_ID || typeof window === "undefined" || typeof window.gtag !== "function") return;
+  if (
+    !GA_MEASUREMENT_ID ||
+    typeof window === "undefined" ||
+    typeof window.gtag !== "function"
+  )
+    return;
   window.gtag("event", eventName, params);
 };
 

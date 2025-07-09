@@ -1,7 +1,9 @@
 import { RegexScriptSettings } from "@/lib/models/regex-script-model";
 import { RegexScriptOperations } from "@/lib/data/roleplay/regex-script-operation";
 
-export async function getRegexScriptSettings(characterId: string): Promise<RegexScriptSettings> {
+export async function getRegexScriptSettings(
+  characterId: string,
+): Promise<RegexScriptSettings> {
   try {
     return await RegexScriptOperations.getRegexScriptSettings(characterId);
   } catch (error) {

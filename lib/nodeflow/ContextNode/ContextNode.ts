@@ -1,5 +1,10 @@
 import { NodeBase } from "@/lib/nodeflow/NodeBase";
-import { NodeConfig, NodeInput, NodeOutput, NodeCategory } from "@/lib/nodeflow/types";
+import {
+  NodeConfig,
+  NodeInput,
+  NodeOutput,
+  NodeCategory,
+} from "@/lib/nodeflow/types";
 import { DialogueMessage } from "@/lib/models/character-dialogue-model";
 import { ContextNodeTools } from "./ContextNodeTools";
 import { NodeToolRegistry } from "../NodeTool";
@@ -34,24 +39,24 @@ export class ContextNode extends NodeBase {
     }
 
     // Assemble chat history for {{chatHistory}} placeholder
-    const result = await this.executeTool(
+    const result = (await this.executeTool(
       "assembleChatHistory",
       userMessage,
       characterId,
       memoryLength,
-    ) as { userMessage: string; messages: DialogueMessage[] };
+    )) as { userMessage: string; messages: DialogueMessage[] };
 
     // Generate conversation context for memory system
-    const conversationContext = await this.executeTool(
+    const conversationContext = (await this.executeTool(
       "generateConversationContext",
       characterId,
       userInput || "",
       3, // Use shorter context for memory
-    ) as string;
+    )) as string;
 
     return {
       userMessage: result.userMessage,
       conversationContext,
     };
   }
-} 
+}

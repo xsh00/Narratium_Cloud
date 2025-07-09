@@ -70,18 +70,24 @@ export class ConfigManager {
     const baseUrl = overrides?.baseUrl || this.config.defaultBaseUrl;
 
     if (!model) {
-      throw new Error("LLM model not configured. Please configure your AI model settings.");
+      throw new Error(
+        "LLM model not configured. Please configure your AI model settings.",
+      );
     }
 
     if (llmType === "openai" && !apiKey) {
-      throw new Error("OpenAI API key not configured. Please configure your API key.");
+      throw new Error(
+        "OpenAI API key not configured. Please configure your API key.",
+      );
     }
 
     return {
       llm_type: llmType,
       model_name: model,
       api_key: apiKey || "",
-      base_url: baseUrl || (llmType === "ollama" ? "http://localhost:11434" : undefined),
+      base_url:
+        baseUrl ||
+        (llmType === "ollama" ? "http://localhost:11434" : undefined),
       temperature: this.config.temperature || 0.7,
       max_tokens: this.config.maxTokens || 4000,
       tavily_api_key: this.config.tavilyApiKey || "",
@@ -94,9 +100,12 @@ export class ConfigManager {
    * Check if configuration is complete
    */
   isConfigured(): boolean {
-    const hasBasicConfig = !!(this.config.defaultType && this.config.defaultModel);
-    const hasApiKey = this.config.defaultType === "ollama" || !!this.config.defaultApiKey;
-    
+    const hasBasicConfig = !!(
+      this.config.defaultType && this.config.defaultModel
+    );
+    const hasApiKey =
+      this.config.defaultType === "ollama" || !!this.config.defaultApiKey;
+
     return hasBasicConfig && hasApiKey;
   }
 }
@@ -117,7 +126,10 @@ export function loadConfigFromLocalStorage(): AppConfig {
   }
 
   try {
-    const llmType = localStorage.getItem("llmType") as "openai" | "ollama" | null;
+    const llmType = localStorage.getItem("llmType") as
+      | "openai"
+      | "ollama"
+      | null;
     const openaiModel = localStorage.getItem("openaiModel");
     const ollamaModel = localStorage.getItem("ollamaModel");
     const openaiApiKey = localStorage.getItem("openaiApiKey");
@@ -131,9 +143,11 @@ export function loadConfigFromLocalStorage(): AppConfig {
 
     return {
       defaultType: llmType || "openai",
-      defaultModel: llmType === "openai" ? openaiModel || "" : ollamaModel || "",
+      defaultModel:
+        llmType === "openai" ? openaiModel || "" : ollamaModel || "",
       defaultApiKey: openaiApiKey || "",
-      defaultBaseUrl: llmType === "openai" ? openaiBaseUrl || "" : ollamaBaseUrl || "",
+      defaultBaseUrl:
+        llmType === "openai" ? openaiBaseUrl || "" : ollamaBaseUrl || "",
       temperature: temperature ? parseFloat(temperature) : 0.7,
       maxTokens: maxTokens ? parseInt(maxTokens) : 4000,
       tavilyApiKey: tavilyApiKey || "",
@@ -160,37 +174,39 @@ export function saveConfigToLocalStorage(config: AppConfig): void {
     if (config.defaultType) {
       localStorage.setItem("llmType", config.defaultType);
     }
-    
+
     if (config.defaultModel) {
-      const modelKey = config.defaultType === "openai" ? "openaiModel" : "ollamaModel";
+      const modelKey =
+        config.defaultType === "openai" ? "openaiModel" : "ollamaModel";
       localStorage.setItem(modelKey, config.defaultModel);
     }
-    
+
     if (config.defaultApiKey) {
       localStorage.setItem("openaiApiKey", config.defaultApiKey);
     }
-    
+
     if (config.defaultBaseUrl) {
-      const baseUrlKey = config.defaultType === "openai" ? "openaiBaseUrl" : "ollamaBaseUrl";
+      const baseUrlKey =
+        config.defaultType === "openai" ? "openaiBaseUrl" : "ollamaBaseUrl";
       localStorage.setItem(baseUrlKey, config.defaultBaseUrl);
     }
-    
+
     if (config.temperature !== undefined) {
       localStorage.setItem("temperature", config.temperature.toString());
     }
-    
+
     if (config.maxTokens !== undefined) {
       localStorage.setItem("maxTokens", config.maxTokens.toString());
     }
-    
+
     if (config.tavilyApiKey !== undefined) {
       localStorage.setItem("tavilyApiKey", config.tavilyApiKey);
     }
-    
+
     if (config.jinaApiKey !== undefined) {
       localStorage.setItem("jinaApiKey", config.jinaApiKey);
     }
-    
+
     if (config.falApiKey !== undefined) {
       localStorage.setItem("falApiKey", config.falApiKey);
     }

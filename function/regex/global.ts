@@ -32,7 +32,7 @@ export async function getNextGlobalId(): Promise<string> {
       return "global_regex_1";
     }
 
-    const existingIds = result.globalRegexScripts.map(script => {
+    const existingIds = result.globalRegexScripts.map((script) => {
       const match = script.id.match(/^global_regex_(\d+)$/);
       return match ? parseInt(match[1], 10) : 0;
     });
@@ -49,11 +49,11 @@ export async function listGlobalRegexScripts(): Promise<ListGlobalRegexScriptsRe
   try {
     const globalRegexScripts: GlobalRegexScript[] = [];
     const store = await RegexScriptOperations["getRegexScriptStore"]();
-    
+
     for (const key of Object.keys(store)) {
       if (key.startsWith("global_regex_") && key.endsWith("_settings")) {
         const settings = store[key];
-        
+
         if (settings && settings.metadata) {
           globalRegexScripts.push(settings.metadata as GlobalRegexScript);
         }
@@ -91,7 +91,8 @@ export async function getGlobalRegexScript(globalId: string): Promise<{
     }
 
     const scripts = await RegexScriptOperations.getRegexScripts(globalId);
-    const settings = await RegexScriptOperations.getRegexScriptSettings(globalId);
+    const settings =
+      await RegexScriptOperations.getRegexScriptSettings(globalId);
 
     if (!scripts || !settings?.metadata) {
       return {
@@ -132,13 +133,14 @@ export async function importFromGlobalRegexScript(
       };
     }
 
-    const characterScripts = await RegexScriptOperations.getRegexScripts(characterId) || {};
+    const characterScripts =
+      (await RegexScriptOperations.getRegexScripts(characterId)) || {};
     let importedCount = 0;
     const now = Date.now();
 
     for (const [scriptId, script] of Object.entries(globalResult.scripts)) {
       const newScriptId = `script_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      
+
       characterScripts[newScriptId] = {
         ...script,
         scriptKey: newScriptId,
@@ -153,7 +155,10 @@ export async function importFromGlobalRegexScript(
       importedCount++;
     }
 
-    const saveResult = await RegexScriptOperations.updateRegexScripts(characterId, characterScripts);
+    const saveResult = await RegexScriptOperations.updateRegexScripts(
+      characterId,
+      characterScripts,
+    );
     if (!saveResult) {
       return {
         success: false,
@@ -190,11 +195,11 @@ export async function deleteGlobalRegexScript(globalId: string): Promise<{
     }
 
     const store = await RegexScriptOperations["getRegexScriptStore"]();
-    
+
     delete store[globalId];
-    
+
     delete store[`${globalId}_settings`];
-    
+
     await RegexScriptOperations["saveRegexScriptStore"](store);
 
     return {
@@ -208,4 +213,4 @@ export async function deleteGlobalRegexScript(globalId: string): Promise<{
       message: `Failed to delete global regex script: ${error.message}`,
     };
   }
-} 
+}

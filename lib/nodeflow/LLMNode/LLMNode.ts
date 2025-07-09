@@ -1,5 +1,10 @@
 import { NodeBase } from "@/lib/nodeflow/NodeBase";
-import { NodeConfig, NodeInput, NodeOutput, NodeCategory } from "@/lib/nodeflow/types";
+import {
+  NodeConfig,
+  NodeInput,
+  NodeOutput,
+  NodeCategory,
+} from "@/lib/nodeflow/types";
 import { LLMNodeTools } from "./LLMNodeTools";
 import { NodeToolRegistry } from "../NodeTool";
 
@@ -13,12 +18,12 @@ export class LLMNode extends NodeBase {
     super(config);
     this.toolClass = LLMNodeTools;
   }
-  
+
   protected getDefaultCategory(): NodeCategory {
     return NodeCategory.MIDDLE;
   }
 
-  protected async _call(input: NodeInput): Promise<NodeOutput> {    
+  protected async _call(input: NodeInput): Promise<NodeOutput> {
     const systemMessage = input.systemMessage;
     const userMessage = input.userMessage;
     const modelName = input.modelName;
@@ -32,11 +37,11 @@ export class LLMNode extends NodeBase {
       throw new Error("System message is required for LLMNode");
     }
 
-    if (!userMessage) { 
+    if (!userMessage) {
       throw new Error("User message is required for LLMNode");
     }
 
-    const llmResponse = await this.executeTool(
+    const llmResponse = (await this.executeTool(
       "invokeLLM",
       systemMessage,
       userMessage,
@@ -48,7 +53,7 @@ export class LLMNode extends NodeBase {
         temperature,
         language,
       },
-    ) as string;
+    )) as string;
 
     return {
       llmResponse,
@@ -58,4 +63,4 @@ export class LLMNode extends NodeBase {
       llmType,
     };
   }
-} 
+}
