@@ -182,15 +182,28 @@ export default function CharacterCards() {
   const handleDeleteCharacter = async (characterId: string) => {
     setIsLoading(true);
     try {
+      console.log(`开始删除角色: ${characterId}`);
+      
       const response = await deleteCharacter(characterId);
 
       if (!response.success) {
-        throw new Error(t("characterCardsPage.deleteFailed"));
+        console.error(`删除角色失败: ${response.error}`);
+        throw new Error(response.error || t("characterCardsPage.deleteFailed"));
       }
 
-      fetchCharacters();
+      console.log(`角色删除成功: ${characterId}`);
+      
+      // 延迟一下再刷新列表，确保删除操作完全完成
+      setTimeout(() => {
+        fetchCharacters();
+      }, 100);
+      
     } catch (err) {
       console.error("Error deleting character:", err);
+      // 显示错误消息给用户
+      const errorMessage = err instanceof Error ? err.message : t("characterCardsPage.deleteFailed");
+      alert(errorMessage);
+    } finally {
       setIsLoading(false);
     }
   };

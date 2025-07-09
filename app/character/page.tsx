@@ -363,7 +363,18 @@ export default function CharacterPage() {
         const errorMessage = typeof err === "object" && err !== null && "message" in err 
           ? (err as Error).message 
           : "Failed to load character";
-        setError(errorMessage);
+        
+        // 检查是否是角色不存在的错误
+        if (errorMessage.includes("Character not found") || errorMessage.includes("Character record is required")) {
+          setError("角色不存在或已被删除");
+          // 延迟重定向到角色卡片页面
+          setTimeout(() => {
+            window.location.href = "/character-cards";
+          }, 2000);
+        } else {
+          setError(errorMessage);
+        }
+        
         setIsLoading(false);
         setIsInitializing(false);
       }

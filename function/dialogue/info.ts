@@ -8,8 +8,16 @@ export async function getCharacterDialogue(characterId: string, language: "en" |
   }
 
   try {
+    console.log(`正在获取角色信息: ${characterId}`);
     const characterRecord = await LocalCharacterRecordOperations.getCharacterById(characterId);
     
+    // 检查角色记录是否存在
+    if (!characterRecord) {
+      console.warn(`角色不存在: ${characterId}`);
+      throw new Error("Character not found");
+    }
+    
+    console.log(`找到角色记录: ${characterId}`);
     const character = new Character(characterRecord);
     const dialogueTree = await LocalCharacterDialogueOperations.getDialogueTreeById(characterId);
     let processedDialogue = null;

@@ -10,17 +10,31 @@ export async function deleteCharacter(character_id: string): Promise<{ success?:
       return { error: "Character ID is required" };
     }
 
+    console.log(`开始删除角色: ${character_id}`);
+
     const character = await LocalCharacterRecordOperations.getCharacterById(character_id);
     if (!character) {
+      console.warn(`角色不存在: ${character_id}`);
       return { error: "Character not found" };
     }
 
+    console.log(`找到角色: ${character_id}, 开始删除操作`);
+
     const deleted = await LocalCharacterRecordOperations.deleteCharacter(character_id);
     if (!deleted) {
+      console.error(`删除角色记录失败: ${character_id}`);
       return { error: "Failed to delete character" };
     }
 
-    await LocalCharacterDialogueOperations.deleteDialogueTree(character_id);
+    console.log(`角色记录删除成功: ${character_id}`);
+
+    // 删除对话树
+    try {
+      await LocalCharacterDialogueOperations.deleteDialogueTree(character_id);
+      console.log(`对话树删除成功: ${character_id}`);
+    } catch (dialogueErr) {
+      console.warn(`删除对话树失败: ${character_id}`, dialogueErr);
+    }
 
     try {
       const worldBooks = await WorldBookOperations["getWorldBooks"]();
