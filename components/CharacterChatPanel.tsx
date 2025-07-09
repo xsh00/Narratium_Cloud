@@ -1041,7 +1041,7 @@ export default function CharacterChatPanel({
           }}
           className="max-w-4xl mx-auto"
         >
-          <div className="flex gap-3">
+          <div className="flex gap-2 sm:gap-3">
             <div className="flex-grow magical-input relative group">
               <div className="absolute -inset-0.5 bg-gradient-to-r from-amber-400/20 via-amber-500/5 to-amber-400/10 rounded-lg blur opacity-0 group-hover:opacity-100 transition duration-300"></div>
               <input
@@ -1050,7 +1050,7 @@ export default function CharacterChatPanel({
                 onChange={(e) => setUserInput(e.target.value)}
                 placeholder={t("characterChat.typeMessage") || "Type a message..."}
                 data-tour="chat-input"
-                className="w-full bg-[#2a261f] border border-[#534741] rounded-lg py-2.5 px-4 text-[#f4e8c1] text-sm leading-tight focus:outline-none focus:border-[#c0a480] shadow-inner relative z-1 transition-all duration-300 group-hover:border-[#a18d6f]"
+                className="w-full bg-[#2a261f] border border-[#534741] rounded-lg py-2 sm:py-2.5 px-3 sm:px-4 text-[#f4e8c1] text-sm leading-tight focus:outline-none focus:border-[#c0a480] shadow-inner relative z-1 transition-all duration-300 group-hover:border-[#a18d6f]"
                 disabled={isSending}
               />
             </div>
@@ -1063,7 +1063,7 @@ export default function CharacterChatPanel({
               <button
                 type="submit"
                 disabled={!userInput.trim()}
-                className={`portal-button relative overflow-hidden bg-[#2a261f] hover:bg-[#342f25] text-[#c0a480] hover:text-[#f4e8c1] py-2 px-4 rounded-lg text-sm border border-[#534741] hover:border-[#a18d6f] shadow-md transition-all duration-300 ${
+                className={`portal-button relative overflow-hidden bg-[#2a261f] hover:bg-[#342f25] text-[#c0a480] hover:text-[#f4e8c1] py-2 px-3 sm:px-4 rounded-lg text-sm border border-[#534741] hover:border-[#a18d6f] shadow-md transition-all duration-300 ${
                   !userInput.trim() ? "opacity-50 cursor-not-allowed" : ""
                 }`}
               >
@@ -1072,7 +1072,7 @@ export default function CharacterChatPanel({
             )}
           </div>
 
-          <div className="mt-5 flex justify-start gap-2 sm:gap-3 max-w-4xl mx-auto">
+          <div className="mt-3 sm:mt-5 flex justify-start gap-1.5 sm:gap-2 md:gap-3 max-w-4xl mx-auto">
             <button
               type="button"
               onClick={() => {
@@ -1082,7 +1082,7 @@ export default function CharacterChatPanel({
                   "story-progress": !prev["story-progress"],
                 }));
               }}
-              className={`px-2 py-1.5 sm:px-4 text-xs rounded-full border transition-all duration-300 ${
+              className={`px-1.5 sm:px-2 md:px-4 py-1.5 text-xs rounded-full border transition-all duration-300 ${
                 activeModes["story-progress"]
                   ? "bg-[#d1a35c] text-[#2a261f] border-[#d1a35c] shadow-[0_0_8px_rgba(209,163,92,0.5)]"
                   : "bg-[#2a261f] text-[#d1a35c] border-[#534741] hover:border-[#d1a35c] shadow-sm hover:shadow-md"
@@ -1104,7 +1104,7 @@ export default function CharacterChatPanel({
                   <path d="M5 12h14"></path>
                   <path d="m12 5 7 7-7 7"></path>
                 </svg>
-                <span className="hidden sm:inline">{t("characterChat.storyProgress") || "剧情推进"}</span>
+                <span className="text-[10px] sm:text-xs">{t("characterChat.storyProgress") || "剧情推进"}</span>
               </span>
             </button>
 
@@ -1144,7 +1144,7 @@ export default function CharacterChatPanel({
                   };
                 });
               }}
-              className={`px-2 py-1.5 sm:px-4 text-xs rounded-full border transition-all duration-300 ${
+              className={`px-1.5 sm:px-2 md:px-4 py-1.5 text-xs rounded-full border transition-all duration-300 ${
                 !activeModes["perspective"].active
                   ? "bg-[#2a261f] text-[#56b3b4] border-[#534741] hover:border-[#56b3b4] shadow-sm hover:shadow-md"
                   : activeModes["perspective"].mode === "novel"
@@ -1169,7 +1169,7 @@ export default function CharacterChatPanel({
                   <line x1="2" y1="12" x2="22" y2="12"></line>
                   <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
                 </svg>
-                <span className="hidden sm:inline">
+                <span className="text-[10px] sm:text-xs">
                   {!activeModes["perspective"].active
                     ? t("characterChat.perspective") || "视角设计"
                     : activeModes["perspective"].mode === "novel"
@@ -1188,7 +1188,7 @@ export default function CharacterChatPanel({
                   "scene-setting": !prev["scene-setting"],
                 }));
               }}
-              className={`px-2 py-1.5 sm:px-4 text-xs rounded-full border transition-all duration-300 ${
+              className={`px-1.5 sm:px-2 md:px-4 py-1.5 text-xs rounded-full border transition-all duration-300 ${
                 activeModes["scene-setting"]
                   ? "bg-[#c093ff] text-[#2a261f] border-[#c093ff] shadow-[0_0_8px_rgba(192,147,255,0.5)]"
                   : "bg-[#2a261f] text-[#c093ff] border-[#534741] hover:border-[#c093ff] shadow-sm hover:shadow-md"
@@ -1213,7 +1213,7 @@ export default function CharacterChatPanel({
                   <line x1="9" y1="3" x2="9" y2="21"></line>
                   <line x1="15" y1="3" x2="15" y2="21"></line>
                 </svg>
-                <span className="hidden sm:inline">{t("characterChat.sceneTransition")}</span>
+                <span className="text-[10px] sm:text-xs">{t("characterChat.sceneTransition")}</span>
               </span>
             </button>
           </div>

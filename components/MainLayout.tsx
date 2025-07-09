@@ -88,7 +88,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         className={`flex-1 h-full overflow-auto transition-all duration-300
             ml-0 ${sidebarOpen ? "md:ml-72" : "md:ml-0"}
             ${modelSidebarOpen ? "mr-64" : "mr-0"}
-            pb-20 md:pb-0
+            pb-16 md:pb-0
           `}
       >
         <div className="h-full relative">
