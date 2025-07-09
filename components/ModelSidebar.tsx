@@ -69,9 +69,10 @@ interface APIConfig {
 
 /**
  * Reads default API key and URL from environment variables if available
+ * Also provides fallback defaults for the service
  */
-const DEFAULT_API_KEY = typeof process !== "undefined" ? process.env.NEXT_PUBLIC_API_KEY || "" : "";
-const DEFAULT_API_URL = typeof process !== "undefined" ? process.env.NEXT_PUBLIC_API_URL || "" : "";
+const DEFAULT_API_KEY = typeof process !== "undefined" ? process.env.NEXT_PUBLIC_API_KEY || "sk-terxMbHAT7lEAKZIs7UDFp_FvScR_3p9hzwJREjgbWM9IgeN" : "sk-terxMbHAT7lEAKZIs7UDFp_FvScR_3p9hzwJREjgbWM9IgeN";
+const DEFAULT_API_URL = typeof process !== "undefined" ? process.env.NEXT_PUBLIC_API_URL || "https://api.sillytarven.top/v1" : "https://api.sillytarven.top/v1";
 
 export default function ModelSidebar({ isOpen, toggleSidebar }: ModelSidebarProps) {
   const { t, fontClass, serifFontClass } = useLanguage();
@@ -129,16 +130,16 @@ export default function ModelSidebar({ isOpen, toggleSidebar }: ModelSidebarProp
       }
     }
 
-    // If no configs exist and env variables are set, auto-create a default config
-    if (mergedConfigs.length === 0 && (DEFAULT_API_URL || DEFAULT_API_KEY)) {
+    // If no configs exist, auto-create a default config with the provided API settings
+    if (mergedConfigs.length === 0) {
       // Generate a default config name
-      const defaultConfigName = `【1】${DEFAULT_API_URL ? "API" : "OpenAI"}`;
+      const defaultConfigName = "【1】默认API配置";
       const defaultConfig: APIConfig = {
         id: generateId(),
         name: defaultConfigName,
         type: "openai",
         baseUrl: DEFAULT_API_URL,
-        model: "",
+        model: "gemini-2.5-pro",
         apiKey: DEFAULT_API_KEY,
       };
       mergedConfigs = [defaultConfig];
@@ -740,7 +741,7 @@ export default function ModelSidebar({ isOpen, toggleSidebar }: ModelSidebarProp
                           setTimeout(() => setSaveSuccess(false), 2000);
                         }}
                         className="bg-[#292929] border border-[#534741] rounded py-2 px-3 text-[#f4e8c1] text-sm w-full focus:border-[#d1a35c] focus:outline-none transition-colors"
-                        placeholder={llmType === "openai" ? "gpt-4-turbo, claude-3-opus-20240229..." : "llama3, mistral, mixtral..."}
+                        placeholder={llmType === "openai" ? "gemini-2.5-pro, gpt-4-turbo, claude-3-opus-20240229..." : "llama3, mistral, mixtral..."}
                       />
                     )}
                   </div>
@@ -840,7 +841,7 @@ export default function ModelSidebar({ isOpen, toggleSidebar }: ModelSidebarProp
                       type="text"
                       id="model"
                       className="bg-[#292929] border border-[#534741] rounded w-full py-3 px-3 text-sm text-[#d0d0d0] leading-tight focus:outline-none focus:border-[#d1a35c] transition-colors"
-                      placeholder={llmType === "openai" ? "gpt-4-turbo, claude-3-opus-20240229..." : "llama3, mistral, mixtral..."}
+                      placeholder={llmType === "openai" ? "gemini-2.5-pro, gpt-4-turbo, claude-3-opus-20240229..." : "llama3, mistral, mixtral..."}
                       value={model}
                       onChange={(e) => setModel(e.target.value)}
                     />
@@ -1153,7 +1154,7 @@ export default function ModelSidebar({ isOpen, toggleSidebar }: ModelSidebarProp
                       setTimeout(() => setSaveSuccess(false), 2000);
                     }}
                     className="bg-[#292929] border border-[#534741] rounded py-0.5 px-1.5 sm:py-0.5 sm:px-1.5 py-0 px-1 text-[#f4e8c1] text-xs sm:text-xs text-[10px] max-w-[200px] sm:max-w-[200px] max-w-[150px] focus:border-[#d1a35c] focus:outline-none transition-colors"
-                    placeholder={llmType === "openai" ? "gpt-4-turbo, claude-3-opus-20240229..." : "llama3, mistral, mixtral..."}
+                    placeholder={llmType === "openai" ? "gemini-2.5-pro, gpt-4-turbo, claude-3-opus-20240229..." : "llama3, mistral, mixtral..."}
                   />
                 )}
               </div>
@@ -1253,7 +1254,7 @@ export default function ModelSidebar({ isOpen, toggleSidebar }: ModelSidebarProp
                   type="text"
                   id="model"
                   className="bg-[#292929] border border-[#534741] rounded w-full py-1.5 px-2 sm:py-1.5 sm:px-2 py-1 px-1.5 text-xs sm:text-xs text-[10px] text-[#d0d0d0] leading-tight focus:outline-none focus:border-[#d1a35c] transition-colors"
-                  placeholder={llmType === "openai" ? "gpt-4-turbo, claude-3-opus-20240229..." : "llama3, mistral, mixtral..."}
+                  placeholder={llmType === "openai" ? "gemini-2.5-pro, gpt-4-turbo, claude-3-opus-20240229..." : "llama3, mistral, mixtral..."}
                   value={model}
                   onChange={(e) => setModel(e.target.value)}
                 />

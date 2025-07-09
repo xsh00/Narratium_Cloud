@@ -8,6 +8,7 @@ import { SoundProvider } from "@/contexts/SoundContext";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
 import { Analytics } from "@vercel/analytics/react";
 import PresetInitializerComponent from "@/components/PresetInitializer";
+import DefaultConfigInitializer from "@/components/DefaultConfigInitializer";
 
 // Define viewport configuration
 export const viewport: Viewport = {
@@ -84,6 +85,7 @@ export default function RootLayout({
         <SoundProvider>
           <LanguageProvider>
             <PresetInitializerComponent />
+            <DefaultConfigInitializer />
             <MainLayout>{children}</MainLayout>
           </LanguageProvider>
         </SoundProvider>

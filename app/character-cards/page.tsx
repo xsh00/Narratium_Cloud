@@ -125,6 +125,14 @@ export default function CharacterCards() {
       setCharacters(response);
     } catch (err) {
       console.error("Error fetching characters:", err);
+      
+      // 如果是版本冲突错误，显示提示信息
+      if (err instanceof Error && err.message.includes("version")) {
+        alert("检测到数据库版本冲突。页面将自动刷新以解决此问题。");
+        window.location.reload();
+        return;
+      }
+      
       setCharacters([]);
     } finally {
       setIsLoading(false);

@@ -1,6 +1,6 @@
 const DB_NAME = "CharacterAppDB";
 
-const DB_VERSION = 10;
+const DB_VERSION = 11;
 
 export const CHARACTERS_RECORD_FILE = "characters_record";
 export const CHARACTER_DIALOGUES_FILE = "character_dialogues";

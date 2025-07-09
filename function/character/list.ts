@@ -29,6 +29,32 @@ export async function getAllCharacters(language: "en" | "zh", username?: string)
     return formattedCharacters;
   } catch (error: any) {
     console.error("Failed to get characters:", error);
+    
+    // 处理版本冲突错误
+    if (error.message && error.message.includes("version")) {
+      console.warn("Database version conflict detected. Attempting to clear and reinitialize database...");
+      
+      // 清除数据库并重新初始化
+      try {
+        if (typeof window !== "undefined") {
+          // 删除现有的IndexedDB数据库
+          const deleteRequest = indexedDB.deleteDatabase("CharacterAppDB");
+          deleteRequest.onsuccess = () => {
+            console.log("Database deleted successfully. Please refresh the page.");
+          };
+          deleteRequest.onerror = () => {
+            console.error("Failed to delete database:", deleteRequest.error);
+          };
+        }
+        
+        // 返回空数组，让用户刷新页面
+        return [];
+      } catch (clearError) {
+        console.error("Failed to clear database:", clearError);
+        throw new Error("Database version conflict. Please refresh the page to resolve this issue.");
+      }
+    }
+    
     throw new Error(`Failed to get characters: ${error.message}`);
   }
 }
