@@ -719,8 +719,9 @@
       "importFailed": "Import failed",
       "importing": "Importing...",
       "downloadAndImport": "Download and Import",
-      "by": "By:",
-      "unknownAuthor": "Anonymous"
+      "filterByTags": "Filter by tags",
+      "allTags": "All",
+      "charactersFound": "characters found"
   },
   "creatorInput": {
     "title": "Creator Studio",

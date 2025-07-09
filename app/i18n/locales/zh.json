@@ -505,8 +505,9 @@
       "importFailed": "导入失败",
       "importing": "导入中…",
       "downloadAndImport": "下载并导入",
-      "by": "作者：",
-      "unknownAuthor": "佚名"
+      "filterByTags": "按标签筛选",
+      "allTags": "全部",
+      "charactersFound": "个角色"
   },
   "creatorInput": {
     "title": "Creator Studio",

@@ -19,6 +19,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
   const [error, setError] = useState("");
   const [step, setStep] = useState(1);
   const [showQuestion, setShowQuestion] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
 
   const modalRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -28,6 +29,18 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
       inputRef.current.focus();
     }
   }, [isOpen, step, showQuestion]);
+
+  useEffect(() => {
+    const checkIfMobile = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+    };
+
+    checkIfMobile();
+    window.addEventListener("resize", checkIfMobile);
+    
+    return () => window.removeEventListener("resize", checkIfMobile);
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -157,6 +170,12 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
     }
   };
 
+  const handleConfirmUsername = () => {
+    if (username.trim() !== "") {
+      handleLogin({ preventDefault: () => {} } as React.FormEvent);
+    }
+  };
+
   const renderInput = () => {
     const placeholder = currentQuestion.placeholder;
 
@@ -258,6 +277,22 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                       {renderInput()}
                       <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-24 sm:w-32 h-1 opacity-0 transition-opacity duration-300 magical-input-glow"></div>
                     </div>
+
+                    {/* 手机端确认按钮 - 只在第一步且是手机端时显示 */}
+                    {step === 1 && isMobile && username.trim() !== "" && (
+                      <motion.button
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        type="button"
+                        onClick={handleConfirmUsername}
+                        disabled={isLoading}
+                        className={`mt-4 portal-button text-sm px-6 py-2 text-[#c0a480] hover:text-[#ffd475] border border-[#534741] rounded-md cursor-pointer ${fontClass} tracking-wide shadow-inner transition-all duration-300 ${
+                          isLoading ? "opacity-50 cursor-not-allowed" : ""
+                        }`}
+                      >
+                        {isLoading ? t("auth.openingMagicDoor") : "确认"}
+                      </motion.button>
+                    )}
 
                     {step === 2 && activeTab === "code" && (
                       <motion.button
