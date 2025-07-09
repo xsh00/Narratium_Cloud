@@ -35,6 +35,8 @@ import { getAllCharacters } from "@/function/character/list";
 import { deleteCharacter } from "@/function/character/delete";
 import { handleCharacterUpload } from "@/function/character/import";
 import { trackButtonClick } from "@/utils/google-analytics";
+import { GITHUB_CONFIG } from "@/lib/config/github-config";
+import { PRESET_CHARACTERS } from "@/lib/config/preset-characters";
 
 /**
  * Interface defining the structure of a character object
@@ -205,7 +207,7 @@ export default function CharacterCards() {
     setIsDownloadingPresets(true);
     try {
       // Fetch available character files from GitHub
-      const response = await fetch("https://api.github.com/repos/Narratium/Character-Card/contents");
+      const response = await fetch(GITHUB_CONFIG.API_URL);
       const data = await response.json();
       
       if (!Array.isArray(data)) {
@@ -214,11 +216,7 @@ export default function CharacterCards() {
       }
 
       // Define specific preset character files to download
-      const presetCharacterNames = [
-        "全球冰封，我重生了！还觉醒了无限物资系统和超强安全屋！.png",
-        "一代大侠 .png", 
-        "doro.png",
-      ];
+      const presetCharacterNames = PRESET_CHARACTERS;
 
       // Filter and find the specific preset characters
       const pngFiles = data.filter((item: any) => 
@@ -228,7 +226,7 @@ export default function CharacterCards() {
       // Download and import each preset character
       for (const file of pngFiles) {
         try {
-          const fileResponse = await fetch(file.download_url || `https://raw.githubusercontent.com/Narratium/Character-Card/main/${file.name}`);
+          const fileResponse = await fetch(file.download_url || `${GITHUB_CONFIG.RAW_BASE_URL}${file.name}`);
           if (!fileResponse.ok) {
             console.error(`Failed to download ${file.name}`);
             continue;

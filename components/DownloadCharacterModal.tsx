@@ -28,9 +28,10 @@ import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { handleCharacterUpload } from "@/function/character/import";
 import { useLanguage } from "@/app/i18n";
+import { GITHUB_CONFIG } from "@/lib/config/github-config";
 
-const GITHUB_API_URL = "https://api.github.com/repos/Narratium/Character-Card/contents";
-const RAW_BASE_URL = "https://raw.githubusercontent.com/Narratium/Character-Card/main/";
+const GITHUB_API_URL = GITHUB_CONFIG.API_URL;
+const RAW_BASE_URL = GITHUB_CONFIG.RAW_BASE_URL;
 
 /**
  * Interface definitions for the component's props and data structures

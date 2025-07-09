@@ -79,6 +79,24 @@ For detailed Vercel deployment instructions, please refer to the [Vercel Deploym
 
 For Download Version: please refer to the [Download for Mac, Windows, Linux](https://github.com/Narratium/Narratium.ai/releases).
 
+## Customizing Character Community
+
+To set up your own character community repository:
+
+### Quick Setup
+```bash
+# Run the setup wizard
+node scripts/setup-github-repo.js
+```
+
+### Manual Setup
+1. Create a GitHub repository for your character cards
+2. Edit `lib/config/github-config.ts` with your repository details
+3. Upload character cards in PNG format (SillyTavern compatible)
+4. Use filename format: `CharacterName--AuthorName.png`
+
+For detailed instructions, see [GitHub Repository Setup Guide](./docs/GITHUB_REPOSITORY_SETUP.md).
+
 | Features |
 | :------- |
 
