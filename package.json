@@ -7,7 +7,7 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "lint": "next lint",
-    "preview": "serve -s out",
+    "preview": "npx serve -s out -l 3000",
     "test": "vitest",
     "pake-mac": "pake out/index.html --name Narratium --use-local-file --icon ./public/icon.icns --multi-arch",
     "pake-win": "pake out/index.html --name Narratium --use-local-file --icon ./public/icon.ico",
