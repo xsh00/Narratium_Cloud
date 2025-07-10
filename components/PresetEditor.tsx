@@ -16,6 +16,7 @@ import {
 import { useLanguage } from "@/app/i18n";
 import ImportPresetModal from "@/components/ImportPresetModal";
 import CreatePresetModal from "@/components/CreatePresetModal";
+import AddPromptModal from "@/components/AddPromptModal";
 import "@/app/styles/fantasy-ui.css";
 import React from "react";
 import EditPromptModal from "@/components/EditPromptModal";
@@ -71,6 +72,7 @@ export default function PresetEditor({
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [currentEditingPrompt, setCurrentEditingPrompt] =
     useState<PresetPromptData | null>(null);
+  const [isAddPromptModalOpen, setIsAddPromptModalOpen] = useState(false);
 
   const SORT_STORAGE_KEY = `preset_sort_${characterId || "global"}`;
   const FILTER_STORAGE_KEY = `preset_filter_${characterId || "global"}`;
@@ -388,6 +390,21 @@ export default function PresetEditor({
     if (selectedPreset) {
       await handleSelectPreset(selectedPreset.id);
     }
+  };
+
+  const handleAddPrompt = () => {
+    setIsAddPromptModalOpen(true);
+  };
+
+  const handleCloseAddPromptModal = () => {
+    setIsAddPromptModalOpen(false);
+  };
+
+  const handleAddPromptSuccess = async () => {
+    if (selectedPreset) {
+      await handleSelectPreset(selectedPreset.id);
+    }
+    await loadPresetData();
   };
 
   const handleTogglePrompt = async (
@@ -1210,7 +1227,7 @@ export default function PresetEditor({
                                   strokeLinejoin="round"
                                   className="mr-1.5 sm:mr-2"
                                 >
-                                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 2-2V8z"></path>
+                                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                                   <polyline points="14 2 14 8 20 8"></polyline>
                                   <line x1="16" y1="13" x2="8" y2="13"></line>
                                   <line x1="16" y1="17" x2="8" y2="17"></line>
@@ -1224,6 +1241,32 @@ export default function PresetEditor({
                                   </span>
                                 )}
                               </h4>
+                              <button
+                                onClick={handleAddPrompt}
+                                className="px-2 sm:px-3 py-1 sm:py-1.5 bg-gradient-to-r from-[#1f1c1a] to-[#13100e] hover:from-[#282521] hover:to-[#1a1613] text-[#e9c08d] hover:text-[#f6daae] rounded-md transition-all duration-300 text-xs sm:text-sm font-medium shadow-lg hover:shadow-[#f8b758]/20 group flex-shrink-0 border border-[#403a33]"
+                              >
+                                <span className={`flex items-center ${serifFontClass}`}>
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="10"
+                                    height="10"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    className="mr-1 sm:mr-1.5 transition-transform duration-300 group-hover:scale-110"
+                                  >
+                                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                                  </svg>
+                                  <span className="hidden sm:inline">
+                                    {t("preset.addPrompt")}
+                                  </span>
+                                  <span className="sm:hidden">+</span>
+                                </span>
+                              </button>
                             </div>
 
                             {selectedPreset.prompts.length === 0 ? (
@@ -1424,6 +1467,12 @@ export default function PresetEditor({
         presetId={selectedPreset?.id || ""}
         prompt={currentEditingPrompt}
         onSave={handleSaveEditPrompt}
+      />
+      <AddPromptModal
+        isOpen={isAddPromptModalOpen}
+        onClose={handleCloseAddPromptModal}
+        presetId={selectedPreset?.id || ""}
+        onSuccess={handleAddPromptSuccess}
       />
     </div>
   );
