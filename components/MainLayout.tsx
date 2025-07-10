@@ -96,7 +96,7 @@ export default function MainLayout({
           `}
       >
         <div className="h-full relative">
-          <div className="absolute top-4 right-4 z-[999]">
+          <div className="absolute top-18 right-4 z-[999] md:top-4 md:right-4">
             <SettingsDropdown toggleModelSidebar={toggleModelSidebar} />
           </div>
 
