@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/app/i18n";
+import { useAuth } from "@/contexts/AuthContext";
 import { isUpdateAvailable, fetchLatestRelease } from "@/utils/version-compare";
 import "@/app/styles/fantasy-ui.css";
 
@@ -23,8 +24,7 @@ export default function Sidebar({
   openLoginModal,
 }: SidebarProps) {
   const router = useRouter();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [username, setUsername] = useState("");
+  const { user, isAuthenticated, logout } = useAuth();
   const [isHomeOpen, setIsHomeOpen] = useState(true);
   const [isGameOpen, setIsGameOpen] = useState(true);
 
@@ -36,16 +36,6 @@ export default function Sidebar({
     url: string;
   } | null>(null);
   const [hasCheckedUpdate, setHasCheckedUpdate] = useState(false);
-
-  useEffect(() => {
-    const loggedIn = localStorage.getItem("isLoggedIn") === "true";
-    const storedUsername = localStorage.getItem("username");
-
-    setIsLoggedIn(loggedIn);
-    if (storedUsername) {
-      setUsername(storedUsername);
-    }
-  }, []);
 
   useEffect(() => {
     if (isOpen) {
@@ -82,12 +72,7 @@ export default function Sidebar({
   }, [hasCheckedUpdate]);
 
   const handleLogout = () => {
-    localStorage.removeItem("isLoggedIn");
-    localStorage.removeItem("username");
-    localStorage.removeItem("userId");
-
-    setIsLoggedIn(false);
-
+    logout();
     router.push("/");
   };
 
@@ -650,7 +635,7 @@ export default function Sidebar({
         `}</style>
 
         <div className="mb-2">
-          {!isLoggedIn ? (
+          {!isAuthenticated ? (
             <button
               onClick={openLoginModal}
               data-tour="login-button"
@@ -755,7 +740,7 @@ export default function Sidebar({
                         className={`magical-text whitespace-nowrap block text-xs font-medium bg-clip-text text-transparent bg-gradient-to-r from-[#f8d36a] to-[#ffc107] ${fontClass}`}
                       >
                         {isOpen &&
-                          username.split("").map((char, index) => (
+                          (user?.email || '').split("").map((char: string, index: number) => (
                             <span
                               key={index}
                               className="inline-block transition-all duration-300"

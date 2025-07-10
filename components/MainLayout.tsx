@@ -26,7 +26,6 @@ import { useState, useEffect } from "react";
 import Sidebar from "@/components/Sidebar";
 import ModelSidebar from "@/components/ModelSidebar";
 import SettingsDropdown from "@/components/SettingsDropdown";
-import LoginModal from "@/components/LoginModal";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import "@/app/styles/fantasy-ui.css";
 
@@ -44,7 +43,6 @@ export default function MainLayout({
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [modelSidebarOpen, setModelSidebarOpen] = useState(false);
-  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -76,16 +74,12 @@ export default function MainLayout({
 
   return (
     <div className="flex h-full overflow-hidden fantasy-bg relative">
-      <LoginModal
-        isOpen={isLoginModalOpen}
-        onClose={() => setIsLoginModalOpen(false)}
-      />
       {/* Sidebar - hidden on mobile, visible on desktop */}
       <div className="fixed left-0 top-0 h-full z-10 hidden md:block">
         <Sidebar
           isOpen={sidebarOpen}
           toggleSidebar={toggleSidebar}
-          openLoginModal={() => setIsLoginModalOpen(true)}
+          openLoginModal={() => {}}
         />
       </div>
       <main
@@ -112,7 +106,7 @@ export default function MainLayout({
       </div>
 
       {/* Mobile Bottom Navigation */}
-      <MobileBottomNav openLoginModal={() => setIsLoginModalOpen(true)} />
+      <MobileBottomNav openLoginModal={() => {}} />
     </div>
   );
 }

@@ -27,6 +27,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useLanguage } from "@/app/i18n";
+import { useAuth } from "@/contexts/AuthContext";
 import "@/app/styles/fantasy-ui.css";
 
 /**
@@ -53,20 +54,9 @@ export default function MobileBottomNav({
 }: MobileBottomNavProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [username, setUsername] = useState("");
+  const { user, isAuthenticated, logout } = useAuth();
   const [isMobile, setIsMobile] = useState(false);
   const { t, fontClass } = useLanguage();
-
-  useEffect(() => {
-    const loggedIn = localStorage.getItem("isLoggedIn") === "true";
-    const storedUsername = localStorage.getItem("username");
-
-    setIsLoggedIn(loggedIn);
-    if (storedUsername) {
-      setUsername(storedUsername);
-    }
-  }, []);
 
   useEffect(() => {
     const checkIfMobile = () => {
@@ -87,12 +77,7 @@ export default function MobileBottomNav({
   }
 
   const handleLogout = () => {
-    localStorage.removeItem("isLoggedIn");
-    localStorage.removeItem("username");
-    localStorage.removeItem("userId");
-
-    setIsLoggedIn(false);
-
+    logout();
     router.push("/");
   };
 
@@ -201,15 +186,15 @@ export default function MobileBottomNav({
 
         {/* Login/User */}
         <button
-          onClick={isLoggedIn ? handleLogout : openLoginModal}
+          onClick={isAuthenticated ? handleLogout : openLoginModal}
           className={`flex flex-col items-center justify-center p-1.5 rounded-lg transition-all duration-300 ${
-            isLoggedIn
+            isAuthenticated
               ? "text-[#f8d36a] hover:bg-[#2a231c]/30"
               : "text-[#a18d6f] hover:text-[#f8d36a] hover:bg-[#2a231c]/30"
           }`}
         >
           <div className="w-5 h-5 flex items-center justify-center mb-0.5">
-            {isLoggedIn ? (
+            {isAuthenticated ? (
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="16"
@@ -244,7 +229,7 @@ export default function MobileBottomNav({
             )}
           </div>
           <span className={`text-[8px] ${fontClass}`}>
-            {isLoggedIn ? t("sidebar.logout") : t("sidebar.nologin")}
+            {isAuthenticated ? t("sidebar.logout") : t("sidebar.nologin")}
           </span>
         </button>
       </div>

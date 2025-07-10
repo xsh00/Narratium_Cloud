@@ -18,6 +18,7 @@ export const metadata = homeMetadata;
 
 import { Suspense } from "react";
 import HomeContent from "@/components/HomeContent";
+import AuthGuard from "@/components/AuthGuard";
 import "./styles/fantasy-ui.css";
 
 /**
@@ -48,7 +49,9 @@ function HomeLoading() {
 export default function Home() {
   return (
     <Suspense fallback={<HomeLoading />}>
-      <HomeContent />
+      <AuthGuard>
+        <HomeContent />
+      </AuthGuard>
     </Suspense>
   );
 }

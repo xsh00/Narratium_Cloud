@@ -27,6 +27,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useSearchParams, useParams } from "next/navigation";
 import { useLanguage } from "@/app/i18n";
+import AuthGuard from "@/components/AuthGuard";
 import CharacterSidebar from "@/components/CharacterSidebar";
 import { v4 as uuidv4 } from "uuid";
 import { initCharacterDialogue } from "@/function/dialogue/init";
@@ -42,6 +43,7 @@ import CharacterChatHeader from "@/components/CharacterChatHeader";
 import UserTour from "@/components/UserTour";
 import { useTour } from "@/hooks/useTour";
 import ErrorToast from "@/components/ErrorToast";
+import { loadConfigFromLocalStorage } from "@/lib/core/config-manager";
 
 /**
  * Interface definitions for the component's data structures
@@ -198,63 +200,25 @@ export default function CharacterPage() {
       const messageIndex = messages.findIndex(
         (msg) => msg.id === nodeId && msg.role === "assistant",
       );
+
       if (messageIndex === -1) {
-        console.warn(`Message not found: ${nodeId}`);
-        return;
-      }
-      const messageToRegenerate = messages[messageIndex];
-      if (messageToRegenerate.role != "assistant") {
-        console.warn("Can only regenerate assistant messages");
+        console.warn(`Message not found for regeneration: ${nodeId}`);
         return;
       }
 
-      let userMessage = null;
-      for (let i = messageIndex - 1; i >= 0; i--) {
-        if (messages[i].role === "user") {
-          userMessage = messages[i];
-          break;
-        }
+      // Remove the message to regenerate and all subsequent messages
+      const updatedMessages = messages.slice(0, messageIndex);
+      setMessages(updatedMessages);
+
+      // Get the last user message before the message to regenerate
+      const lastUserMessage = updatedMessages
+        .slice()
+        .reverse()
+        .find((msg) => msg.role === "user");
+
+      if (lastUserMessage) {
+        await handleSendMessage(lastUserMessage.content);
       }
-
-      if (!userMessage) {
-        console.warn("No previous user message found for regeneration");
-        return;
-      }
-
-      const response = await deleteDialogueNode({
-        characterId,
-        nodeId,
-      });
-      if (!response.success) {
-        console.error("Failed to delete message", response);
-        return;
-      }
-
-      const dialogue = response.dialogue;
-
-      if (dialogue) {
-        setTimeout(() => {
-          const formattedMessages = dialogue.messages.map((msg: any) => ({
-            id: msg.id,
-            role: msg.role == "system" ? "assistant" : msg.role,
-            thinkingContent: msg.thinkingContent ?? "",
-            content: msg.content,
-          }));
-
-          setMessages(formattedMessages);
-
-          const lastMessage = dialogue.messages[dialogue.messages.length - 1];
-          if (lastMessage && lastMessage.parsedContent?.nextPrompts) {
-            setSuggestedInputs(lastMessage.parsedContent.nextPrompts);
-          } else {
-            setSuggestedInputs([]);
-          }
-        }, 100);
-      }
-
-      setTimeout(async () => {
-        await handleSendMessage(userMessage.content);
-      }, 300);
     } catch (error) {
       console.error("Error regenerating message:", error);
     }
@@ -264,301 +228,205 @@ export default function CharacterPage() {
     if (!characterId) return;
 
     try {
-      const username = localStorage.getItem("username") || undefined;
-      const currentLanguage = localStorage.getItem("language") as "en" | "zh";
-      const response = await getCharacterDialogue(
-        characterId,
-        currentLanguage,
-        username,
-      );
+      setLoadingPhase("加载对话历史...");
+      const response = await getCharacterDialogue(characterId);
+
       if (!response.success) {
-        throw new Error(`Failed to load dialogue: ${response}`);
+        console.error("Failed to fetch dialogue", response);
+        setError("无法加载对话历史");
+        return;
       }
 
       const dialogue = response.dialogue;
 
-      if (dialogue && dialogue.messages) {
+      if (dialogue && dialogue.messages.length > 0) {
         const formattedMessages = dialogue.messages.map((msg: any) => ({
           id: msg.id,
-          role: msg.role,
+          role: msg.role == "system" ? "assistant" : msg.role,
           thinkingContent: msg.thinkingContent ?? "",
           content: msg.content,
         }));
+
         setMessages(formattedMessages);
-        setSuggestedInputs(
-          dialogue.messages[dialogue.messages.length - 1].parsedContent
-            ?.nextPrompts || [],
-        );
+
+        const lastMessage = dialogue.messages[dialogue.messages.length - 1];
+        if (lastMessage && lastMessage.parsedContent?.nextPrompts) {
+          setSuggestedInputs(lastMessage.parsedContent.nextPrompts);
+        } else {
+          setSuggestedInputs([]);
+        }
       } else {
+        setMessages([]);
+        setSuggestedInputs([]);
       }
-    } catch (err) {
-      console.error("Error refreshing dialogue:", err);
+    } catch (error) {
+      console.error("Error fetching dialogue:", error);
+      setError("加载对话历史时出错");
     }
   };
 
   useEffect(() => {
+    if (!characterId) {
+      setError("未找到角色ID");
+      setIsLoading(false);
+      return;
+    }
+
     const loadCharacterAndDialogue = async () => {
-      if (!characterId) {
-        setError("Character ID is missing from URL");
-        setIsLoading(false);
-        return;
-      }
-
-      // Start loading immediately when characterId changes
-      setIsLoading(true);
-      setIsInitializing(false);
-      setError("");
-      setLoadingPhase(t("characterChat.loading"));
-
-      // Reset initialization ref for new character
-      initializationRef.current = false;
-
-      // Add minimum loading time to ensure user sees the loading animation
-      const startTime = Date.now();
-      const minLoadingTime = 500; // 500ms minimum loading time
-
       try {
-        const username = localStorage.getItem("username") || undefined;
-        const currentLanguage = localStorage.getItem("language") as "en" | "zh";
+        setLoadingPhase("初始化角色...");
+        setIsInitializing(true);
 
-        setLoadingPhase(t("characterChat.loading"));
-        const response = await getCharacterDialogue(
-          characterId,
-          currentLanguage,
-          username,
-        );
-        if (!response.success) {
-          throw new Error(`Failed to load character: ${response}`);
-        }
-
-        const dialogue = response.dialogue;
-        const character = response.character;
-
-        const characterInfo = {
-          id: character.id,
-          name: character.data.name,
-          personality: character.data.personality,
-          avatar_path: character.imagePath,
-        };
-
-        // Set character data but keep loading if we need to initialize dialogue
-        setCharacter(characterInfo);
-
-        if (dialogue && dialogue.messages) {
-          setLoadingPhase(t("characterChat.loadingDialogue"));
-          const formattedMessages = dialogue.messages.map((msg: any) => ({
-            id: msg.id,
-            role: msg.role,
-            thinkingContent: msg.thinkingContent ?? "",
-            content: msg.content,
-          }));
-          setMessages(formattedMessages);
-          setSuggestedInputs(
-            dialogue.messages[dialogue.messages.length - 1].parsedContent
-              ?.nextPrompts || [],
-          );
-
-          // Ensure minimum loading time has passed
-          const elapsedTime = Date.now() - startTime;
-          const remainingTime = Math.max(0, minLoadingTime - elapsedTime);
-
-          if (remainingTime > 0) {
-            await new Promise((resolve) => setTimeout(resolve, remainingTime));
+        // Initialize dialogue if needed
+        if (!initializationRef.current) {
+          // Load configuration from localStorage
+          const config = loadConfigFromLocalStorage();
+          
+          const initResponse = await initCharacterDialogue({
+            characterId,
+            modelName: config.defaultModel || "gemini-2.5-pro",
+            baseUrl: config.defaultBaseUrl || "https://api.sillytarven.top/v1",
+            apiKey: config.defaultApiKey || "sk-terxMbHAT7lEAKZIs7UDFp_FvScR_3p9hzwJREjgbWM9IgeN",
+            llmType: config.defaultType || "openai",
+            language: "zh",
+          });
+          if (!initResponse.success) {
+            console.error("Failed to initialize dialogue", initResponse);
+            setError("初始化对话失败");
+            return;
           }
-
-          // All data loaded successfully
-          setIsLoading(false);
-        } else if (!initializationRef.current) {
-          // Need to initialize new dialogue - keep loading state
-          setLoadingPhase(t("characterChat.initializing"));
-          setIsInitializing(true);
           initializationRef.current = true;
-          await initializeNewDialogue(characterId);
-
-          // Initialization complete
-          setIsInitializing(false);
-          setIsLoading(false);
-        } else {
-          // Fallback case
-          setIsLoading(false);
-        }
-      } catch (err) {
-        console.error("Error loading character or dialogue:", err);
-        const errorMessage =
-          typeof err === "object" && err !== null && "message" in err
-            ? (err as Error).message
-            : "Failed to load character";
-
-        // 检查是否是角色不存在的错误
-        if (
-          errorMessage.includes("Character not found") ||
-          errorMessage.includes("Character record is required")
-        ) {
-          setError("角色不存在或已被删除");
-          // 延迟重定向到角色卡片页面
-          setTimeout(() => {
-            window.location.href = "/character-cards";
-          }, 2000);
-        } else {
-          setError(errorMessage);
         }
 
+        // Fetch character data (you'll need to implement this)
+        // For now, we'll use a placeholder
+        setCharacter({
+          id: characterId,
+          name: "角色名称",
+          personality: "角色性格",
+        });
+
+        // Fetch dialogue
+        await fetchLatestDialogue();
+
+        setIsLoading(false);
+        setIsInitializing(false);
+      } catch (error) {
+        console.error("Error loading character:", error);
+        setError("加载角色时出错");
         setIsLoading(false);
         setIsInitializing(false);
       }
     };
 
     loadCharacterAndDialogue();
-  }, [characterId, t]);
+  }, [characterId]);
 
   const initializeNewDialogue = async (charId: string) => {
     try {
-      setLoadingPhase(t("characterChat.extractingTemplate"));
-      const username = localStorage.getItem("username") || "";
-      const language = localStorage.getItem("language") || "zh";
-      const llmType = localStorage.getItem("llmType") || "openai";
-      const modelName =
-        localStorage.getItem(
-          llmType === "openai" ? "openaiModel" : "ollamaModel",
-        ) || "";
-      const baseUrl =
-        localStorage.getItem(
-          llmType === "openai" ? "openaiBaseUrl" : "ollamaBaseUrl",
-        ) || "";
-      const apiKey =
-        llmType === "openai" ? localStorage.getItem("openaiApiKey") || "" : "";
-
-      const initData = await initCharacterDialogue({
-        username,
+      setLoadingPhase("创建新对话...");
+      
+      // Load configuration from localStorage
+      const config = loadConfigFromLocalStorage();
+      
+      const response = await initCharacterDialogue({
         characterId: charId,
-        modelName,
-        baseUrl,
-        apiKey,
-        llmType: llmType as "openai" | "ollama",
-        language: language as "zh" | "en",
+        modelName: config.defaultModel || "gemini-2.5-pro",
+        baseUrl: config.defaultBaseUrl || "https://api.sillytarven.top/v1",
+        apiKey: config.defaultApiKey || "sk-terxMbHAT7lEAKZIs7UDFp_FvScR_3p9hzwJREjgbWM9IgeN",
+        llmType: config.defaultType || "openai",
+        language: "zh",
       });
 
-      if (!initData.success) {
-        throw new Error(`Failed to initialize dialogue: ${initData}`);
+      if (!response.success) {
+        console.error("Failed to initialize dialogue", response);
+        setError("创建新对话失败");
+        return;
       }
-      if (initData.firstMessage) {
-        setMessages([
-          {
-            id: initData.nodeId,
-            role: "assistant",
-            content: initData.firstMessage,
-          },
-        ]);
-      }
+
+      setMessages([]);
+      setSuggestedInputs([]);
+      setIsLoading(false);
     } catch (error) {
-      console.error("Error initializing dialogue:", error);
-      throw error;
+      console.error("Error initializing new dialogue:", error);
+      setError("创建新对话时出错");
+      setIsLoading(false);
     }
   };
 
   const handleSendMessage = async (message: string) => {
-    if (!character || isSending) return;
+    if (!characterId || isSending) return;
+
+    setIsSending(true);
+    const messageId = uuidv4();
 
     try {
-      setIsSending(true);
-      setError("");
-
-      setSuggestedInputs([]);
-      const userMessage = {
-        id: new Date().toISOString() + "-user",
+      // Add user message to the list
+      const userMessage: Message = {
+        id: messageId,
         role: "user",
-        thinkingContent: "",
         content: message,
       };
-      setMessages((prev) => [...prev, userMessage]);
 
-      const language = localStorage.getItem("language") || "zh";
-      const llmType = localStorage.getItem("llmType") || "openai";
-      const modelName =
-        localStorage.getItem(
-          llmType === "openai" ? "openaiModel" : "ollamaModel",
-        ) || "";
-      const baseUrl =
-        localStorage.getItem(
-          llmType === "openai" ? "openaiBaseUrl" : "ollamaBaseUrl",
-        ) || "";
-      const apiKey =
-        llmType === "openai" ? localStorage.getItem("openaiApiKey") || "" : "";
-      const storedNumber = localStorage.getItem("responseLength");
-      const username = localStorage.getItem("username") || "";
-      const responseLength = storedNumber ? parseInt(storedNumber) : 200;
-      const nodeId = uuidv4();
-      const fastModel = localStorage.getItem("fastModelEnabled") === "true";
+      setMessages((prev) => [...prev, userMessage]);
+      setUserInput("");
+
+      // Load configuration from localStorage
+      const config = loadConfigFromLocalStorage();
+
+      // Send message to API
       const response = await handleCharacterChatRequest({
-        username,
-        characterId: character.id,
+        characterId,
         message,
-        modelName,
-        baseUrl,
-        apiKey,
-        llmType,
-        language: language as "zh" | "en",
-        streaming: true,
-        number: responseLength,
-        nodeId,
-        fastModel: fastModel,
+        modelName: config.defaultModel || "gemini-2.5-pro",
+        baseUrl: config.defaultBaseUrl || "https://api.sillytarven.top/v1",
+        apiKey: config.defaultApiKey || "sk-terxMbHAT7lEAKZIs7UDFp_FvScR_3p9hzwJREjgbWM9IgeN",
+        llmType: config.defaultType || "openai",
+        language: "zh",
+        nodeId: messageId,
+        fastModel: false,
       });
 
       if (!response.ok) {
-        showErrorToast(t("characterChat.checkNetworkOrAPI"));
+        console.error("Failed to send message", response);
+        showErrorToast("发送消息失败");
         return;
       }
 
-      const result = await response.json();
+      const responseData = await response.json();
 
-      if (result.success) {
-        const assistantMessage = {
-          id: nodeId,
-          role: "assistant",
-          thinkingContent: result.thinkingContent ?? "",
-          content: result.content || "",
-        };
-        setMessages((prev) => [...prev, assistantMessage]);
-
-        if (result.parsedContent?.nextPrompts) {
-          setSuggestedInputs(result.parsedContent.nextPrompts);
-        }
-      } else {
-        showErrorToast(result.message || t("characterChat.checkNetworkOrAPI"));
+      if (!responseData.success) {
+        console.error("Failed to send message", responseData);
+        showErrorToast("发送消息失败");
+        return;
       }
-    } catch (err) {
-      console.error("Error sending message:", err);
-      showErrorToast(t("characterChat.checkNetworkOrAPI"));
+
+      const assistantMessage: Message = {
+        id: responseData.messageId || messageId,
+        role: "assistant",
+        thinkingContent: responseData.thinkingContent || "",
+        content: responseData.content,
+      };
+
+      setMessages((prev) => [...prev, assistantMessage]);
+
+      // Update suggested inputs
+      if (responseData.parsedContent?.nextPrompts) {
+        setSuggestedInputs(responseData.parsedContent.nextPrompts);
+      } else {
+        setSuggestedInputs([]);
+      }
+    } catch (error) {
+      console.error("Error sending message:", error);
+      showErrorToast("发送消息时出错");
     } finally {
       setIsSending(false);
     }
   };
 
   useEffect(() => {
-    if (character && !isLoading && !isInitializing && !error) {
-      const hasSeenCharacterTour = localStorage.getItem(
-        "narratium_character_tour_completed",
-      );
-      if (!hasSeenCharacterTour) {
-        setTimeout(() => {
-          startCharacterTour();
-        }, 2000);
-      }
-    }
-  }, [character, isLoading, isInitializing, error, startCharacterTour]);
-
-  useEffect(() => {
     const handleSwitchToPresetView = (event: any) => {
       setActiveView("preset");
-
-      const detail = event.detail;
-      if (detail) {
-        if (detail.presetId) {
-          sessionStorage.setItem("activate_preset_id", detail.presetId);
-        } else if (detail.presetName) {
-          sessionStorage.setItem("activate_preset_name", detail.presetName);
-        }
-      }
     };
 
     window.addEventListener("switchToPresetView", handleSwitchToPresetView);
@@ -669,94 +537,96 @@ export default function CharacterPage() {
   };
 
   return (
-    <div
-      className="flex h-full relative fantasy-bg overflow-hidden "
-      style={{
-        left: "var(--app-sidebar-width, 0)",
-      }}
-    >
-      <CharacterSidebar
-        character={character}
-        isCollapsed={sidebarCollapsed}
-        toggleSidebar={toggleSidebar}
-        onDialogueEdit={() => fetchLatestDialogue()}
-        onViewSwitch={() => {
-          switchToView("worldbook");
-          setTimeout(() => {
-            switchToView("chat");
-          }, 1000);
-        }}
-      />
-
+    <AuthGuard>
       <div
-        className={`${sidebarCollapsed ? "w-full" : "hidden md:block md:w-3/4"} fantasy-bg h-full transition-all duration-300 ease-in-out flex flex-col`}
+        className="flex h-full relative fantasy-bg overflow-hidden "
+        style={{
+          left: "var(--app-sidebar-width, 0)",
+        }}
       >
-        <CharacterChatHeader
+        <CharacterSidebar
           character={character}
-          serifFontClass={serifFontClass}
-          sidebarCollapsed={sidebarCollapsed}
-          activeView={activeView}
+          isCollapsed={sidebarCollapsed}
           toggleSidebar={toggleSidebar}
-          onSwitchToView={switchToView}
-          onToggleView={toggleView}
-          onToggleRegexEditor={toggleRegexEditor}
+          onDialogueEdit={() => fetchLatestDialogue()}
+          onViewSwitch={() => {
+            switchToView("worldbook");
+            setTimeout(() => {
+              switchToView("chat");
+            }, 1000);
+          }}
         />
 
-        {activeView === "chat" ? (
-          <CharacterChatPanel
+        <div
+          className={`${sidebarCollapsed ? "w-full" : "hidden md:block md:w-3/4"} fantasy-bg h-full transition-all duration-300 ease-in-out flex flex-col`}
+        >
+          <CharacterChatHeader
             character={character}
-            messages={messages}
-            userInput={userInput}
-            setUserInput={setUserInput}
-            isSending={isSending}
-            suggestedInputs={suggestedInputs}
-            onSubmit={handleSubmit}
-            onSuggestedInput={handleSuggestedInput}
-            onTruncate={truncateMessagesAfter}
-            onRegenerate={handleRegenerate}
-            fontClass={fontClass}
             serifFontClass={serifFontClass}
-            t={t}
-            activeModes={activeModes}
-            setActiveModes={setActiveModes}
+            sidebarCollapsed={sidebarCollapsed}
+            activeView={activeView}
+            toggleSidebar={toggleSidebar}
+            onSwitchToView={switchToView}
+            onToggleView={toggleView}
+            onToggleRegexEditor={toggleRegexEditor}
           />
-        ) : activeView === "worldbook" ? (
-          <WorldBookEditor
-            onClose={() => setActiveView("chat")}
-            characterName={character?.name || ""}
-            characterId={characterId || ""}
-          />
-        ) : activeView === "preset" ? (
-          <PresetEditor
-            onClose={() => setActiveView("chat")}
-            characterName={character?.name || ""}
-            characterId={characterId || ""}
-          />
-        ) : (
-          <RegexScriptEditor
-            onClose={() => setActiveView("chat")}
-            characterName={character?.name || ""}
-            characterId={characterId || ""}
-          />
-        )}
+
+          {activeView === "chat" ? (
+            <CharacterChatPanel
+              character={character}
+              messages={messages}
+              userInput={userInput}
+              setUserInput={setUserInput}
+              isSending={isSending}
+              suggestedInputs={suggestedInputs}
+              onSubmit={handleSubmit}
+              onSuggestedInput={handleSuggestedInput}
+              onTruncate={truncateMessagesAfter}
+              onRegenerate={handleRegenerate}
+              fontClass={fontClass}
+              serifFontClass={serifFontClass}
+              t={t}
+              activeModes={activeModes}
+              setActiveModes={setActiveModes}
+            />
+          ) : activeView === "worldbook" ? (
+            <WorldBookEditor
+              onClose={() => setActiveView("chat")}
+              characterName={character?.name || ""}
+              characterId={characterId || ""}
+            />
+          ) : activeView === "preset" ? (
+            <PresetEditor
+              onClose={() => setActiveView("chat")}
+              characterName={character?.name || ""}
+              characterId={characterId || ""}
+            />
+          ) : (
+            <RegexScriptEditor
+              onClose={() => setActiveView("chat")}
+              characterName={character?.name || ""}
+              characterId={characterId || ""}
+            />
+          )}
+        </div>
+        <UserTour
+          steps={currentTourSteps}
+          isVisible={isTourVisible}
+          onComplete={() => {
+            completeTour();
+            localStorage.setItem("narratium_character_tour_completed", "true");
+          }}
+          onSkip={() => {
+            skipTour();
+            localStorage.setItem("narratium_character_tour_completed", "true");
+          }}
+        />
+        <ErrorToast
+          message={errorToast.message}
+          isVisible={errorToast.isVisible}
+          onClose={hideErrorToast}
+        />
       </div>
-      <UserTour
-        steps={currentTourSteps}
-        isVisible={isTourVisible}
-        onComplete={() => {
-          completeTour();
-          localStorage.setItem("narratium_character_tour_completed", "true");
-        }}
-        onSkip={() => {
-          skipTour();
-          localStorage.setItem("narratium_character_tour_completed", "true");
-        }}
-      />
-      <ErrorToast
-        message={errorToast.message}
-        isVisible={errorToast.isVisible}
-        onClose={hideErrorToast}
-      />
-    </div>
+    </AuthGuard>
   );
-}
+} 

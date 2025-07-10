@@ -20,8 +20,12 @@ show.html
 
 # production
 /build
-!/data
-/data/*
+
+# database
+/data/
+*.db
+*.sqlite
+*.sqlite3
 # misc
 .DS_Store
 *.pem
