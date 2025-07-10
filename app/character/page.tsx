@@ -92,7 +92,7 @@ export default function CharacterPage() {
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState("");
   const [userInput, setUserInput] = useState("");
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [suggestedInputs, setSuggestedInputs] = useState<string[]>([]);
   const initializationRef = useRef(false);
   const [activeView, setActiveView] = useState<
@@ -689,7 +689,7 @@ export default function CharacterPage() {
       />
 
       <div
-        className={`${sidebarCollapsed ? "w-full" : "w-3/4 md:w-3/4"} fantasy-bg h-full transition-all duration-300 ease-in-out flex flex-col`}
+        className={`${sidebarCollapsed ? "w-full" : "hidden md:block md:w-3/4"} fantasy-bg h-full transition-all duration-300 ease-in-out flex flex-col`}
       >
         <CharacterChatHeader
           character={character}

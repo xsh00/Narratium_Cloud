@@ -23,6 +23,7 @@
 
 "use client";
 
+import { useState, useEffect } from "react";
 import { CharacterAvatarBackground } from "@/components/CharacterAvatarBackground";
 import { trackButtonClick } from "@/utils/google-analytics";
 import { useLanguage } from "@/app/i18n";
@@ -64,7 +65,19 @@ export default function CharacterChatHeader({
   toggleSidebar,
   onSwitchToView,
 }: Props) {
-  const { t } = useLanguage();
+  const { t, fontClass } = useLanguage();
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   return (
     <div className="bg-[#1a1816] border-b border-[#534741] p-4 flex items-center">
@@ -127,6 +140,11 @@ export default function CharacterChatHeader({
                 />
               </circle>
             </svg>
+            {isMobile && (
+              <span className={`ml-2 text-xs ${fontClass} group-hover:text-amber-300 transition-colors duration-300`}>
+                {t("characterChat.expandSidebar")}
+              </span>
+            )}
           </div>
 
           <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0 h-[1px] bg-gradient-to-r from-transparent via-amber-400 to-transparent group-hover:w-3/4 transition-all duration-500"></div>

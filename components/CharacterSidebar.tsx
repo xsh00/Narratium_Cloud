@@ -174,12 +174,17 @@ const CharacterSidebar: React.FC<CharacterSidebarProps> = ({
 
   return (
     <>
+      {/* Mobile background overlay */}
+      {isMobile && !isCollapsed && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40" />
+      )}
+      
       <div
         className={`${
           isCollapsed
             ? "w-0 p-0 opacity-0 breathing-bg"
             : isMobile
-              ? "w-full text-[12px] leading-tight breathing-bg"
+              ? "fixed inset-0 z-50 w-full text-[12px] leading-tight breathing-bg"
               : "w-[18rem] text-[14px] leading-normal breathing-bg"
         }
           relative overflow-hidden
@@ -187,6 +192,33 @@ const CharacterSidebar: React.FC<CharacterSidebarProps> = ({
           h-full flex flex-col
           magic-border transition-all duration-300 ease-in-out`}
       >
+        {/* Mobile close button */}
+        {isMobile && !isCollapsed && (
+          <div className="absolute top-4 right-4 z-10">
+            <button
+              onClick={() => {
+                trackButtonClick("CharacterSidebar", "移动端关闭侧边栏");
+                toggleSidebar();
+              }}
+              className="w-8 h-8 flex items-center justify-center text-[#f4e8c1] bg-[#1c1c1c] rounded-full border border-[#333333] shadow-inner transition-all duration-300 hover:bg-[#252525] hover:border-[#444444] hover:text-amber-400 hover:shadow-[0_0_8px_rgba(251,146,60,0.4)]"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M18 6L6 18M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        )}
+
         <div
           className="px-2 py-1 flex justify-between items-center text-xs text-[#8a8a8a] uppercase tracking-wider font-medium text-[8px] md:text-[10px] transition-all duration-300 ease-in-out overflow-hidden mt-4 mx-4"
           style={{ opacity: isCollapsed ? 0 : 1 }}
