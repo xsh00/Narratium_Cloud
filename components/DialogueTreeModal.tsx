@@ -192,7 +192,7 @@ function DialogueNodeComponent({ id, data }: NodeProps<DialogueNode["data"]>) {
 
   return (
     <div
-      className={`fantasy-bg border ${borderColor} rounded-md p-3 shadow-md w-72 ${hoverBorderColor} transition-all duration-300 relative cursor-pointer ${fontClass} ${data.isCurrentPath ? "bg-opacity-100" : "bg-opacity-70"}`}
+      className={`fantasy-bg border ${borderColor} rounded-md p-2 md:p-3 shadow-md w-64 md:w-72 ${hoverBorderColor} transition-all duration-300 relative cursor-pointer ${fontClass} ${data.isCurrentPath ? "bg-opacity-100" : "bg-opacity-70"}`}
       onClick={handleNodeClick}
     >
       {showRootTooltip && (
@@ -203,7 +203,7 @@ function DialogueNodeComponent({ id, data }: NodeProps<DialogueNode["data"]>) {
           </div>
         </div>
       )}
-      <div className="absolute top-2 right-2 z-10">
+      <div className="absolute top-1 right-1 md:top-2 md:right-2 z-10">
         <button
           onClick={(e) => {
             trackButtonClick("DialogueTreeModal", "跳转到节点");
@@ -245,16 +245,16 @@ function DialogueNodeComponent({ id, data }: NodeProps<DialogueNode["data"]>) {
               : "!bg-amber-700 !border-amber-900"
         }`}
       />
-      <div
-        className={`${textColor} text-sm ${serifFontClass} ${
-          id === "root"
-            ? "hover:text-purple-300"
-            : data.isCurrentPath
-              ? "hover:text-red-300"
-              : "hover:text-amber-700"
-        } transition-colors duration-300 flex items-center`}
-        onClick={handleToggleExpand}
-      >
+              <div
+          className={`${textColor} text-xs md:text-sm ${serifFontClass} ${
+            id === "root"
+              ? "hover:text-purple-300"
+              : data.isCurrentPath
+                ? "hover:text-red-300"
+                : "hover:text-amber-700"
+          } transition-colors duration-300 flex items-center`}
+          onClick={handleToggleExpand}
+        >
         <div
           className={`w-5 h-5 mr-2 flex-shrink-0 ${expandIconColor} bg-[#1c1c1c] rounded-full border ${borderColor} flex items-center justify-center`}
         >
@@ -290,20 +290,20 @@ function DialogueNodeComponent({ id, data }: NodeProps<DialogueNode["data"]>) {
         </div>
         {steps.length > 0 ? (
           <ol
-            className={`list-decimal list-inside ml-1 ${serifFontClass} text-sm`}
+            className={`list-decimal list-inside ml-1 ${serifFontClass} text-xs md:text-sm`}
           >
             {steps.map((step, index) => (
               <li key={index}>{step}</li>
             ))}
           </ol>
         ) : (
-          <div className={`${serifFontClass} text-sm truncate max-w-[200px]`}>
+          <div className={`${serifFontClass} text-xs md:text-sm truncate max-w-[180px] md:max-w-[200px]`}>
             {data.label || t("dialogue.node")}
           </div>
         )}
       </div>
       {isExpanded && (
-        <div className="mt-3 p-3 bg-[#1c1c1c] rounded border border-[#444444] max-h-60 overflow-y-auto fantasy-scrollbar">
+        <div className="mt-2 md:mt-3 p-2 md:p-3 bg-[#1c1c1c] rounded border border-[#444444] max-h-48 md:max-h-60 overflow-y-auto fantasy-scrollbar">
           {data.assistantResponse && (
             <div>
               <div className={`text-[#a08c6a] text-xs ${fontClass} mb-1`}>
@@ -502,8 +502,8 @@ export default function DialogueTreeModal({
     const nodeCount = nodes.length;
     const columns =
       nodeCount <= 3 ? 1 : Math.max(1, Math.round(Math.sqrt(nodeCount)));
-    const nodeWidth = 280;
-    const nodeHeight = 140;
+          const nodeWidth = window.innerWidth < 768 ? 260 : 280; // 手机端使用更小的宽度
+      const nodeHeight = 140;
 
     const baseHorizontalGap = 500;
     const baseVerticalGap = 250;
@@ -559,7 +559,7 @@ export default function DialogueTreeModal({
         id: "root",
         children: nodes.map((node) => ({
           id: node.id,
-          width: 280, // Set node width for ELK
+          width: window.innerWidth < 768 ? 260 : 280, // 手机端使用更小的宽度
           height: 140, // Set node height for ELK
         })),
         edges: edges.map((edge) => ({
@@ -1088,7 +1088,7 @@ export default function DialogueTreeModal({
         tempNodeId = node.parentNodeId;
       }
 
-      const nodeWidth = 220;
+      const nodeWidth = window.innerWidth < 768 ? 200 : 220; // 手机端使用更小的宽度
       const nodeHeight = 120;
       const newNodes: DialogueNode[] = [];
       const newEdges: Edge[] = [];
@@ -1433,7 +1433,7 @@ export default function DialogueTreeModal({
           },
           position: { x: 0, y: 0 }, // Temporary position
           style: {
-            width: 280,
+            width: window.innerWidth < 768 ? 260 : 280, // 手机端使用更小的宽度
             boxShadow:
               "0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.1)",
           },
@@ -1620,10 +1620,10 @@ export default function DialogueTreeModal({
       <div className="absolute inset-0 backdrop-blur-sm"></div>
       <div
         ref={modalRef}
-        className="bg-[#1e1c1b] bg-opacity-75 border border-[#534741] rounded-lg shadow-lg p-4 w-[90%] h-[80%] max-w-5xl mx-4 fantasy-bg relative z-10 backdrop-filter backdrop-blur-sm"
+        className="bg-[#1e1c1b] bg-opacity-75 border border-[#534741] rounded-lg shadow-lg p-2 md:p-4 w-[95%] md:w-[90%] h-[90%] md:h-[80%] max-w-5xl mx-2 md:mx-4 fantasy-bg relative z-10 backdrop-filter backdrop-blur-sm"
       >
-        <div className="flex justify-between items-center mb-4">
-          <h3 className={`text-[#f4e8c1] text-lg ${serifFontClass}`}>
+        <div className="flex justify-between items-center mb-2 md:mb-4">
+          <h3 className={`text-[#f4e8c1] text-sm md:text-lg ${serifFontClass}`}>
             {t("dialogue.treeVisualization")}
           </h3>
           <button
@@ -1635,14 +1635,15 @@ export default function DialogueTreeModal({
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
+              width="16"
+              height="16"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
+              className="md:w-5 md:h-5"
             >
               <line x1="18" y1="6" x2="6" y2="18"></line>
               <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -1651,7 +1652,7 @@ export default function DialogueTreeModal({
         </div>
 
         {!characterId ? (
-          <div className="h-[calc(100%-6rem)] w-full flex flex-col items-center justify-center">
+          <div className="h-[calc(100%-4rem)] md:h-[calc(100%-6rem)] w-full flex flex-col items-center justify-center">
             <div className="text-center p-6 border border-[#534741] rounded-lg bg-[#1c1c1c] max-w-lg">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -1687,7 +1688,7 @@ export default function DialogueTreeModal({
             </div>
           </div>
         ) : !dataLoaded ? (
-          <div className="h-[calc(100%-6rem)] w-full flex flex-col items-center justify-center">
+          <div className="h-[calc(100%-4rem)] md:h-[calc(100%-6rem)] w-full flex flex-col items-center justify-center">
             <div className="text-center p-6 border border-[#534741] rounded-lg bg-[#1c1c1c] max-w-lg">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-amber-400 mx-auto mb-4"></div>
               <p className={`text-[#f4e8c1] ${fontClass}`}>
@@ -1696,7 +1697,7 @@ export default function DialogueTreeModal({
             </div>
           </div>
         ) : nodes.length === 0 ? (
-          <div className="h-[calc(100%-6rem)] w-full flex flex-col items-center justify-center">
+          <div className="h-[calc(100%-4rem)] md:h-[calc(100%-6rem)] w-full flex flex-col items-center justify-center">
             <div className="text-center p-6 border border-[#534741] rounded-lg bg-[#1c1c1c] max-w-lg">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -1732,7 +1733,7 @@ export default function DialogueTreeModal({
             </div>
           </div>
         ) : (
-          <div className="h-[calc(100%-6rem)] w-full">
+          <div className="h-[calc(100%-4rem)] md:h-[calc(100%-6rem)] w-full">
             <ReactFlow
               nodes={nodes}
               edges={edges}
@@ -1752,7 +1753,7 @@ export default function DialogueTreeModal({
                 nodeStrokeWidth={3}
                 nodeColor="#d1a35c"
                 maskColor="rgba(30, 28, 27, 0.5)"
-                className="fantasy-bg border border-[#534741] rounded-md shadow-md overflow-hidden"
+                className="hidden md:block fantasy-bg border border-[#534741] rounded-md shadow-md overflow-hidden"
                 style={{
                   backgroundColor: "rgba(28, 28, 27, 0.7)",
                   border: "1px solid #534741",
@@ -1762,11 +1763,11 @@ export default function DialogueTreeModal({
               <Background color="#534741" gap={16} size={1.5} />
               <Panel
                 position="top-right"
-                className="fantasy-bg border border-[#534741] p-3 rounded-md shadow-md"
+                className="fantasy-bg border border-[#534741] p-1 md:p-3 rounded-md shadow-md"
               >
-                <div className="flex flex-col space-y-2">
+                <div className="flex flex-col space-y-1 md:space-y-2">
                   {/* Layout Status */}
-                  <div className="flex flex-col space-y-1 pb-2 border-b border-[#534741]">
+                  <div className="flex flex-col space-y-1 pb-1 md:pb-2 border-b border-[#534741]">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center">
                         <div
@@ -1782,7 +1783,7 @@ export default function DialogueTreeModal({
                           trackButtonClick("DialogueTreeModal", "重置布局");
                           resetLayout();
                         }}
-                        className={`text-[#8a8a8a] hover:text-amber-400 transition-colors duration-300 text-xs ${fontClass} px-2 py-1 rounded hover:bg-[#2a2825]`}
+                        className={`text-[#8a8a8a] hover:text-amber-400 transition-colors duration-300 text-xs ${fontClass} px-1 md:px-2 py-1 rounded hover:bg-[#2a2825]`}
                         title={t("dialogue.resetLayout")}
                       >
                         {t("dialogue.resetLayout")}
@@ -1790,64 +1791,67 @@ export default function DialogueTreeModal({
                     </div>
                   </div>
 
-                  <div className="flex items-center">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="text-amber-400 mr-2"
-                    >
-                      <polyline points="15 10 20 15 15 20"></polyline>
-                      <path d="M4 4v7a4 4 0 0 0 4 4h12"></path>
-                    </svg>
-                    <span className={`text-[#d1a35c] text-xs ${fontClass}`}>
-                      {t("dialogue.jumpToNode")}
-                    </span>
-                  </div>
-                  <div className="flex items-center">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="text-amber-400 mr-2"
-                    >
-                      <path d="M9 18l6-6-6-6" />
-                    </svg>
-                    <span className={`text-[#d1a35c] text-xs ${fontClass}`}>
-                      {t("dialogue.expandNode")}
-                    </span>
-                  </div>
-                  <div className="flex items-center">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="text-amber-400 mr-2"
-                    >
-                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                    </svg>
-                    <span className={`text-[#d1a35c] text-xs ${fontClass}`}>
-                      {t("dialogue.editNode")}
-                    </span>
+                  {/* 手机端隐藏操作说明，只保留必要功能 */}
+                  <div className="hidden md:block">
+                    <div className="flex items-center">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="text-amber-400 mr-2"
+                      >
+                        <polyline points="15 10 20 15 15 20"></polyline>
+                        <path d="M4 4v7a4 4 0 0 0 4 4h12"></path>
+                      </svg>
+                      <span className={`text-[#d1a35c] text-xs ${fontClass}`}>
+                        {t("dialogue.jumpToNode")}
+                      </span>
+                    </div>
+                    <div className="flex items-center">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="text-amber-400 mr-2"
+                      >
+                        <path d="M9 18l6-6-6-6" />
+                      </svg>
+                      <span className={`text-[#d1a35c] text-xs ${fontClass}`}>
+                        {t("dialogue.expandNode")}
+                      </span>
+                    </div>
+                    <div className="flex items-center">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="text-amber-400 mr-2"
+                      >
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                      </svg>
+                      <span className={`text-[#d1a35c] text-xs ${fontClass}`}>
+                        {t("dialogue.editNode")}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </Panel>
