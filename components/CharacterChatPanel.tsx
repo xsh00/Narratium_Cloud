@@ -129,6 +129,13 @@ export default function CharacterChatPanel({
         }));
         setStreamingTarget(-1);
       }
+    } else {
+      // 默认开启流式传输
+      setActiveModes((prev) => ({
+        ...prev,
+        streaming: true,
+      }));
+      localStorage.setItem("streamingEnabled", "true");
     }
   }, []);
 
@@ -538,6 +545,13 @@ export default function CharacterChatPanel({
         ...prev,
         fastModel: fastModelEnabled === "true",
       }));
+    } else {
+      // 默认开启快速回复
+      setActiveModes((prev) => ({
+        ...prev,
+        fastModel: true,
+      }));
+      localStorage.setItem("fastModelEnabled", "true");
     }
   }, []);
 

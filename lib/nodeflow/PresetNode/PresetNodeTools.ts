@@ -48,7 +48,7 @@ export class PresetNodeTools extends NodeTool {
     username?: string,
     charName?: string,
     number?: number,
-    fastModel: boolean = false,
+    fastModel: boolean = true,
     systemPresetType: "mirror_realm" | "novel_king" = "mirror_realm",
   ): Promise<{
     systemMessage: string;

@@ -97,7 +97,7 @@ export class LLMNodeTools extends NodeTool {
       presencePenalty: 0,
       topK: 40,
       repeatPenalty: 1.1,
-      streaming: false,
+      streaming: true,
       streamUsage: false,
     };
 

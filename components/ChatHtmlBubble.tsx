@@ -651,7 +651,7 @@ interface Props {
 export default memo(function ChatHtmlBubble({
   html: rawHtml,
   isLoading = false,
-  enableStreaming = false,
+  enableStreaming = true,
   onContentChange,
 }: Props) {
   const [showLoader, setShowLoader] = useState(

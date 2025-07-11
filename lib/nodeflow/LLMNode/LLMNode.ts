@@ -31,6 +31,7 @@ export class LLMNode extends NodeBase {
     const baseUrl = input.baseUrl;
     const llmType = input.llmType || "openai";
     const temperature = input.temperature;
+    const streaming = input.streaming ?? true;
     const language = input.language || "zh";
 
     if (!systemMessage) {
@@ -51,6 +52,7 @@ export class LLMNode extends NodeBase {
         baseUrl,
         llmType,
         temperature,
+        streaming,
         language,
       },
     )) as string;
