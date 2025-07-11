@@ -355,7 +355,7 @@ export default function CharacterCards() {
       />
 
       <div className="h-full w-full overflow-y-auto">
-        <div className="flex flex-col items-center justify-start w-full py-8">
+        <div className="flex flex-col items-center justify-start w-full py-8 pb-20 md:pb-8">
           <div className="w-full max-w-4xl relative z-10 px-4">
             <motion.div
               initial={{ opacity: 0, y: 20 }}

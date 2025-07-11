@@ -196,14 +196,14 @@ export default function DownloadCharacterModal({
 
         {/* Tag Filter */}
         {allTags.length > 0 && (
-          <div className="mb-4">
-            <div className={`text-sm text-[#c0a480] mb-2 ${fontClass}`}>
+          <div className="mb-3">
+            <div className={`text-xs sm:text-sm text-[#c0a480] mb-1.5 sm:mb-2 ${fontClass}`}>
               {t("downloadModal.filterByTags")}
             </div>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-1.5 sm:gap-2">
               <button
                 onClick={() => setSelectedTag("all")}
-                className={`px-3 py-1.5 rounded-full text-xs sm:text-sm transition-all duration-200 ${
+                className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm transition-all duration-200 ${
                   selectedTag === "all"
                     ? "bg-[#e0cfa0] text-[#534741] border border-[#c0a480]"
                     : "bg-[#252220] text-[#c0a480] border border-[#534741] hover:bg-[#3a2a2a] hover:text-[#ffd475]"
@@ -215,7 +215,7 @@ export default function DownloadCharacterModal({
                 <button
                   key={tag}
                   onClick={() => setSelectedTag(tag)}
-                  className={`px-3 py-1.5 rounded-full text-xs sm:text-sm transition-all duration-200 ${
+                  className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm transition-all duration-200 ${
                     selectedTag === tag
                       ? "bg-[#e0cfa0] text-[#534741] border border-[#c0a480]"
                       : "bg-[#252220] text-[#c0a480] border border-[#534741] hover:bg-[#3a2a2a] hover:text-[#ffd475]"
@@ -245,7 +245,7 @@ export default function DownloadCharacterModal({
               {error}
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 max-h-[60vh] overflow-y-auto fantasy-scrollbar">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 max-h-[60vh] overflow-y-auto fantasy-scrollbar pb-16 md:pb-4">
               {filteredCharacters.map((file) => {
                 const { displayName, tags } = extractCharacterInfo(file.name);
                 return (
