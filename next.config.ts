@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // output: "export", // 注释此行以支持 API 路由
+  output: "export", // 启用静态导出
   distDir: ".next",
   images: {
     domains: ["localhost"],

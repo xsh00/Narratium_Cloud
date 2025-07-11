@@ -9,12 +9,19 @@
     "start": "next start",
     "lint": "next lint",
     "preview": "npx serve -s out -l 3000",
+    "pm2:start": "pm2 start ecosystem.config.js",
+    "pm2:stop": "pm2 stop narratium",
+    "pm2:restart": "pm2 restart narratium",
+    "pm2:reload": "pm2 reload narratium",
     "test": "vitest",
     "pake-mac": "pake out/index.html --name Narratium --use-local-file --icon ./public/icon.icns --multi-arch",
     "pake-win": "pake out/index.html --name Narratium --use-local-file --icon ./public/icon.ico",
     "pake-linux": "pake out/index.html --name narratium --use-local-file --icon ./public/icon.png"
   },
   "dependencies": {
+    "@capacitor/android": "^7.4.1",
+    "@capacitor/cli": "^7.4.1",
+    "@capacitor/core": "^7.4.1",
     "@langchain/core": "^0.3.61",
     "@langchain/langgraph": "^0.3.4",
     "@langchain/ollama": "^0.2.0",
@@ -43,6 +50,7 @@
     "react-markdown": "^10.1.0",
     "react-parallax-tilt": "^1.7.297",
     "reactflow": "^11.11.4",
+    "sharp": "^0.34.3",
     "uuid": "^11.1.0",
     "zod": "^3.25.67",
     "zustand": "^5.0.5"
