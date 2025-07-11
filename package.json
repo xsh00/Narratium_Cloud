@@ -10,6 +10,7 @@
     "lint": "next lint",
     "preview": "npx serve -s out -l 3000",
     "test": "vitest",
+    "clean": "rimraf .next out dist",
     "pake-mac": "pake out/index.html --name Narratium --use-local-file --icon ./public/icon.icns --multi-arch",
     "pake-win": "pake out/index.html --name Narratium --use-local-file --icon ./public/icon.ico",
     "pake-linux": "pake out/index.html --name narratium --use-local-file --icon ./public/icon.png"
@@ -65,6 +66,7 @@
     "eslint": "^9",
     "eslint-config-next": "15.2.4",
     "jsdom": "^26.1.0",
+    "rimraf": "^6.0.1",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^3.2.2"
