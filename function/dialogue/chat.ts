@@ -32,7 +32,7 @@ export async function handleCharacterChatRequest(payload: {
       language = "zh",
       number = 200,
       nodeId,
-      fastModel = false,
+      fastModel = true,
     } = payload;
 
     if (!characterId || !message) {
@@ -54,7 +54,7 @@ export async function handleCharacterChatRequest(payload: {
         baseUrl,
         llmType: llmType as "openai" | "ollama",
         temperature: 0.7,
-        streaming: false,
+        streaming: payload.streaming ?? true,
         number,
         fastModel,
         systemPresetType: getCurrentSystemPresetType(),

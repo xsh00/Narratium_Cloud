@@ -62,7 +62,7 @@ export class CharacterDialogue {
       baseUrl,
       llmType,
       temperature = 0.7,
-      streaming = false,
+      streaming = true,
     } = options;
 
     const safeModel = modelName && modelName.trim() ? modelName.trim() : "";
@@ -127,7 +127,7 @@ export class CharacterDialogue {
         topP: llmSettings.topP,
         frequencyPenalty: llmSettings.frequencyPenalty,
         presencePenalty: llmSettings.presencePenalty,
-        streaming: false,
+        streaming: streaming,
         streamUsage: false,
       });
     } else if (llmType === "ollama") {
@@ -141,7 +141,7 @@ export class CharacterDialogue {
         frequencyPenalty: llmSettings.frequencyPenalty,
         presencePenalty: llmSettings.presencePenalty,
         repeatPenalty: llmSettings.repeatPenalty,
-        streaming: false,
+        streaming: streaming,
       });
     }
   }

@@ -74,8 +74,8 @@ interface APIConfig {
 const DEFAULT_API_KEY =
   typeof process !== "undefined"
     ? process.env.NEXT_PUBLIC_API_KEY ||
-      "sk-terxMbHAT7lEAKZIs7UDFp_FvScR_3p9hzwJREjgbWM9IgeN"
-    : "sk-terxMbHAT7lEAKZIs7UDFp_FvScR_3p9hzwJREjgbWM9IgeN";
+      "sk-5zi5ZuqP_GADx_IYQFhA3AMbFj2X3ucDOqLB01CLvyOpcCZh"
+    : "sk-5zi5ZuqP_GADx_IYQFhA3AMbFj2X3ucDOqLB01CLvyOpcCZh";
 const DEFAULT_API_URL =
   typeof process !== "undefined"
     ? process.env.NEXT_PUBLIC_API_URL || "https://api.sillytarven.top/v1"
@@ -146,13 +146,11 @@ export default function ModelSidebar({
       }
     }
 
-    // If no configs exist, auto-create a default config with the provided API settings
+    // If no configs exist, auto-create a single default config (DefaultConfigInitializer will handle the 3-config setup)
     if (mergedConfigs.length === 0) {
-      // Generate a default config name
-      const defaultConfigName = "【1】默认API配置";
       const defaultConfig: APIConfig = {
         id: generateId(),
-        name: defaultConfigName,
+        name: "【1】默认API配置",
         type: "openai",
         baseUrl: DEFAULT_API_URL,
         model: "gemini-2.5-pro",
