@@ -77,7 +77,14 @@
     "testSuccess": "Model test successful",
     "testError": "Model test failed",
     "apiTestFailed": "API test failed",
-    "modelTestFailed": "Model test failed"
+    "modelTestFailed": "Model test failed",
+    "advancedConfig": "Advanced Model Configuration",
+    "advancedConfigDescription": "Enter your API Key to automatically create advanced API configuration",
+    "advancedConfigPlaceholder": "Please enter your API Key",
+    "createAdvancedConfig": "Create Advanced Config",
+    "advancedConfigCreated": "Advanced configuration created successfully",
+    "advancedConfigError": "Failed to create advanced configuration",
+    "getAdvancedAPI": "Get Advanced API"
   },
   "llmSettings": {
     "title": "Settings",

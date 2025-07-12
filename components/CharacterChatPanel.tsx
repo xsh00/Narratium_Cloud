@@ -468,6 +468,73 @@ export default function CharacterChatPanel({
   const handleModelSwitch = (configId: string, modelName?: string) => {
     const selectedConfig = configs.find((c) => c.id === configId);
     if (!selectedConfig) {
+      // Try to reload configs from localStorage in case they're out of sync
+      const savedConfigsStr = localStorage.getItem("apiConfigs");
+      if (savedConfigsStr) {
+        try {
+          const reloadedConfigs = JSON.parse(savedConfigsStr) as APIConfig[];
+          const reloadedConfig = reloadedConfigs.find((c) => c.id === configId);
+          if (reloadedConfig) {
+            setConfigs(reloadedConfigs);
+            // Continue with the reloaded config
+            const configToUse = reloadedConfig;
+            // If modelName is provided, update the config's model
+            if (modelName && modelName !== configToUse.model) {
+              const actualModelName =
+                modelName === "default" ? configToUse.model || "default" : modelName;
+              configToUse.model = actualModelName;
+              const updatedConfigs = reloadedConfigs.map((c) =>
+                c.id === configId ? { ...c, model: actualModelName } : c,
+              );
+              setConfigs(updatedConfigs);
+              localStorage.setItem("apiConfigs", JSON.stringify(updatedConfigs));
+            }
+
+            setActiveConfigId(configId);
+            setCurrentModel(configToUse.model);
+            localStorage.setItem("activeConfigId", configId);
+
+            // Load configuration values to localStorage
+            localStorage.setItem("llmType", configToUse.type);
+            localStorage.setItem(
+              configToUse.type === "openai" ? "openaiBaseUrl" : "ollamaBaseUrl",
+              configToUse.baseUrl,
+            );
+            localStorage.setItem(
+              configToUse.type === "openai" ? "openaiModel" : "ollamaModel",
+              configToUse.model,
+            );
+            localStorage.setItem("modelName", configToUse.model);
+            localStorage.setItem("modelBaseUrl", configToUse.baseUrl);
+
+            // Store API key properly
+            if (configToUse.type === "openai" && configToUse.apiKey) {
+              localStorage.setItem("openaiApiKey", configToUse.apiKey);
+              localStorage.setItem("apiKey", configToUse.apiKey);
+            }
+
+            // Dispatch custom event to notify other components
+            window.dispatchEvent(
+              new CustomEvent("modelChanged", {
+                detail: {
+                  configId,
+                  config: configToUse,
+                  modelName: configToUse.model,
+                  configName: configToUse.name,
+                },
+              }),
+            );
+
+            setShowApiDropdown(false);
+            setShowModelDropdown(false);
+            trackButtonClick("CharacterChat", "切换模型");
+            return;
+          }
+        } catch (e) {
+          console.error("Error parsing reloaded configs", e);
+        }
+      }
+      
       console.error("CharacterChatPanel: Config not found for id", configId);
       return;
     }
@@ -572,7 +639,25 @@ export default function CharacterChatPanel({
 
       if (savedConfigsStr) {
         try {
-          loadedConfigs = JSON.parse(savedConfigsStr) as APIConfig[];
+          const parsedConfigs = JSON.parse(savedConfigsStr) as APIConfig[];
+          loadedConfigs = parsedConfigs.filter((config) => {
+            if (!config || typeof config !== 'object') {
+              console.warn("CharacterChatPanel: Invalid config object found", config);
+              return false;
+            }
+
+            if (!config.id || !config.name || !config.type || !config.baseUrl || !config.model) {
+              console.warn("CharacterChatPanel: Config missing required fields", config);
+              return false;
+            }
+
+            if (!['openai', 'ollama'].includes(config.type)) {
+              console.warn("CharacterChatPanel: Config has invalid type", config.type);
+              return false;
+            }
+
+            return true;
+          });
         } catch (e) {
           console.error("Error parsing saved API configs", e);
         }
@@ -583,6 +668,12 @@ export default function CharacterChatPanel({
         storedActiveId && loadedConfigs.some((c) => c.id === storedActiveId)
           ? storedActiveId
           : loadedConfigs[0]?.id || "";
+
+      // Clean up invalid activeConfigId if it doesn't exist in configs
+      if (storedActiveId && !loadedConfigs.some((c) => c.id === storedActiveId)) {
+        console.warn("CharacterChatPanel: Active config ID not found in configs, clearing from localStorage");
+        localStorage.removeItem("activeConfigId");
+      }
 
       setConfigs(loadedConfigs);
       setActiveConfigId(activeIdCandidate);

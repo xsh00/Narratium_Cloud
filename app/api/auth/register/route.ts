@@ -54,13 +54,13 @@ export async function POST(request: NextRequest) {
       }
 
       // 检查邮箱是否已注册
-      const existingUser = userRepository.findByEmail(email);
+      const existingUser = await userRepository.findByEmail(email);
       if (existingUser) {
         return NextResponse.json({ error: '该邮箱已注册' }, { status: 400 });
       }
 
       const verificationCode = generateVerificationCode();
-      verificationCodeRepository.set(email, verificationCode, 5 * 60 * 1000); // 5分钟过期
+      await verificationCodeRepository.set(email, verificationCode, 5 * 60 * 1000); // 5分钟过期
 
       try {
         await sendVerificationEmail(email, verificationCode);
@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ message: '验证码已发送' });
       } catch (emailError: any) {
         console.error('邮件发送失败:', emailError);
-        verificationCodeRepository.delete(email);
+        await verificationCodeRepository.delete(email);
         
         // 提供更详细的错误信息
         let errorMessage = '邮件发送失败，请检查邮箱配置';
@@ -91,14 +91,14 @@ export async function POST(request: NextRequest) {
       }
 
       // 验证验证码
-      const storedCode = verificationCodeRepository.get(email);
+      const storedCode = await verificationCodeRepository.get(email);
       
       if (!storedCode || storedCode.code !== code) {
         return NextResponse.json({ error: '验证码无效或已过期' }, { status: 400 });
       }
 
       // 检查邮箱是否已注册
-      const existingUser = userRepository.findByEmail(email);
+      const existingUser = await userRepository.findByEmail(email);
       if (existingUser) {
         return NextResponse.json({ error: '该邮箱已注册' }, { status: 400 });
       }
@@ -107,13 +107,13 @@ export async function POST(request: NextRequest) {
       const hashedPassword = await hash(password, 12);
 
       // 创建用户
-      const newUser = userRepository.create({
+      const newUser = await userRepository.create({
         id: Date.now().toString(),
         email,
         password: hashedPassword,
       });
 
-      verificationCodeRepository.delete(email);
+      await verificationCodeRepository.delete(email);
 
       return NextResponse.json({ 
         message: '注册成功',

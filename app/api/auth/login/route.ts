@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 查找用户
-    const user = userRepository.findByEmail(email);
+    const user = await userRepository.findByEmail(email);
     if (!user) {
       return NextResponse.json({ error: '邮箱或密码错误' }, { status: 400 });
     }

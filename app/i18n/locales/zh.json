@@ -79,7 +79,14 @@
     "testSuccess": "模型测试成功",
     "testError": "模型测试失败",
     "apiTestFailed": "API 测试失败",
-    "modelTestFailed": "模型测试失败"
+    "modelTestFailed": "模型测试失败",
+    "advancedConfig": "高级模型配置",
+    "advancedConfigDescription": "输入您的API Key，自动创建高级API配置",
+    "advancedConfigPlaceholder": "请输入您的API Key",
+    "createAdvancedConfig": "创建高级配置",
+    "advancedConfigCreated": "高级配置创建成功",
+    "advancedConfigError": "高级配置创建失败",
+    "getAdvancedAPI": "获取高级API"
   },
   "llmSettings": {
     "title": "设置",

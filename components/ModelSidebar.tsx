@@ -111,6 +111,11 @@ export default function ModelSidebar({
   const [modelListEmpty, setModelListEmpty] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
+  // Advanced configuration states
+  const [advancedApiKey, setAdvancedApiKey] = useState("");
+  const [advancedConfigSuccess, setAdvancedConfigSuccess] = useState(false);
+  const [advancedConfigError, setAdvancedConfigError] = useState(false);
+
   // Mobile detection
   useEffect(() => {
     const checkMobile = () => {
@@ -134,7 +139,8 @@ export default function ModelSidebar({
 
     if (savedConfigsStr) {
       try {
-        mergedConfigs = JSON.parse(savedConfigsStr) as APIConfig[];
+        const parsedConfigs = JSON.parse(savedConfigsStr) as APIConfig[];
+        mergedConfigs = validateConfigs(parsedConfigs);
       } catch (e) {
         console.error("Error parsing saved API configs", e);
       }
@@ -163,11 +169,20 @@ export default function ModelSidebar({
         ? storedActiveId
         : mergedConfigs[0]?.id || "";
 
+    // Clean up invalid activeConfigId if it doesn't exist in configs
+    if (storedActiveId && !mergedConfigs.some((c) => c.id === storedActiveId)) {
+      console.warn("ModelSidebar: Active config ID not found in configs, clearing from localStorage");
+      localStorage.removeItem("activeConfigId");
+    }
+
     setConfigs(mergedConfigs);
     setActiveConfigId(activeIdCandidate);
 
     if (mergedConfigs.length > 0) {
-      loadConfigToForm(mergedConfigs.find((c) => c.id === activeIdCandidate)!);
+      const activeConfig = mergedConfigs.find((c) => c.id === activeIdCandidate);
+      if (activeConfig) {
+        loadConfigToForm(activeConfig);
+      }
     }
   }, []);
 
@@ -175,13 +190,43 @@ export default function ModelSidebar({
   useEffect(() => {
     const handleModelChanged = (event: CustomEvent) => {
       const { configId, modelName, configName } = event.detail;
-      if (configId && configId !== activeConfigId) {
+      
+      // Validate configId exists
+      if (!configId) {
+        console.warn("ModelSidebar: Received modelChanged event without configId");
+        return;
+      }
+
+      if (configId !== activeConfigId) {
         const selectedConfig = configs.find((c) => c.id === configId);
         if (selectedConfig) {
           setActiveConfigId(configId);
           loadConfigToForm(selectedConfig);
         } else {
+          // Try to reload configs from localStorage in case they're out of sync
+          const savedConfigsStr = localStorage.getItem("apiConfigs");
+          if (savedConfigsStr) {
+            try {
+              const reloadedConfigs = JSON.parse(savedConfigsStr) as APIConfig[];
+              const reloadedConfig = reloadedConfigs.find((c) => c.id === configId);
+              if (reloadedConfig) {
+                setConfigs(reloadedConfigs);
+                setActiveConfigId(configId);
+                loadConfigToForm(reloadedConfig);
+                return;
+              }
+            } catch (e) {
+              console.error("Error parsing reloaded configs", e);
+            }
+          }
+          
+          // If still not found, log error and try to fallback to first available config
           console.error("ModelSidebar: Config not found for id", configId);
+          if (configs.length > 0) {
+            console.log("ModelSidebar: Falling back to first available config");
+            setActiveConfigId(configs[0].id);
+            loadConfigToForm(configs[0]);
+          }
         }
       } else if (
         configId === activeConfigId &&
@@ -248,7 +293,42 @@ export default function ModelSidebar({
    * Generates a unique ID for new configurations
    * @returns {string} A unique identifier
    */
-  const generateId = () => `api_${Date.now()}`;
+  const generateId = () => {
+    const timestamp = Date.now();
+    const random = Math.random().toString(36).substr(2, 9);
+    return `api_${timestamp}_${random}`;
+  };
+
+  /**
+   * Validates and cleans up configurations
+   * @param {APIConfig[]} configs - The configurations to validate
+   * @returns {APIConfig[]} Cleaned configurations
+   */
+  const validateConfigs = (configs: APIConfig[]): APIConfig[] => {
+    if (!Array.isArray(configs)) {
+      console.warn("ModelSidebar: Configs is not an array, returning empty array");
+      return [];
+    }
+
+    return configs.filter((config) => {
+      if (!config || typeof config !== 'object') {
+        console.warn("ModelSidebar: Invalid config object found", config);
+        return false;
+      }
+
+      if (!config.id || !config.name || !config.type || !config.baseUrl || !config.model) {
+        console.warn("ModelSidebar: Config missing required fields", config);
+        return false;
+      }
+
+      if (!['openai', 'ollama'].includes(config.type)) {
+        console.warn("ModelSidebar: Config has invalid type", config.type);
+        return false;
+      }
+
+      return true;
+    });
+  };
 
   /**
    * Initiates the creation of a new configuration
@@ -618,6 +698,69 @@ export default function ModelSidebar({
       setTimeout(() => setTestModelError(false), 2000);
     } finally {
       setIsTesting(false);
+    }
+  };
+
+  /**
+   * Opens the advanced API purchase link
+   */
+  const handleGetAdvancedAPI = () => {
+    trackButtonClick("ModelSidebar", "获取高级API");
+    window.open("https://68n.cn/azrj5", "_blank");
+  };
+
+  /**
+   * Creates an advanced configuration with GPTBest settings
+   * Automatically sets up the configuration with predefined values
+   */
+  const handleCreateAdvancedConfig = () => {
+    if (!advancedApiKey.trim()) {
+      setAdvancedConfigError(true);
+      setTimeout(() => setAdvancedConfigError(false), 2000);
+      return;
+    }
+
+    try {
+      const configName = "高级API配置";
+      const newConfig: APIConfig = {
+        id: generateId(),
+        name: configName,
+        type: "openai",
+        baseUrl: "https://api.gptbest.vip/v1",
+        model: "gemini-2.5-pro",
+        apiKey: advancedApiKey.trim(),
+      };
+
+      const currentConfigs = Array.isArray(configs) ? configs : [];
+      const updatedConfigs = [...currentConfigs, newConfig];
+      setConfigs(updatedConfigs);
+      setActiveConfigId(newConfig.id);
+      setAdvancedApiKey("");
+
+      localStorage.setItem("apiConfigs", JSON.stringify(updatedConfigs));
+      localStorage.setItem("activeConfigId", newConfig.id);
+
+      // Load the new configuration into the form
+      loadConfigToForm(newConfig);
+
+      // Dispatch model change event for new config
+      window.dispatchEvent(
+        new CustomEvent("modelChanged", {
+          detail: {
+            configId: newConfig.id,
+            config: newConfig,
+            modelName: newConfig.model,
+            configName: newConfig.name,
+          },
+        }),
+      );
+
+      setAdvancedConfigSuccess(true);
+      setTimeout(() => setAdvancedConfigSuccess(false), 2000);
+    } catch (error) {
+      console.error("Failed to create advanced config:", error);
+      setAdvancedConfigError(true);
+      setTimeout(() => setAdvancedConfigError(false), 2000);
     }
   };
 
@@ -1240,6 +1383,113 @@ export default function ModelSidebar({
                   </button>
                 </div>
               )}
+
+              {/* Advanced Model Configuration Section */}
+              <div className="mt-6 border border-[#534741] rounded-md p-4 bg-[#1c1c1c] bg-opacity-50 backdrop-blur-sm">
+                <div className="mb-3">
+                  <h3 className={`text-[#f4e8c1] text-sm font-medium mb-2 ${fontClass}`}>
+                    {t("modelSettings.advancedConfig") || "Advanced Model Configuration"}
+                  </h3>
+                  <p className="text-xs text-[#8a8a8a] mb-3">
+                    {t("modelSettings.advancedConfigDescription") || "Enter your API Key to automatically create advanced API configuration"}
+                  </p>
+                </div>
+
+                {/* Advanced API Get Button */}
+                <div className="mb-4">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleGetAdvancedAPI();
+                    }}
+                    className="bg-gradient-to-r from-[#d1a35c] to-[#f4e8c1] hover:from-[#f4e8c1] hover:to-[#d1a35c] text-[#1c1c1c] font-bold py-3 px-4 text-sm rounded border border-[#d1a35c] w-full transition-all duration-200 hover:shadow-[0_0_12px_rgba(209,163,92,0.4)] transform hover:scale-[1.02] flex items-center justify-center gap-2"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                    </svg>
+                    {t("modelSettings.getAdvancedAPI") || "Get Advanced API"}
+                  </button>
+                </div>
+
+                <div className="mb-3">
+                  <input
+                    type="text"
+                    value={advancedApiKey}
+                    onChange={(e) => setAdvancedApiKey(e.target.value)}
+                    placeholder={t("modelSettings.advancedConfigPlaceholder") || "Please enter your API Key"}
+                    className="bg-[#292929] border border-[#534741] rounded w-full py-3 px-3 text-sm text-[#d0d0d0] leading-tight focus:outline-none focus:border-[#d1a35c] transition-colors"
+                  />
+                </div>
+
+                <div className="relative">
+                  <button
+                    onClick={(e) => {
+                      trackButtonClick("ModelSidebar", "创建高级配置");
+                      e.stopPropagation();
+                      handleCreateAdvancedConfig();
+                    }}
+                    disabled={!advancedApiKey.trim()}
+                    className={`bg-[#3e3a3a] hover:bg-[#534741] text-[#f4e8c1] font-normal py-3 px-4 text-sm rounded border border-[#d1a35c] w-full transition-all duration-200 hover:shadow-[0_0_8px_rgba(209,163,92,0.2)] ${fontClass} disabled:opacity-50 disabled:cursor-not-allowed`}
+                  >
+                    {t("modelSettings.createAdvancedConfig") || "Create Advanced Config"}
+                  </button>
+
+                  {advancedConfigSuccess && (
+                    <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center bg-[#333333] bg-opacity-80 rounded transition-opacity backdrop-blur-sm">
+                      <div className="flex items-center">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-5 w-5 text-green-500 mr-2"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                        <span className={`text-white text-sm ${fontClass}`}>
+                          {t("modelSettings.advancedConfigCreated") || "Advanced configuration created successfully"}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  {advancedConfigError && (
+                    <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center bg-[#333333] bg-opacity-80 rounded transition-opacity backdrop-blur-sm">
+                      <div className="flex items-center">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-5 w-5 text-red-500 mr-2"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                        <span className={`text-white text-sm ${fontClass}`}>
+                          {t("modelSettings.advancedConfigError") || "Failed to create advanced configuration"}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -1881,6 +2131,120 @@ export default function ModelSidebar({
               </button>
             </div>
           )}
+
+          {/* Advanced Model Configuration Section */}
+          <div className="mt-3 sm:mt-3 mt-2 border border-[#534741] rounded-md p-2 sm:p-2 p-1.5 bg-[#1c1c1c] bg-opacity-50 backdrop-blur-sm">
+            <div className="mb-2 sm:mb-2 mb-1.5">
+              <h3 className={`text-[#f4e8c1] text-xs sm:text-xs text-[10px] font-medium mb-1 sm:mb-1 mb-0.5 ${fontClass}`}>
+                {t("modelSettings.advancedConfig") || "Advanced Model Configuration"}
+              </h3>
+              <p className="text-xs sm:text-xs text-[10px] text-[#8a8a8a] mb-2 sm:mb-2 mb-1.5">
+                {t("modelSettings.advancedConfigDescription") || "Enter your API Key to automatically create advanced API configuration"}
+              </p>
+            </div>
+
+            {/* Advanced API Get Button */}
+            <div className="mb-2 sm:mb-2 mb-1.5">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleGetAdvancedAPI();
+                }}
+                className="bg-gradient-to-r from-[#d1a35c] to-[#f4e8c1] hover:from-[#f4e8c1] hover:to-[#d1a35c] text-[#1c1c1c] font-bold py-1.5 px-2 sm:py-1.5 sm:px-2 py-1 px-1.5 text-xs sm:text-xs text-[10px] rounded border border-[#d1a35c] w-full transition-all duration-200 hover:shadow-[0_0_8px_rgba(209,163,92,0.4)] transform hover:scale-[1.02] flex items-center justify-center gap-1"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="10"
+                  height="10"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="sm:w-2.5 sm:h-2.5 w-2 h-2"
+                >
+                  <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                  <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                </svg>
+                <span className="sm:block hidden">
+                  {t("modelSettings.getAdvancedAPI") || "Get Advanced API"}
+                </span>
+                <span className="sm:hidden block">Get API</span>
+              </button>
+            </div>
+
+            <div className="mb-2 sm:mb-2 mb-1.5">
+              <input
+                type="text"
+                value={advancedApiKey}
+                onChange={(e) => setAdvancedApiKey(e.target.value)}
+                placeholder={t("modelSettings.advancedConfigPlaceholder") || "Please enter your API Key"}
+                className="bg-[#292929] border border-[#534741] rounded w-full py-1.5 px-2 sm:py-1.5 sm:px-2 py-1 px-1.5 text-xs sm:text-xs text-[10px] text-[#d0d0d0] leading-tight focus:outline-none focus:border-[#d1a35c] transition-colors"
+              />
+            </div>
+
+            <div className="relative">
+              <button
+                onClick={(e) => {
+                  trackButtonClick("ModelSidebar", "创建高级配置");
+                  e.stopPropagation();
+                  handleCreateAdvancedConfig();
+                }}
+                disabled={!advancedApiKey.trim()}
+                className={`bg-[#3e3a3a] hover:bg-[#534741] text-[#f4e8c1] font-normal py-1.5 px-2 sm:py-1.5 sm:px-2 py-1 px-1.5 text-xs sm:text-xs text-[10px] rounded border border-[#d1a35c] w-full transition-all duration-200 hover:shadow-[0_0_8px_rgba(209,163,92,0.2)] ${fontClass} disabled:opacity-50 disabled:cursor-not-allowed`}
+              >
+                <span className="sm:block hidden">
+                  {t("modelSettings.createAdvancedConfig") || "Create Advanced Config"}
+                </span>
+                <span className="sm:hidden block">Advanced</span>
+              </button>
+
+              {advancedConfigSuccess && (
+                <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center bg-[#333333] bg-opacity-80 rounded transition-opacity backdrop-blur-sm">
+                  <div className="flex items-center">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-4 w-4 sm:h-4 sm:w-4 h-3 w-3 text-green-500 mr-1.5 sm:mr-1.5 mr-1"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    <span className={`text-white text-xs sm:text-xs text-[10px] ${fontClass}`}>
+                      {t("modelSettings.advancedConfigCreated") || "Advanced configuration created successfully"}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {advancedConfigError && (
+                <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center bg-[#333333] bg-opacity-80 rounded transition-opacity backdrop-blur-sm">
+                  <div className="flex items-center">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-4 w-4 sm:h-4 sm:w-4 h-3 w-3 text-red-500 mr-1.5 sm:mr-1.5 mr-1"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    <span className={`text-white text-xs sm:text-xs text-[10px] ${fontClass}`}>
+                      {t("modelSettings.advancedConfigError") || "Failed to create advanced configuration"}
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>
