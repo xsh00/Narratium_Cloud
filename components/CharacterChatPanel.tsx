@@ -1334,16 +1334,31 @@ export default function CharacterChatPanel({
           <div className="flex gap-2 sm:gap-3">
             <div className="flex-grow magical-input relative group">
               <div className="absolute -inset-0.5 bg-gradient-to-r from-amber-400/20 via-amber-500/5 to-amber-400/10 rounded-lg blur opacity-0 group-hover:opacity-100 transition duration-300"></div>
-              <input
-                type="text"
+              <textarea
                 value={userInput}
                 onChange={(e) => setUserInput(e.target.value)}
                 placeholder={
                   t("characterChat.typeMessage") || "Type a message..."
                 }
                 data-tour="chat-input"
-                className="w-full bg-[#2a261f] border border-[#534741] rounded-lg py-2 sm:py-2.5 px-3 sm:px-4 text-[#f4e8c1] text-sm leading-tight focus:outline-none focus:border-[#c0a480] shadow-inner relative z-1 transition-all duration-300 group-hover:border-[#a18d6f]"
+                className="w-full bg-[#2a261f] border border-[#534741] rounded-lg py-2 sm:py-2.5 px-3 sm:px-4 text-[#f4e8c1] text-sm leading-tight focus:outline-none focus:border-[#c0a480] shadow-inner relative z-1 transition-all duration-300 group-hover:border-[#a18d6f] resize-none min-h-[40px] max-h-[120px] overflow-y-auto"
                 disabled={isSending}
+                rows={1}
+                onInput={(e) => {
+                  // 自动调整高度
+                  const target = e.target as HTMLTextAreaElement;
+                  target.style.height = 'auto';
+                  target.style.height = Math.min(target.scrollHeight, 120) + 'px';
+                }}
+                onKeyDown={(e) => {
+                  // Enter 发送消息，Shift+Enter 换行
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    if (userInput.trim() && !isSending) {
+                      onSubmit(e as any);
+                    }
+                  }
+                }}
               />
             </div>
             {isSending ? (

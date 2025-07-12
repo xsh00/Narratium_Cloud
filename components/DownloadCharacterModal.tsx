@@ -203,11 +203,12 @@ export default function DownloadCharacterModal({
             <div className="flex flex-wrap gap-1.5 sm:gap-2">
               <button
                 onClick={() => setSelectedTag("all")}
-                className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm transition-all duration-200 ${
+                className={`px-2.5 sm:px-3 py-1.25 sm:py-1.5 rounded-full text-xs sm:text-sm min-w-[56px] max-w-[45vw] break-all truncate transition-all duration-200 ${
                   selectedTag === "all"
                     ? "bg-[#e0cfa0] text-[#534741] border border-[#c0a480]"
                     : "bg-[#252220] text-[#c0a480] border border-[#534741] hover:bg-[#3a2a2a] hover:text-[#ffd475]"
                 } ${fontClass}`}
+                style={{wordBreak: 'break-all'}}
               >
                 {t("downloadModal.allTags")} ({characterFiles.length})
               </button>
@@ -215,11 +216,12 @@ export default function DownloadCharacterModal({
                 <button
                   key={tag}
                   onClick={() => setSelectedTag(tag)}
-                  className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm transition-all duration-200 ${
+                  className={`px-2.5 sm:px-3 py-1.25 sm:py-1.5 rounded-full text-xs sm:text-sm min-w-[56px] max-w-[45vw] break-all truncate transition-all duration-200 ${
                     selectedTag === tag
                       ? "bg-[#e0cfa0] text-[#534741] border border-[#c0a480]"
                       : "bg-[#252220] text-[#c0a480] border border-[#534741] hover:bg-[#3a2a2a] hover:text-[#ffd475]"
                   } ${fontClass}`}
+                  style={{wordBreak: 'break-all'}}
                 >
                   {tag} (
                   {
