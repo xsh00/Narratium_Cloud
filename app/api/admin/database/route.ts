@@ -3,8 +3,8 @@ import { getDatabaseStats, userRepository, verificationCodeRepository } from '@/
 
 export async function GET() {
   try {
-    const stats = getDatabaseStats();
-    const users = userRepository.getAll();
+    const stats = await getDatabaseStats();
+    const users = await userRepository.getAll();
     
     return NextResponse.json({
       success: true,
@@ -33,12 +33,12 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: '请提供邮箱地址' }, { status: 400 });
     }
 
-    const user = userRepository.findByEmail(email);
+    const user = await userRepository.findByEmail(email);
     if (!user) {
       return NextResponse.json({ error: '用户不存在' }, { status: 404 });
     }
 
-    const deleted = userRepository.delete(user.id);
+    const deleted = await userRepository.delete(user.id);
     if (deleted) {
       return NextResponse.json({ message: '用户删除成功' });
     } else {
