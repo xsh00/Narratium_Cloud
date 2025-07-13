@@ -503,7 +503,7 @@ export default function Sidebar({
                   <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 to-transparent rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   {!isOpen ? (
                     <Link
-                      href="/creator-input"
+                      href="/api-setting"
                       className={
                         "menu-item flex justify-center p-2 rounded-md cursor-pointer hover:bg-[#252525] transition-all duration-300"
                       }
@@ -525,18 +525,14 @@ export default function Sidebar({
                           strokeLinejoin="round"
                           className="transition-transform duration-300"
                         >
-                          <path d="M9 18h6" />
-                          <path d="M10 22h4" />
-                          <path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14" />
-                          <path d="M12 2v1" />
-                          <path d="M3.05 11.05l.76.76" />
-                          <path d="M20.95 11.05l-.76.76" />
+                          <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                          <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
                         </svg>
                       </div>
                     </Link>
                   ) : (
                     <Link
-                      href="/creator-input"
+                      href="/api-setting"
                       className="focus:outline-none group relative overflow-hidden rounded-md w-full transition-all duration-300"
                     >
                       <div className="absolute inset-0 bg-gradient-to-br from-amber-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -556,12 +552,8 @@ export default function Sidebar({
                             strokeLinejoin="round"
                             className="transition-transform duration-300"
                           >
-                            <path d="M9 18h6" />
-                            <path d="M10 22h4" />
-                            <path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14" />
-                            <path d="M12 2v1" />
-                            <path d="M3.05 11.05l.76.76" />
-                            <path d="M20.95 11.05l-.76.76" />
+                            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
                           </svg>
                         </div>
                         <div
@@ -577,7 +569,7 @@ export default function Sidebar({
                             className={`magical-text whitespace-nowrap block text-sm group-hover:text-amber-400 transition-colors duration-300 ${fontClass}`}
                           >
                             {isOpen &&
-                              t("sidebar.creator")
+                              t("sidebar.apiSetting")
                                 .split("")
                                 .map((char, index) => (
                                   <span

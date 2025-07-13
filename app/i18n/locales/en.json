@@ -23,6 +23,7 @@
     "home": "Home",
     "gameArea": "Game Area",
     "creator": "Creator",
+    "apiSetting": "API Connection",
     "creationArea": "Creation Area",
     "historyRecords": "History Records",
     "newStory": "New Adventure",
@@ -85,6 +86,10 @@
     "advancedConfigCreated": "Advanced configuration created successfully",
     "advancedConfigError": "Failed to create advanced configuration",
     "getAdvancedAPI": "Get Advanced API"
+  },
+  "apiSetting": {
+    "title": "API Connection Settings",
+    "subtitle": "Configure your AI model connections to start your intelligent creation journey"
   },
   "llmSettings": {
     "title": "Settings",

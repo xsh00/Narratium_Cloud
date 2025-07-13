@@ -25,6 +25,7 @@
     "home": "首页",
     "gameArea": "游戏区",
     "creator": "创造者",
+    "apiSetting": "API连接",
     "creationArea": "创作区",
     "historyRecords": "历史记录",
     "newStory": "新冒险",
@@ -87,6 +88,10 @@
     "advancedConfigCreated": "高级配置创建成功",
     "advancedConfigError": "高级配置创建失败",
     "getAdvancedAPI": "获取高级API"
+  },
+  "apiSetting": {
+    "title": "API连接设置",
+    "subtitle": "配置您的AI模型连接，开启智能创作之旅"
   },
   "llmSettings": {
     "title": "设置",

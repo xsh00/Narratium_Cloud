@@ -150,11 +150,11 @@ export default function MobileBottomNav({
           </span>
         </Link>
 
-        {/* Creator */}
+        {/* API Setting */}
         <Link
-          href="/creator-input"
+          href="/api-setting"
           className={`flex flex-col items-center justify-center p-1.5 rounded-lg transition-all duration-300 ${
-            isActive("/creator-input")
+            isActive("/api-setting")
               ? "text-[#f8d36a] bg-[#2a231c]/50"
               : "text-[#a18d6f] hover:text-[#f8d36a] hover:bg-[#2a231c]/30"
           }`}
@@ -171,16 +171,12 @@ export default function MobileBottomNav({
               strokeLinecap="round"
               strokeLinejoin="round"
             >
-              <path d="M9 18h6" />
-              <path d="M10 22h4" />
-              <path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14" />
-              <path d="M12 2v1" />
-              <path d="M3.05 11.05l.76.76" />
-              <path d="M20.95 11.05l-.76.76" />
+              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
             </svg>
           </div>
           <span className={`text-[8px] ${fontClass}`}>
-            {t("sidebar.creator")}
+            {t("sidebar.apiSetting")}
           </span>
         </Link>
 
