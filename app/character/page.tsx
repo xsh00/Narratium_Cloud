@@ -27,6 +27,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useSearchParams, useParams } from "next/navigation";
 import { useLanguage } from "@/app/i18n";
+import { useAuth } from "@/contexts/AuthContext";
 import AuthGuard from "@/components/AuthGuard";
 import CharacterSidebar from "@/components/CharacterSidebar";
 import { v4 as uuidv4 } from "uuid";
@@ -80,6 +81,7 @@ export default function CharacterPage() {
   const searchParams = useSearchParams();
   const characterId = searchParams.get("id");
   const { t, fontClass, serifFontClass } = useLanguage();
+  const { username } = useAuth();
   const {
     isTourVisible,
     currentTourSteps,
@@ -230,7 +232,7 @@ export default function CharacterPage() {
 
     try {
       setLoadingPhase("加载对话历史...");
-      const response = await getCharacterDialogue(characterId);
+      const response = await getCharacterDialogue(characterId, "zh", username);
 
       if (!response.success) {
         console.error("Failed to fetch dialogue", response);
@@ -284,6 +286,7 @@ export default function CharacterPage() {
           const config = loadConfigFromLocalStorage();
           
           const initResponse = await initCharacterDialogue({
+            username,
             characterId,
             modelName: config.defaultModel || "gemini-2.5-pro",
             baseUrl: config.defaultBaseUrl || "https://api.sillytarven.top/v1",
@@ -337,6 +340,7 @@ export default function CharacterPage() {
       const config = loadConfigFromLocalStorage();
       
       const response = await initCharacterDialogue({
+        username,
         characterId: charId,
         modelName: config.defaultModel || "gemini-2.5-pro",
         baseUrl: config.defaultBaseUrl || "https://api.sillytarven.top/v1",
@@ -383,6 +387,7 @@ export default function CharacterPage() {
 
       // Send message to API
       const response = await handleCharacterChatRequest({
+        username,
         characterId,
         message,
         modelName: config.defaultModel || "gemini-2.5-pro",
