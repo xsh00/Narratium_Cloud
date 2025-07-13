@@ -485,6 +485,12 @@ export default function ApiSettingPage() {
                       >
                         创建高级配置
                       </button>
+                      <button
+                        onClick={() => window.open("https://usage.gptbest.vip/", "_blank")}
+                        className="w-full p-3 mt-2 bg-green-500/20 text-green-400 rounded-lg hover:bg-green-500/30 transition-colors"
+                      >
+                        查询余额
+                      </button>
                       {advancedConfigSuccess && (
                         <div className="p-3 mt-3 bg-green-500/20 text-green-400 rounded-lg text-sm text-center">高级配置创建成功</div>
                       )}
