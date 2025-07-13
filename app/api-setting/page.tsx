@@ -399,7 +399,7 @@ export default function ApiSettingPage() {
           </div>
 
           {/* Tab内容区 */}
-          <div className="flex-1 flex justify-center px-4 pb-6">
+          <div className="flex-1 flex justify-center px-4 pb-24">
             <div className="w-full max-w-3xl">
               {tab === 'free' && (
                 <motion.div
@@ -409,42 +409,42 @@ export default function ApiSettingPage() {
                   className="bg-black/20 backdrop-blur-sm border border-amber-500/30 rounded-2xl p-8 shadow-[0_0_20px_rgba(251,146,60,0.3)]"
                 >
                   {/* 只显示默认3个API卡片，每个卡片有启用/测试按钮 */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-2">
                     {defaultApis.map((config) => (
                       <div
                         key={config.id}
-                        className={`flex flex-col items-center p-4 rounded-lg border transition-all duration-300 ${
+                        className={`flex flex-col items-center p-3 rounded-lg border transition-all duration-300 ${
                           activeConfigId === config.id
                             ? "border-amber-500/50 bg-amber-500/10"
                             : "border-[#333333] bg-[#1c1c1c] hover:border-amber-500/30"
                         }`}
                       >
-                        <div className="w-full flex items-center justify-between mb-2">
-                          <span className={`text-sm text-[#c0a480] ${fontClass}`}>{config.name}</span>
+                        <div className="w-full flex items-center justify-between mb-1">
+                          <span className={`text-xs text-[#c0a480] ${fontClass}`}>{config.name}</span>
                         </div>
-                        <div className="text-xs text-[#c0a480]/60 mb-4">{config.type} • {config.model}</div>
+                        <div className="text-xs text-[#c0a480]/60 mb-2">{config.type} • {config.model}</div>
                         <button
                           onClick={() => { handleSwitchConfig(config.id); handleSave(); }}
-                          className="w-full p-2 mb-2 bg-gradient-to-r from-amber-500 to-orange-400 text-black rounded-lg hover:from-amber-400 hover:to-orange-300 transition-all duration-200 font-medium"
+                          className="w-full p-1.5 mb-1.5 bg-gradient-to-r from-amber-500 to-orange-400 text-black rounded-lg hover:from-amber-400 hover:to-orange-300 transition-all duration-200 font-medium text-xs"
                         >
                           {t("modelSettings.saveSettings")}
                         </button>
                         <button
                           onClick={handleTestModel}
                           disabled={isTesting}
-                          className="w-full p-2 bg-blue-500/20 text-blue-400 rounded-lg hover:bg-blue-500/30 transition-colors disabled:opacity-50"
+                          className="w-full p-1.5 bg-blue-500/20 text-blue-400 rounded-lg hover:bg-blue-500/30 transition-colors disabled:opacity-50 text-xs"
                         >
                           {isTesting ? t("modelSettings.testing") : t("modelSettings.testModel")}
                         </button>
                         {/* 状态提示 */}
                         {activeConfigId === config.id && saveSuccess && (
-                          <div className="p-2 mt-2 bg-green-500/20 text-green-400 rounded-lg text-xs w-full text-center">{t("modelSettings.settingsSaved")}</div>
+                          <div className="p-1.5 mt-1.5 bg-green-500/20 text-green-400 rounded-lg text-xs w-full text-center">{t("modelSettings.settingsSaved")}</div>
                         )}
                         {activeConfigId === config.id && testModelSuccess && (
-                          <div className="p-2 mt-2 bg-green-500/20 text-green-400 rounded-lg text-xs w-full text-center">{t("modelSettings.testSuccess")}</div>
+                          <div className="p-1.5 mt-1.5 bg-green-500/20 text-green-400 rounded-lg text-xs w-full text-center">{t("modelSettings.testSuccess")}</div>
                         )}
                         {activeConfigId === config.id && testModelError && (
-                          <div className="p-2 mt-2 bg-red-500/20 text-red-400 rounded-lg text-xs w-full text-center">{t("modelSettings.testError")}</div>
+                          <div className="p-1.5 mt-1.5 bg-red-500/20 text-red-400 rounded-lg text-xs w-full text-center">{t("modelSettings.testError")}</div>
                         )}
                       </div>
                     ))}
@@ -493,162 +493,7 @@ export default function ApiSettingPage() {
                       )}
                     </div>
                   </motion.div>
-                  {/* 自定义模型配置区（原custom分页内容，单独卡片显示） */}
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8, delay: 0.3 }}
-                    className="bg-black/20 backdrop-blur-sm border border-amber-500/30 rounded-2xl p-8 shadow-[0_0_20px_rgba(251,146,60,0.3)]"
-                  >
-                    <div className="mb-6">
-                      <h3 className={`text-lg font-semibold text-[#f8d36a] mb-4 ${fontClass}`}>{t("modelSettings.configurations")}</h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-4">
-                        {customApis.map((config) => (
-                          <div
-                            key={config.id}
-                            className={`p-3 rounded-lg border cursor-pointer transition-all duration-300 ${
-                              activeConfigId === config.id
-                                ? "border-amber-500/50 bg-amber-500/10"
-                                : "border-[#333333] bg-[#1c1c1c] hover:border-amber-500/30"
-                            }`}
-                            onClick={() => handleSwitchConfig(config.id)}
-                          >
-                            <div className="flex items-center justify-between">
-                              <span className={`text-sm text-[#c0a480] ${fontClass}`}>{config.name}</span>
-                              {customApis.length > 1 && (
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleDeleteConfig(config.id);
-                                  }}
-                                  className="text-red-400 hover:text-red-300 text-xs"
-                                >
-                                  ×
-                                </button>
-                              )}
-                            </div>
-                            <div className="text-xs text-[#c0a480]/60 mt-1">{config.type} • {config.model}</div>
-                          </div>
-                        ))}
-                      </div>
-                      <button
-                        onClick={handleCreateConfig}
-                        className="w-full p-3 border border-dashed border-amber-500/30 rounded-lg text-amber-500 hover:border-amber-500/50 hover:bg-amber-500/5 transition-all duration-300"
-                      >
-                        + {t("modelSettings.newConfig")}
-                      </button>
-                    </div>
-                    {/* 配置表单 */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                      {/* 左侧：基本配置 */}
-                      <div className="space-y-4">
-                        <div>
-                          <label className={`block text-sm font-medium text-[#f8d36a] mb-2 ${fontClass}`}>{t("modelSettings.llmType")}</label>
-                          <select
-                            value={llmType}
-                            onChange={(e) => setLlmType(e.target.value as LLMType)}
-                            className="w-full p-3 bg-[#1c1c1c] border border-[#333333] rounded-lg text-[#c0a480] focus:border-amber-500/50 focus:outline-none"
-                          >
-                            <option value="openai">OpenAI</option>
-                            <option value="ollama">Ollama</option>
-                          </select>
-                        </div>
-                        <div>
-                          <label className={`block text-sm font-medium text-[#f8d36a] mb-2 ${fontClass}`}>{t("modelSettings.baseUrl")}</label>
-                          <input
-                            type="text"
-                            value={baseUrl}
-                            onChange={(e) => setBaseUrl(e.target.value)}
-                            className="w-full p-3 bg-[#1c1c1c] border border-[#333333] rounded-lg text-[#c0a480] focus:border-amber-500/50 focus:outline-none"
-                            placeholder="https://api.example.com/v1"
-                          />
-                        </div>
-                        <div>
-                          <label className={`block text-sm font-medium text-[#f8d36a] mb-2 ${fontClass}`}>{t("modelSettings.model")}</label>
-                          <div className="flex gap-2">
-                            <input
-                              type="text"
-                              value={model}
-                              onChange={(e) => setModel(e.target.value)}
-                              className="flex-1 p-3 bg-[#1c1c1c] border border-[#333333] rounded-lg text-[#c0a480] focus:border-amber-500/50 focus:outline-none"
-                              placeholder="gpt-4"
-                            />
-                            {llmType === "openai" && (
-                              <button
-                                onClick={handleGetModelList}
-                                className="px-4 py-3 bg-amber-500/20 text-amber-500 rounded-lg hover:bg-amber-500/30 transition-colors"
-                              >
-                                {t("modelSettings.getModelList")}
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                        {llmType === "openai" && (
-                          <div>
-                            <label className={`block text-sm font-medium text-[#f8d36a] mb-2 ${fontClass}`}>{t("modelSettings.apiKey")}</label>
-                            <input
-                              type="password"
-                              value={apiKey}
-                              onChange={(e) => setApiKey(e.target.value)}
-                              className="w-full p-3 bg-[#1c1c1c] border border-[#333333] rounded-lg text-[#c0a480] focus:border-amber-500/50 focus:outline-none"
-                              placeholder="sk-..."
-                            />
-                          </div>
-                        )}
-                      </div>
-                      {/* 右侧：模型列表和操作 */}
-                      <div className="space-y-4">
-                        {openaiModelList.length > 0 && (
-                          <div>
-                            <label className={`block text-sm font-medium text-[#f8d36a] mb-2 ${fontClass}`}>{t("modelSettings.modelList")}</label>
-                            <div className="max-h-40 overflow-y-auto bg-[#1c1c1c] border border-[#333333] rounded-lg p-2">
-                              {openaiModelList.map((modelName) => (
-                                <div
-                                  key={modelName}
-                                  className="p-2 hover:bg-[#333333] cursor-pointer rounded text-[#c0a480] text-sm"
-                                  onClick={() => setModel(modelName)}
-                                >
-                                  {modelName}
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                        {/* 操作按钮 */}
-                        <div className="space-y-3">
-                          <button
-                            onClick={handleSave}
-                            className="w-full p-3 bg-gradient-to-r from-amber-500 to-orange-400 text-black rounded-lg hover:from-amber-400 hover:to-orange-300 transition-all duration-200 font-medium"
-                          >
-                            {t("modelSettings.saveSettings")}
-                          </button>
-                          <button
-                            onClick={handleTestModel}
-                            disabled={isTesting}
-                            className="w-full p-3 bg-blue-500/20 text-blue-400 rounded-lg hover:bg-blue-500/30 transition-colors disabled:opacity-50"
-                          >
-                            {isTesting ? t("modelSettings.testing") : t("modelSettings.testModel")}
-                          </button>
-                          {/* 状态提示 */}
-                          {saveSuccess && (
-                            <div className="p-3 bg-green-500/20 text-green-400 rounded-lg text-sm">{t("modelSettings.settingsSaved")}</div>
-                          )}
-                          {testModelSuccess && (
-                            <div className="p-3 bg-green-500/20 text-green-400 rounded-lg text-sm">{t("modelSettings.testSuccess")}</div>
-                          )}
-                          {testModelError && (
-                            <div className="p-3 bg-red-500/20 text-red-400 rounded-lg text-sm">{t("modelSettings.testError")}</div>
-                          )}
-                          {getModelListSuccess && (
-                            <div className="p-3 bg-green-500/20 text-green-400 rounded-lg text-sm">{t("modelSettings.getModelListSuccess")}</div>
-                          )}
-                          {getModelListError && (
-                            <div className="p-3 bg-red-500/20 text-red-400 rounded-lg text-sm">{t("modelSettings.getModelListError")}</div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
+
                 </>
               )}
             </div>

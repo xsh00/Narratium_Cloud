@@ -44,6 +44,7 @@ import UserTour from "@/components/UserTour";
 import { useTour } from "@/hooks/useTour";
 import ErrorToast from "@/components/ErrorToast";
 import { loadConfigFromLocalStorage } from "@/lib/core/config-manager";
+import { LocalCharacterRecordOperations } from "@/lib/data/roleplay/character-record-operation";
 
 /**
  * Interface definitions for the component's data structures
@@ -298,13 +299,19 @@ export default function CharacterPage() {
           initializationRef.current = true;
         }
 
-        // Fetch character data (you'll need to implement this)
-        // For now, we'll use a placeholder
-        setCharacter({
-          id: characterId,
-          name: "角色名称",
-          personality: "角色性格",
-        });
+        // Fetch character data
+        const characterRecord = await LocalCharacterRecordOperations.getCharacterById(characterId);
+        if (characterRecord) {
+          setCharacter({
+            id: characterId,
+            name: characterRecord.data.name,
+            personality: characterRecord.data.personality,
+            avatar_path: characterRecord.imagePath,
+          });
+        } else {
+          setError("未找到角色信息");
+          return;
+        }
 
         // Fetch dialogue
         await fetchLatestDialogue();

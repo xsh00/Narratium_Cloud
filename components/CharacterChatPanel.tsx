@@ -733,7 +733,7 @@ export default function CharacterChatPanel({
   return (
     <div className="flex flex-col h-full max-h-screen">
       <div
-        className="flex-grow overflow-y-auto p-6 fantasy-scrollbar"
+        className="flex-grow overflow-y-auto p-6 pb-24 sm:pb-6 fantasy-scrollbar"
         ref={scrollRef}
       >
         <div className="max-w-4xl mx-auto">
@@ -1244,7 +1244,7 @@ export default function CharacterChatPanel({
               })}
 
               {isSending && (
-                <div className="flex items-center space-x-2 text-[#c0a480] mb-8 pb-4 pt-2 min-h-[40px]">
+                <div className="flex items-center space-x-2 text-[#c0a480] mb-8 pt-2 min-h-[40px] pb-20 sm:pb-8">
                   <div className="relative w-6 h-6 flex items-center justify-center">
                     <div className="absolute inset-0 rounded-full border-2 border-t-[#f9c86d] border-r-[#c0a480] border-b-[#a18d6f] border-l-transparent animate-spin"></div>
                     <div className="absolute inset-1 rounded-full border-2 border-t-[#a18d6f] border-r-[#f9c86d] border-b-[#c0a480] border-l-transparent animate-spin-slow"></div>
@@ -1260,7 +1260,7 @@ export default function CharacterChatPanel({
         </div>
       </div>
 
-      <div className="sticky bottom-0 bg-[#1a1816] border-t border-[#534741] pt-6 pb-6 px-5 z-5 mt-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.2)]">
+      <div className="sticky bottom-0 bg-[#1a1816] border-t border-[#534741] pt-6 pb-6 px-5 z-10 mt-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.2)]">
         {suggestedInputs.length > 0 && !isSending && (
           <div className="relative max-w-4xl mx-auto">
             <button
