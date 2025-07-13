@@ -152,13 +152,19 @@ async function processPostResponseAsync({
   nodeId: string;
 }) {
   try {
+    console.log(`🔄 processPostResponseAsync started for character: ${characterId}, nodeId: ${nodeId}`);
+    
     const parsed: ParsedResponse = {
       regexResult: screenContent,
       nextPrompts,
     };
+    
+    console.log(`📚 Getting dialogue tree for character: ${characterId}`);
     const dialogueTree =
       await LocalCharacterDialogueOperations.getDialogueTreeById(characterId);
     const parentNodeId = dialogueTree ? dialogueTree.current_nodeId : "root";
+    
+    console.log(`📝 Adding node to dialogue tree - parentNodeId: ${parentNodeId}, message: ${message.substring(0, 50)}...`);
     await LocalCharacterDialogueOperations.addNodeToDialogueTree(
       characterId,
       parentNodeId,
@@ -169,8 +175,11 @@ async function processPostResponseAsync({
       parsed,
       nodeId,
     );
+    
+    console.log(`✅ Node successfully added to dialogue tree`);
 
     if (event) {
+      console.log(`🎯 Processing event for nodeId: ${nodeId}`);
       const updatedDialogueTree =
         await LocalCharacterDialogueOperations.getDialogueTreeById(characterId);
       if (updatedDialogueTree) {
@@ -184,9 +193,12 @@ async function processPostResponseAsync({
             },
           },
         );
+        console.log(`✅ Event processed successfully`);
       }
     }
+    
+    console.log(`🎉 processPostResponseAsync completed successfully`);
   } catch (e) {
-    console.error("Error in processPostResponseAsync:", e);
+    console.error("❌ Error in processPostResponseAsync:", e);
   }
 }

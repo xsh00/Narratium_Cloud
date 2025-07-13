@@ -70,15 +70,34 @@ export class LocalCharacterDialogueOperations {
     parsedContent?: ParsedResponse,
     nodeId?: string,
   ): Promise<string> {
+    console.log(`🏗️ addNodeToDialogueTree called for dialogueId: ${dialogueId}`);
+    
     const dialogues = await readData(CHARACTER_DIALOGUES_FILE);
-    const index = dialogues.findIndex((d: any) => d.id === dialogueId);
+    console.log(`📖 Read ${dialogues.length} dialogues from IndexedDB`);
+    
+    let index = dialogues.findIndex((d: any) => d.id === dialogueId);
+
+    // 如果找不到对话树，先创建一个
+    if (index === -1) {
+      console.log(`🆕 Dialogue tree not found for ${dialogueId}, creating new one`);
+      const newDialogueTree = new DialogueTree(dialogueId, dialogueId, [], "root");
+      dialogues.push(newDialogueTree);
+      index = dialogues.length - 1;
+      console.log(`📋 Created new dialogue tree at index: ${index}`);
+    } else {
+      console.log(`📋 Found existing dialogue tree at index: ${index}`);
+    }
 
     if (!nodeId) {
       nodeId = uuidv4();
     }
 
+    const finalNodeId = nodeId as string;
+    
+    console.log(`🎯 Creating new node with ID: ${finalNodeId}, parentId: ${parentNodeId}`);
+
     const newNode = new DialogueNode(
-      nodeId,
+      finalNodeId,
       parentNodeId,
       userInput,
       assistantResponse,
@@ -89,14 +108,19 @@ export class LocalCharacterDialogueOperations {
 
     if (!dialogues[index].nodes) {
       dialogues[index].nodes = [];
+      console.log(`📝 Initialized empty nodes array`);
     }
 
     dialogues[index].nodes.push(newNode);
-    dialogues[index].current_nodeId = nodeId;
-
+    dialogues[index].current_nodeId = finalNodeId;
+    
+    console.log(`📊 Dialogue tree now has ${dialogues[index].nodes.length} nodes, current nodeId: ${finalNodeId}`);
+    
+    console.log(`💾 Writing ${dialogues.length} dialogues to IndexedDB...`);
     await writeData(CHARACTER_DIALOGUES_FILE, dialogues);
+    console.log(`✅ Successfully wrote data to IndexedDB`);
 
-    return nodeId;
+    return finalNodeId;
   }
 
   static async updateDialogueTree(

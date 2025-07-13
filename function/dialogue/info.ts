@@ -12,23 +12,29 @@ export async function getCharacterDialogue(
   }
 
   try {
-    console.log(`正在获取角色信息: ${characterId}`);
+    console.log(`🔍 getCharacterDialogue called for: ${characterId}, language: ${language}, username: ${username}`);
+    
+    console.log(`🔍 正在获取角色信息: ${characterId}`);
     const characterRecord =
       await LocalCharacterRecordOperations.getCharacterById(characterId);
 
     // 检查角色记录是否存在
     if (!characterRecord) {
-      console.warn(`角色不存在: ${characterId}`);
+      console.warn(`❌ 角色不存在: ${characterId}`);
       throw new Error("Character not found");
     }
 
-    console.log(`找到角色记录: ${characterId}`);
+    console.log(`✅ 找到角色记录: ${characterId}`);
     const character = new Character(characterRecord);
+    
+    console.log(`📚 正在获取对话树: ${characterId}`);
     const dialogueTree =
       await LocalCharacterDialogueOperations.getDialogueTreeById(characterId);
     let processedDialogue = null;
 
     if (dialogueTree) {
+      console.log(`📊 找到对话树，当前节点: ${dialogueTree.current_nodeId}, 总节点数: ${dialogueTree.nodes?.length || 0}`);
+      
       const currentPath =
         dialogueTree.current_nodeId !== "root"
           ? await LocalCharacterDialogueOperations.getDialoguePathToNode(
@@ -36,6 +42,8 @@ export async function getCharacterDialogue(
               dialogueTree.current_nodeId,
             )
           : [];
+
+      console.log(`🛤️ 对话路径长度: ${currentPath.length}`);
 
       const messages = [];
 
@@ -48,6 +56,7 @@ export async function getCharacterDialogue(
             content: node.userInput,
             parsedContent: null,
           });
+          console.log(`👤 用户消息: ${node.userInput.substring(0, 50)}...`);
         }
 
         if (node.assistantResponse) {
@@ -59,6 +68,7 @@ export async function getCharacterDialogue(
               content: node.parsedContent.regexResult,
               parsedContent: node.parsedContent,
             });
+            console.log(`🤖 助手消息(regex): ${node.parsedContent.regexResult.substring(0, 50)}...`);
           } else {
             messages.push({
               id: node.nodeId,
@@ -67,9 +77,12 @@ export async function getCharacterDialogue(
               content: node.assistantResponse,
               parsedContent: node.parsedContent,
             });
+            console.log(`🤖 助手消息(raw): ${node.assistantResponse.substring(0, 50)}...`);
           }
         }
       }
+
+      console.log(`📝 最终消息数量: ${messages.length}`);
 
       processedDialogue = {
         id: dialogueTree.id,
@@ -81,7 +94,11 @@ export async function getCharacterDialogue(
           currentNodeId: dialogueTree.current_nodeId,
         },
       };
+    } else {
+      console.log(`❌ 未找到对话树: ${characterId}`);
     }
+
+    console.log(`🎉 getCharacterDialogue 完成，有对话数据: ${!!processedDialogue}`);
 
     return {
       success: true,
@@ -93,7 +110,7 @@ export async function getCharacterDialogue(
       dialogue: processedDialogue,
     };
   } catch (error: any) {
-    console.error("Failed to get character information:", error);
+    console.error("❌ Failed to get character information:", error);
     throw new Error(`Failed to get character information: ${error.message}`);
   }
 }

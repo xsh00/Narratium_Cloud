@@ -35,6 +35,12 @@ export default function SettingsDropdown({
   const { soundEnabled, toggleSound } = useSoundContext();
   const { resetTour } = useTour();
 
+  // 用户名设置相关状态
+  const [currentUsername, setCurrentUsername] = useState("");
+  const [isEditingUsername, setIsEditingUsername] = useState(false);
+  const [tempUsername, setTempUsername] = useState("");
+  const [usernameSuccess, setUsernameSuccess] = useState(false);
+
   // 检测是否为手机端
   useEffect(() => {
     const checkMobile = () => {
@@ -59,6 +65,12 @@ export default function SettingsDropdown({
       }
     }
   }, [isMobile]);
+
+  // 初始化用户名
+  useEffect(() => {
+    const username = localStorage.getItem('username') || 'user';
+    setCurrentUsername(username);
+  }, []);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -159,6 +171,37 @@ export default function SettingsDropdown({
   const openModelSettings = () => {
     toggleModelSidebar();
     setIsOpen(false);
+  };
+
+  // 用户名设置相关函数
+  const handleEditUsername = () => {
+    setTempUsername(currentUsername);
+    setIsEditingUsername(true);
+    setIsOpen(false);
+  };
+
+  const handleCancelEditUsername = () => {
+    setIsEditingUsername(false);
+    setTempUsername("");
+  };
+
+  const handleSaveUsername = () => {
+    if (tempUsername.trim()) {
+      const newUsername = tempUsername.trim();
+      localStorage.setItem('username', newUsername);
+      setCurrentUsername(newUsername);
+      setIsEditingUsername(false);
+      setUsernameSuccess(true);
+      setTimeout(() => setUsernameSuccess(false), 3000);
+    }
+  };
+
+  const handleUsernameKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSaveUsername();
+    } else if (e.key === 'Escape') {
+      handleCancelEditUsername();
+    }
   };
 
   const handleExportData = async () => {
@@ -576,6 +619,28 @@ export default function SettingsDropdown({
             </button>
 
             <button
+              onClick={handleEditUsername}
+              className="flex items-center w-full px-4 py-2 text-sm text-[#f4e8c1] hover:bg-[#252525] transition-colors"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="mr-2"
+              >
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+              用户名设置
+            </button>
+
+            <button
               onClick={toggleSound}
               className="flex items-center w-full px-4 py-2 text-sm text-[#f4e8c1] hover:bg-[#252525] transition-colors"
             >
@@ -722,6 +787,62 @@ export default function SettingsDropdown({
               </svg>
               {t("common.importDataFromGoogle")}
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* 用户名编辑模态框 */}
+      {isEditingUsername && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-[#1c1c1c] border border-[#333333] rounded-lg p-6 w-80 max-w-md">
+            <h3 className="text-lg font-bold text-amber-400 mb-4 text-center">
+              用户名设置
+            </h3>
+            <div className="space-y-4">
+              <div className="flex items-center space-x-3 mb-4">
+                <span className="text-sm text-[#c0a480]">当前用户名:</span>
+                <span className="text-amber-400 font-medium">{currentUsername}</span>
+              </div>
+              <div>
+                <label className="block text-sm text-[#c0a480] mb-2">
+                  新用户名
+                </label>
+                <input
+                  type="text"
+                  value={tempUsername}
+                  onChange={(e) => setTempUsername(e.target.value)}
+                  onKeyPress={handleUsernameKeyPress}
+                  className="w-full px-3 py-2 bg-[#2c2c2c] border border-[#333333] rounded-lg text-[#c0a480] focus:border-amber-500/50 focus:outline-none"
+                  placeholder="请输入新用户名"
+                  autoFocus
+                />
+              </div>
+              <div className="flex space-x-2">
+                <button
+                  onClick={handleSaveUsername}
+                  className="flex-1 px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-400 text-black rounded-lg hover:from-amber-400 hover:to-orange-300 transition-all duration-200 text-sm font-medium"
+                >
+                  保存
+                </button>
+                <button
+                  onClick={handleCancelEditUsername}
+                  className="flex-1 px-4 py-2 border border-[#333333] text-[#c0a480] rounded-lg hover:bg-[#333333] transition-colors text-sm"
+                >
+                  取消
+                </button>
+              </div>
+              {usernameSuccess && (
+                <div className="flex items-center space-x-2 text-green-400 text-sm">
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  <span>用户名已更新</span>
+                </div>
+              )}
+              <p className="text-xs text-[#c0a480]/60">
+                用户名用于区分不同用户的聊天记录，修改后将影响数据存储分类
+              </p>
+            </div>
           </div>
         </div>
       )}

@@ -732,7 +732,7 @@ export default function Sidebar({
                         className={`magical-text whitespace-nowrap block text-xs font-medium bg-clip-text text-transparent bg-gradient-to-r from-[#f8d36a] to-[#ffc107] ${fontClass}`}
                       >
                         {isOpen &&
-                          (user?.email || '').split("").map((char: string, index: number) => (
+                          (localStorage.getItem('username') || user?.email || '').split("").map((char: string, index: number) => (
                             <span
                               key={index}
                               className="inline-block transition-all duration-300"

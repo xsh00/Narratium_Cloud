@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useLanguage } from "../i18n";
-import { useAuth } from "@/contexts/AuthContext";
 import AuthGuard from "@/components/AuthGuard";
 import { trackButtonClick } from "@/utils/google-analytics";
 import { ChatOpenAI } from "@langchain/openai";
@@ -33,7 +32,6 @@ const DEFAULT_API_URL =
 
 export default function ApiSettingPage() {
   const { t, fontClass, serifFontClass, titleFontClass } = useLanguage();
-  const { username, setUsername } = useAuth();
   
   // 状态管理
   const [configs, setConfigs] = useState<APIConfig[]>([]);
@@ -50,10 +48,7 @@ export default function ApiSettingPage() {
   const [apiKey, setApiKey] = useState("");
   const [openaiModelList, setOpenaiModelList] = useState<string[]>([]);
 
-  // 用户名相关状态
-  const [isEditingUsername, setIsEditingUsername] = useState(false);
-  const [tempUsername, setTempUsername] = useState("");
-  const [usernameSuccess, setUsernameSuccess] = useState(false);
+
 
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [getModelListSuccess, setGetModelListSuccess] = useState(false);
@@ -113,6 +108,8 @@ export default function ApiSettingPage() {
       }
     }
   }, []);
+
+
 
   // 工具函数
   const generateId = () => {
@@ -343,33 +340,7 @@ export default function ApiSettingPage() {
 
   // 删除handleCheckBalance函数
 
-  // 用户名相关函数
-  const handleEditUsername = () => {
-    setTempUsername(username);
-    setIsEditingUsername(true);
-  };
 
-  const handleCancelEditUsername = () => {
-    setIsEditingUsername(false);
-    setTempUsername("");
-  };
-
-  const handleSaveUsername = () => {
-    if (tempUsername.trim()) {
-      setUsername(tempUsername.trim());
-      setIsEditingUsername(false);
-      setUsernameSuccess(true);
-      setTimeout(() => setUsernameSuccess(false), 3000);
-    }
-  };
-
-  const handleUsernameKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleSaveUsername();
-    } else if (e.key === 'Escape') {
-      handleCancelEditUsername();
-    }
-  };
 
   return (
     <AuthGuard>
@@ -433,79 +404,7 @@ export default function ApiSettingPage() {
             </button>
           </div>
 
-          {/* 用户名设置区域 */}
-          <div className="flex justify-center mb-8">
-            <div className="w-full max-w-md">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.1 }}
-                className="bg-black/20 backdrop-blur-sm border border-amber-500/30 rounded-2xl p-6 shadow-[0_0_20px_rgba(251,146,60,0.3)]"
-              >
-                <h3 className={`text-lg font-bold text-amber-400 mb-4 ${titleFontClass} text-center`}>
-                  用户名设置
-                </h3>
-                <div className="space-y-4">
-                  {!isEditingUsername ? (
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <span className={`text-sm text-[#c0a480] ${fontClass}`}>当前用户名:</span>
-                        <span className={`text-amber-400 font-medium ${fontClass}`}>{username}</span>
-                      </div>
-                      <button
-                        onClick={handleEditUsername}
-                        className="px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-400 text-black rounded-lg hover:from-amber-400 hover:to-orange-300 transition-all duration-200 text-sm font-medium"
-                      >
-                        修改
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      <div>
-                        <label className={`block text-sm text-[#c0a480] mb-2 ${fontClass}`}>
-                          新用户名
-                        </label>
-                        <input
-                          type="text"
-                          value={tempUsername}
-                          onChange={(e) => setTempUsername(e.target.value)}
-                          onKeyPress={handleUsernameKeyPress}
-                          className="w-full px-3 py-2 bg-[#1c1c1c] border border-[#333333] rounded-lg text-[#c0a480] focus:border-amber-500/50 focus:outline-none"
-                          placeholder="请输入新用户名"
-                          autoFocus
-                        />
-                      </div>
-                      <div className="flex space-x-2">
-                        <button
-                          onClick={handleSaveUsername}
-                          className="flex-1 px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-400 text-black rounded-lg hover:from-amber-400 hover:to-orange-300 transition-all duration-200 text-sm font-medium"
-                        >
-                          保存
-                        </button>
-                        <button
-                          onClick={handleCancelEditUsername}
-                          className="flex-1 px-4 py-2 border border-[#333333] text-[#c0a480] rounded-lg hover:bg-[#333333] transition-colors text-sm"
-                        >
-                          取消
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                  {usernameSuccess && (
-                    <div className="flex items-center space-x-2 text-green-400 text-sm">
-                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                      </svg>
-                      <span>用户名已更新</span>
-                    </div>
-                  )}
-                  <p className={`text-xs text-[#c0a480]/60 ${fontClass}`}>
-                    用户名用于区分不同用户的聊天记录，修改后将影响数据存储分类
-                  </p>
-                </div>
-              </motion.div>
-            </div>
-          </div>
+
 
           {/* Tab内容区 */}
           <div className="flex-1 flex justify-center px-4 pb-24">

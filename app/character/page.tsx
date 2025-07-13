@@ -27,7 +27,6 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useSearchParams, useParams } from "next/navigation";
 import { useLanguage } from "@/app/i18n";
-import { useAuth } from "@/contexts/AuthContext";
 import AuthGuard from "@/components/AuthGuard";
 import CharacterSidebar from "@/components/CharacterSidebar";
 import { v4 as uuidv4 } from "uuid";
@@ -81,7 +80,6 @@ export default function CharacterPage() {
   const searchParams = useSearchParams();
   const characterId = searchParams.get("id");
   const { t, fontClass, serifFontClass } = useLanguage();
-  const { username } = useAuth();
   const {
     isTourVisible,
     currentTourSteps,
@@ -231,18 +229,28 @@ export default function CharacterPage() {
     if (!characterId) return;
 
     try {
+      console.log(`🔄 fetchLatestDialogue started for character: ${characterId}`);
       setLoadingPhase("加载对话历史...");
-      const response = await getCharacterDialogue(characterId, "zh", username);
+      const username = localStorage.getItem("username");
+      console.log(`👤 Using username: ${username}`);
+      
+      const response = await getCharacterDialogue(characterId, "zh", username || undefined);
+
+      console.log(`📥 getCharacterDialogue response:`, response);
 
       if (!response.success) {
-        console.error("Failed to fetch dialogue", response);
+        console.error("❌ Failed to fetch dialogue", response);
         setError("无法加载对话历史");
         return;
       }
 
       const dialogue = response.dialogue;
+      console.log(`📚 Dialogue data:`, dialogue);
+      console.log(`📝 Messages count: ${dialogue?.messages?.length || 0}`);
 
-      if (dialogue && dialogue.messages.length > 0) {
+      if (dialogue && dialogue.messages && dialogue.messages.length > 0) {
+        console.log(`✅ Found ${dialogue.messages.length} messages, formatting...`);
+        
         const formattedMessages = dialogue.messages.map((msg: any) => ({
           id: msg.id,
           role: msg.role == "system" ? "assistant" : msg.role,
@@ -250,20 +258,26 @@ export default function CharacterPage() {
           content: msg.content,
         }));
 
+        console.log(`📝 Formatted messages:`, formattedMessages);
         setMessages(formattedMessages);
 
         const lastMessage = dialogue.messages[dialogue.messages.length - 1];
         if (lastMessage && lastMessage.parsedContent?.nextPrompts) {
           setSuggestedInputs(lastMessage.parsedContent.nextPrompts);
+          console.log(`💡 Set suggested inputs:`, lastMessage.parsedContent.nextPrompts);
         } else {
           setSuggestedInputs([]);
+          console.log(`💡 No suggested inputs available`);
         }
       } else {
+        console.log(`❌ No messages found, clearing message list. Dialogue:`, dialogue);
         setMessages([]);
         setSuggestedInputs([]);
       }
+      
+      console.log(`🎉 fetchLatestDialogue completed successfully`);
     } catch (error) {
-      console.error("Error fetching dialogue:", error);
+      console.error("❌ Error fetching dialogue:", error);
       setError("加载对话历史时出错");
     }
   };
@@ -280,29 +294,7 @@ export default function CharacterPage() {
         setLoadingPhase("初始化角色...");
         setIsInitializing(true);
 
-        // Initialize dialogue if needed
-        if (!initializationRef.current) {
-          // Load configuration from localStorage
-          const config = loadConfigFromLocalStorage();
-          
-          const initResponse = await initCharacterDialogue({
-            username,
-            characterId,
-            modelName: config.defaultModel || "gemini-2.5-pro",
-            baseUrl: config.defaultBaseUrl || "https://api.sillytarven.top/v1",
-            apiKey: config.defaultApiKey || "sk-terxMbHAT7lEAKZIs7UDFp_FvScR_3p9hzwJREjgbWM9IgeN",
-            llmType: config.defaultType || "openai",
-            language: "zh",
-          });
-          if (!initResponse.success) {
-            console.error("Failed to initialize dialogue", initResponse);
-            setError("初始化对话失败");
-            return;
-          }
-          initializationRef.current = true;
-        }
-
-        // Fetch character data
+        // Fetch character data first
         const characterRecord = await LocalCharacterRecordOperations.getCharacterById(characterId);
         if (characterRecord) {
           setCharacter({
@@ -316,13 +308,45 @@ export default function CharacterPage() {
           return;
         }
 
-        // Fetch dialogue
-        await fetchLatestDialogue();
+        console.log(`🔍 Checking for existing dialogue for character: ${characterId}`);
+        
+        // Check if dialogue exists and has messages
+        const username = localStorage.getItem("username");
+        const dialogueResponse = await getCharacterDialogue(characterId, "zh", username || undefined);
+        
+        if (dialogueResponse.success && dialogueResponse.dialogue && 
+            dialogueResponse.dialogue.messages && dialogueResponse.dialogue.messages.length > 0) {
+          console.log(`✅ Found existing dialogue with ${dialogueResponse.dialogue.messages.length} messages, loading...`);
+          
+          // Load existing dialogue
+          const dialogue = dialogueResponse.dialogue;
+          const formattedMessages = dialogue.messages.map((msg: any) => ({
+            id: msg.id,
+            role: msg.role == "system" ? "assistant" : msg.role,
+            thinkingContent: msg.thinkingContent ?? "",
+            content: msg.content,
+          }));
+
+          setMessages(formattedMessages);
+
+          const lastMessage = dialogue.messages[dialogue.messages.length - 1];
+          if (lastMessage && lastMessage.parsedContent?.nextPrompts) {
+            setSuggestedInputs(lastMessage.parsedContent.nextPrompts);
+          } else {
+            setSuggestedInputs([]);
+          }
+          
+          console.log(`📚 Successfully loaded ${formattedMessages.length} existing messages`);
+        } else {
+          console.log(`🆕 No existing dialogue found, initializing new one`);
+          await initializeNewDialogue(characterId);
+        }
 
         setIsLoading(false);
         setIsInitializing(false);
+        initializationRef.current = true;
       } catch (error) {
-        console.error("Error loading character:", error);
+        console.error("❌ Error loading character:", error);
         setError("加载角色时出错");
         setIsLoading(false);
         setIsInitializing(false);
@@ -339,9 +363,9 @@ export default function CharacterPage() {
       // Load configuration from localStorage
       const config = loadConfigFromLocalStorage();
       
-      const response = await initCharacterDialogue({
-        username,
-        characterId: charId,
+              const response = await initCharacterDialogue({
+         username: localStorage.getItem("username") || undefined,
+         characterId: charId,
         modelName: config.defaultModel || "gemini-2.5-pro",
         baseUrl: config.defaultBaseUrl || "https://api.sillytarven.top/v1",
         apiKey: config.defaultApiKey || "sk-terxMbHAT7lEAKZIs7UDFp_FvScR_3p9hzwJREjgbWM9IgeN",
@@ -386,9 +410,9 @@ export default function CharacterPage() {
       const config = loadConfigFromLocalStorage();
 
       // Send message to API
-      const response = await handleCharacterChatRequest({
-        username,
-        characterId,
+              const response = await handleCharacterChatRequest({
+         username: localStorage.getItem("username") || undefined,
+         characterId,
         message,
         modelName: config.defaultModel || "gemini-2.5-pro",
         baseUrl: config.defaultBaseUrl || "https://api.sillytarven.top/v1",

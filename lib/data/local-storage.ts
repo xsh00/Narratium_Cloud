@@ -72,6 +72,7 @@ export async function readData(storeName: string): Promise<any[]> {
 }
 
 export async function writeData(storeName: string, data: any[]): Promise<void> {
+  console.log(`💾 writeData called for store: ${storeName}, data length: ${data.length}`);
   await initializeDataFiles();
   const db = await openDB();
   return new Promise((resolve, reject) => {
@@ -79,8 +80,14 @@ export async function writeData(storeName: string, data: any[]): Promise<void> {
     const store = tx.objectStore(storeName);
     const request = store.put(data, "data");
 
-    request.onsuccess = () => resolve();
-    request.onerror = () => reject(request.error);
+    request.onsuccess = () => {
+      console.log(`✅ Successfully wrote ${data.length} items to store: ${storeName}`);
+      resolve();
+    };
+    request.onerror = () => {
+      console.error(`❌ Failed to write data to store: ${storeName}`, request.error);
+      reject(request.error);
+    };
   });
 }
 
