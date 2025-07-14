@@ -36,7 +36,7 @@ import { getAllCharacters } from "@/function/character/list";
 import { deleteCharacter } from "@/function/character/delete";
 import { handleCharacterUpload } from "@/function/character/import";
 import { trackButtonClick } from "@/utils/google-analytics";
-import { GITHUB_CONFIG } from "@/lib/config/github-config";
+import { COS_CONFIG, COS_CHARACTER_FILES } from "@/lib/config/cos-config";
 import { PRESET_CHARACTERS } from "@/lib/config/preset-characters";
 
 /**
@@ -237,26 +237,17 @@ export default function CharacterCards() {
 
   /**
    * Downloads preset character cards for first-time users or when character list is empty
-   * Fetches available characters from GitHub and downloads specific preset characters
+   * Fetches available characters from COS and downloads specific preset characters
    */
   const downloadPresetCharacters = async () => {
     setIsDownloadingPresets(true);
     try {
-      // Fetch available character files from GitHub
-      const response = await fetch(GITHUB_CONFIG.API_URL);
-      const data = await response.json();
-
-      if (!Array.isArray(data)) {
-        console.error("Failed to fetch character files from GitHub");
-        return;
-      }
-
       // Define specific preset character files to download
       const presetCharacterNames = PRESET_CHARACTERS;
 
-      // Filter and find the specific preset characters
-      const pngFiles = data.filter(
-        (item: any) =>
+      // Filter and find the specific preset characters from COS
+      const pngFiles = COS_CHARACTER_FILES.filter(
+        (item) =>
           item.name.endsWith(".png") &&
           presetCharacterNames.includes(item.name),
       );
@@ -264,9 +255,7 @@ export default function CharacterCards() {
       // Download and import each preset character
       for (const file of pngFiles) {
         try {
-          const fileResponse = await fetch(
-            file.download_url || `${GITHUB_CONFIG.RAW_BASE_URL}${file.name}`,
-          );
+          const fileResponse = await fetch(COS_CONFIG.getCharacterCardUrl(file.name));
           if (!fileResponse.ok) {
             console.error(`Failed to download ${file.name}`);
             continue;

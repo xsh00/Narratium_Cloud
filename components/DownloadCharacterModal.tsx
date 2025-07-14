@@ -31,10 +31,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { handleCharacterUpload } from "@/function/character/import";
 import { useLanguage } from "@/app/i18n";
-import { GITHUB_CONFIG } from "@/lib/config/github-config";
-
-const GITHUB_API_URL = GITHUB_CONFIG.API_URL;
-const RAW_BASE_URL = GITHUB_CONFIG.RAW_BASE_URL;
+import { COS_CONFIG, COS_CHARACTER_FILES } from "@/lib/config/cos-config";
 
 /**
  * Interface definitions for the component's props and data structures
@@ -45,8 +42,10 @@ interface DownloadCharacterModalProps {
   onImport: () => void;
 }
 
-interface GithubFile {
+interface CosFile {
   name: string;
+  displayName: string;
+  tags: string[];
   download_url: string;
 }
 
@@ -76,7 +75,7 @@ export default function DownloadCharacterModal({
   onImport,
 }: DownloadCharacterModalProps) {
   const { t, fontClass, serifFontClass } = useLanguage();
-  const [characterFiles, setCharacterFiles] = useState<GithubFile[]>([]);
+  const [characterFiles, setCharacterFiles] = useState<CosFile[]>([]);
   const [loading, setLoading] = useState(false);
   const [importing, setImporting] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -86,26 +85,22 @@ export default function DownloadCharacterModal({
     if (!isOpen) return;
     setLoading(true);
     setError(null);
-    fetch(GITHUB_API_URL)
-      .then((res) => res.json())
-      .then((data) => {
-        if (Array.isArray(data)) {
-          setCharacterFiles(
-            data.filter((item: any) => item.name.endsWith(".png")),
-          );
-        } else {
-          setError(t("downloadModal.fetchError"));
-        }
-      })
-      .catch(() => setError(t("downloadModal.fetchError")))
-      .finally(() => setLoading(false));
+    
+    // 使用COS配置中的预设文件列表
+    const cosFiles: CosFile[] = COS_CHARACTER_FILES.map(file => ({
+      ...file,
+      download_url: COS_CONFIG.getCharacterCardUrl(file.name)
+    }));
+    
+    setCharacterFiles(cosFiles);
+    setLoading(false);
   }, [isOpen]);
 
-  const handleDownloadAndImport = async (file: GithubFile) => {
+  const handleDownloadAndImport = async (file: CosFile) => {
     setImporting(file.name);
     setError(null);
     try {
-      const res = await fetch(file.download_url || RAW_BASE_URL + file.name);
+      const res = await fetch(file.download_url);
       if (!res.ok) throw new Error(t("downloadModal.downloadFailed"));
       const blob = await res.blob();
       const fileObj = new File([blob], file.name, { type: blob.type });
@@ -259,7 +254,7 @@ export default function DownloadCharacterModal({
                   >
                     <div className="relative w-full aspect-square mb-3">
                       <img
-                        src={RAW_BASE_URL + file.name}
+                        src={file.download_url}
                         alt={file.name}
                         className="w-full h-full object-cover rounded border border-[#534741]"
                       />
