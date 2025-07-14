@@ -19,6 +19,13 @@ export default function HomeContent() {
   const [imagesLoaded, setImagesLoaded] = useState(false);
   const { isTourVisible, currentTourSteps, completeTour, skipTour } = useTour();
 
+  // 用户名设置相关状态
+  const [currentUsername, setCurrentUsername] = useState("");
+  const [isEditingUsername, setIsEditingUsername] = useState(false);
+  const [tempUsername, setTempUsername] = useState("");
+  const [usernameSuccess, setUsernameSuccess] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
   useEffect(() => {
     setMounted(true);
     const yellowImg = new Image();
@@ -33,7 +40,53 @@ export default function HomeContent() {
     ]).then(() => {
       setImagesLoaded(true);
     });
+
+    // 检测是否为手机端
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+  // 初始化用户名
+  useEffect(() => {
+    const username = localStorage.getItem('username') || 'user';
+    setCurrentUsername(username);
+  }, []);
+
+  // 用户名设置相关函数
+  const handleEditUsername = () => {
+    setTempUsername(currentUsername);
+    setIsEditingUsername(true);
+  };
+
+  const handleCancelEditUsername = () => {
+    setIsEditingUsername(false);
+    setTempUsername("");
+  };
+
+  const handleSaveUsername = () => {
+    if (tempUsername.trim()) {
+      const newUsername = tempUsername.trim();
+      localStorage.setItem('username', newUsername);
+      setCurrentUsername(newUsername);
+      setIsEditingUsername(false);
+      setUsernameSuccess(true);
+      setTimeout(() => setUsernameSuccess(false), 3000);
+    }
+  };
+
+  const handleUsernameKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSaveUsername();
+    } else if (e.key === 'Escape') {
+      handleCancelEditUsername();
+    }
+  };
 
   if (!mounted) return null;
 
@@ -145,6 +198,100 @@ export default function HomeContent() {
         >
           {t("homePage.slogan")}
         </p>
+
+        {/* 用户名设置组件 - 仅在手机端显示 */}
+        {isMobile && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="mb-8"
+          >
+            <div className="bg-black/30 backdrop-blur-sm border border-amber-500/20 rounded-xl p-5 shadow-[0_0_20px_rgba(251,146,60,0.2)] max-w-sm mx-auto">
+              <div className="flex items-center justify-center mb-3">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="text-amber-400 mr-2"
+                >
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                <span className={`text-amber-400 font-medium text-sm ${fontClass}`}>
+                  当前用户名
+                </span>
+              </div>
+              
+              {!isEditingUsername ? (
+                <div className="text-center">
+                  <div className="flex items-center justify-center mb-4">
+                    <span className={`text-[#f4e8c1] text-lg font-medium ${fontClass}`}>
+                      {currentUsername}
+                    </span>
+                  </div>
+                  <motion.button
+                    onClick={handleEditUsername}
+                    className={`bg-gradient-to-r from-amber-500/80 to-orange-400/80 text-black px-4 py-2 rounded-lg hover:from-amber-400 hover:to-orange-300 transition-all duration-200 text-sm font-medium ${fontClass} shadow-lg`}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    修改用户名
+                  </motion.button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <input
+                    type="text"
+                    value={tempUsername}
+                    onChange={(e) => setTempUsername(e.target.value)}
+                    onKeyPress={handleUsernameKeyPress}
+                    className="w-full px-3 py-2 bg-black/50 border border-amber-500/30 rounded-lg text-[#f4e8c1] focus:border-amber-500/60 focus:outline-none text-center placeholder-[#c0a480]/60"
+                    placeholder="请输入新用户名"
+                    autoFocus
+                  />
+                  <div className="flex space-x-2">
+                    <motion.button
+                      onClick={handleSaveUsername}
+                      className="flex-1 px-3 py-2 bg-gradient-to-r from-amber-500/80 to-orange-400/80 text-black rounded-lg hover:from-amber-400 hover:to-orange-300 transition-all duration-200 text-sm font-medium"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      保存
+                    </motion.button>
+                    <motion.button
+                      onClick={handleCancelEditUsername}
+                      className="flex-1 px-3 py-2 border border-amber-500/30 text-[#f4e8c1] rounded-lg hover:bg-amber-500/10 transition-colors text-sm"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      取消
+                    </motion.button>
+                  </div>
+                </div>
+              )}
+              
+              {usernameSuccess && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="flex items-center justify-center space-x-2 text-green-400 text-sm mt-3"
+                >
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  <span>用户名已更新</span>
+                </motion.div>
+              )}
+            </div>
+          </motion.div>
+        )}
 
         <div className="flex flex-col md:flex-row gap-4 justify-center mt-6">
           <Link href="/character-cards">

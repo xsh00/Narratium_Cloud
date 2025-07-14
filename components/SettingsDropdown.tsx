@@ -383,6 +383,8 @@ export default function SettingsDropdown({
                   {t("common.modelSettings")}
                 </button>
 
+
+
                 <button
                   onClick={toggleSound}
                   className="flex items-center w-full px-4 py-3 text-sm text-[#f4e8c1] hover:bg-[#252525] transition-colors"

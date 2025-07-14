@@ -291,10 +291,11 @@ export default function CharacterPage() {
 
     const loadCharacterAndDialogue = async () => {
       try {
-        setLoadingPhase("初始化角色...");
+        setLoadingPhase("正在加载角色信息...");
         setIsInitializing(true);
 
         // Fetch character data first
+        console.log(`🔍 Loading character data for: ${characterId}`);
         const characterRecord = await LocalCharacterRecordOperations.getCharacterById(characterId);
         if (characterRecord) {
           setCharacter({
@@ -303,11 +304,15 @@ export default function CharacterPage() {
             personality: characterRecord.data.personality,
             avatar_path: characterRecord.imagePath,
           });
+          console.log(`✅ Character data loaded: ${characterRecord.data.name}`);
         } else {
           setError("未找到角色信息");
+          setIsLoading(false);
+          setIsInitializing(false);
           return;
         }
 
+        setLoadingPhase("检查现有对话...");
         console.log(`🔍 Checking for existing dialogue for character: ${characterId}`);
         
         // Check if dialogue exists and has messages
@@ -317,6 +322,8 @@ export default function CharacterPage() {
         if (dialogueResponse.success && dialogueResponse.dialogue && 
             dialogueResponse.dialogue.messages && dialogueResponse.dialogue.messages.length > 0) {
           console.log(`✅ Found existing dialogue with ${dialogueResponse.dialogue.messages.length} messages, loading...`);
+          
+          setLoadingPhase("加载现有对话...");
           
           // Load existing dialogue
           const dialogue = dialogueResponse.dialogue;
@@ -337,8 +344,13 @@ export default function CharacterPage() {
           }
           
           console.log(`📚 Successfully loaded ${formattedMessages.length} existing messages`);
+          
+          setLoadingPhase("准备对话界面...");
+          // Add a brief delay to ensure UI is ready
+          await new Promise(resolve => setTimeout(resolve, 300));
         } else {
           console.log(`🆕 No existing dialogue found, initializing new one`);
+          setLoadingPhase("创建新对话...");
           await initializeNewDialogue(characterId);
         }
 
@@ -358,12 +370,16 @@ export default function CharacterPage() {
 
   const initializeNewDialogue = async (charId: string) => {
     try {
-      setLoadingPhase("创建新对话...");
+      setLoadingPhase("初始化对话配置...");
       
       // Load configuration from localStorage
       const config = loadConfigFromLocalStorage();
       
-              const response = await initCharacterDialogue({
+      console.log(`🆕 Initializing new dialogue for character: ${charId}`);
+      
+      setLoadingPhase("生成角色开场白...");
+      
+      const response = await initCharacterDialogue({
          username: localStorage.getItem("username") || undefined,
          characterId: charId,
         modelName: config.defaultModel || "gemini-2.5-pro",
@@ -376,11 +392,73 @@ export default function CharacterPage() {
       if (!response.success) {
         console.error("Failed to initialize dialogue", response);
         setError("创建新对话失败");
+        setIsLoading(false);
         return;
       }
 
-      setMessages([]);
-      setSuggestedInputs([]);
+      console.log(`✅ Dialogue initialized successfully, loading opening message...`);
+      
+      setLoadingPhase("加载角色开场白...");
+      
+      // Wait a bit for the dialogue to be properly saved, then fetch it
+      await new Promise(resolve => setTimeout(resolve, 800)); // Increased wait time
+      
+      // Fetch the newly created dialogue to get the opening message
+      const username = localStorage.getItem("username");
+      
+      // Try multiple times to get the dialogue if needed
+      let dialogueResponse;
+      let attempts = 0;
+      const maxAttempts = 3;
+      
+      while (attempts < maxAttempts) {
+        dialogueResponse = await getCharacterDialogue(charId, "zh", username || undefined);
+        
+        if (dialogueResponse.success && dialogueResponse.dialogue && 
+            dialogueResponse.dialogue.messages && dialogueResponse.dialogue.messages.length > 0) {
+          break;
+        }
+        
+        attempts++;
+        if (attempts < maxAttempts) {
+          console.log(`🔄 Attempt ${attempts} failed, retrying...`);
+          setLoadingPhase(`正在重试加载开场白... (${attempts}/${maxAttempts})`);
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+      }
+      
+      if (dialogueResponse && dialogueResponse.success && dialogueResponse.dialogue && 
+          dialogueResponse.dialogue.messages && dialogueResponse.dialogue.messages.length > 0) {
+        console.log(`📚 Successfully loaded ${dialogueResponse.dialogue.messages.length} messages including opening message`);
+        
+        setLoadingPhase("处理开场白内容...");
+        
+        const dialogue = dialogueResponse.dialogue;
+        const formattedMessages = dialogue.messages.map((msg: any) => ({
+          id: msg.id,
+          role: msg.role == "system" ? "assistant" : msg.role,
+          thinkingContent: msg.thinkingContent ?? "",
+          content: msg.content,
+        }));
+
+        setMessages(formattedMessages);
+
+        const lastMessage = dialogue.messages[dialogue.messages.length - 1];
+        if (lastMessage && lastMessage.parsedContent?.nextPrompts) {
+          setSuggestedInputs(lastMessage.parsedContent.nextPrompts);
+        } else {
+          setSuggestedInputs([]);
+        }
+        
+        setLoadingPhase("准备对话界面...");
+        await new Promise(resolve => setTimeout(resolve, 200));
+      } else {
+        console.log(`⚠️ No messages found after initialization, setting empty state`);
+        setMessages([]);
+        setSuggestedInputs([]);
+        showErrorToast("角色开场白生成失败，请刷新页面重试");
+      }
+      
       setIsLoading(false);
     } catch (error) {
       console.error("Error initializing new dialogue:", error);
