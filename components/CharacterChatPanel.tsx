@@ -71,6 +71,7 @@ interface Props {
   onSuggestedInput: (input: string) => void;
   onTruncate: (id: string) => void;
   onRegenerate: (id: string) => void;
+  onEditMessage: (messageId: string, newContent: string) => void;
   fontClass: string;
   serifFontClass: string;
   t: (key: string) => string;
@@ -95,6 +96,7 @@ export default function CharacterChatPanel({
   onSuggestedInput,
   onTruncate,
   onRegenerate,
+  onEditMessage,
   fontClass,
   serifFontClass,
   t,
@@ -103,6 +105,11 @@ export default function CharacterChatPanel({
 }: Props) {
   const [streamingTarget, setStreamingTarget] = useState<number>(-1);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // 编辑状态管理
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+  const [editingContent, setEditingContent] = useState<string>("");
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
 
   // API Configuration states
   const [configs, setConfigs] = useState<APIConfig[]>([]);
@@ -139,6 +146,21 @@ export default function CharacterChatPanel({
     }
   }, []);
 
+  // 检测触摸设备
+  useEffect(() => {
+    const checkTouchDevice = () => {
+      const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+      setIsTouchDevice(isTouch);
+    };
+    
+    checkTouchDevice();
+    window.addEventListener('resize', checkTouchDevice);
+    
+    return () => {
+      window.removeEventListener('resize', checkTouchDevice);
+    };
+  }, []);
+
   const scrollToBottom = () => {
     const el = scrollRef.current;
     if (!el) return;
@@ -162,6 +184,40 @@ export default function CharacterChatPanel({
     if (index !== messages.length - 1) return false;
 
     return true;
+  };
+
+  // 编辑消息相关函数
+  const handleStartEdit = (message: Message) => {
+    if (isSending) return;
+    
+    // 提取用户输入内容，去除HTML标签
+    const userContent = message.content.match(/<input_message>([\s\S]*?)<\/input_message>/)?.[1] || "";
+    const cleanContent = userContent.replace(/^[\s\n\r]*((<[^>]+>\s*)*)?(玩家输入指令|Player Input)[:：]\s*/i, "").trim();
+    
+    setEditingMessageId(message.id);
+    setEditingContent(cleanContent);
+  };
+
+  const handleSaveEdit = () => {
+    if (!editingMessageId || !editingContent.trim()) return;
+    
+    onEditMessage(editingMessageId, editingContent.trim());
+    setEditingMessageId(null);
+    setEditingContent("");
+  };
+
+  const handleCancelEdit = () => {
+    setEditingMessageId(null);
+    setEditingContent("");
+  };
+
+  const handleEditKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSaveEdit();
+    } else if (e.key === 'Escape') {
+      handleCancelEdit();
+    }
   };
 
   // API configuration helper functions
@@ -761,21 +817,95 @@ export default function CharacterChatPanel({
 
                 return message.role === "user" ? (
                   <div key={index} className="flex justify-end mb-4">
-                    <div className="whitespace-pre-line text-[#f4e8c1] story-text leading-relaxed magical-text">
-                      <p
-                        className={`${serifFontClass}`}
-                        dangerouslySetInnerHTML={{
-                          __html: (
-                            message.content.match(
-                              /<input_message>([\s\S]*?)<\/input_message>/,
-                            )?.[1] || ""
-                          ).replace(
-                            /^[\s\n\r]*((<[^>]+>\s*)*)?(玩家输入指令|Player Input)[:：]\s*/i,
-                            "",
-                          ),
-                        }}
-                      ></p>
-                    </div>
+                    {editingMessageId === message.id ? (
+                      // 编辑模式
+                      <div className="flex flex-col items-end space-y-2 max-w-[80%]">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <span className={`text-xs text-[#a18d6f] ${fontClass}`}>
+                            编辑消息
+                          </span>
+                        </div>
+                        <div className="w-full">
+                          <textarea
+                            value={editingContent}
+                            onChange={(e) => setEditingContent(e.target.value)}
+                            onKeyDown={handleEditKeyDown}
+                            className="w-full bg-[#2a261f] border border-[#c0a480] rounded-lg py-2 px-3 text-[#f4e8c1] text-sm leading-tight focus:outline-none resize-none min-h-[40px] max-h-[120px] overflow-y-auto"
+                            placeholder="编辑消息内容..."
+                            autoFocus
+                            onInput={(e) => {
+                              const target = e.target as HTMLTextAreaElement;
+                              target.style.height = 'auto';
+                              target.style.height = Math.min(target.scrollHeight, 120) + 'px';
+                            }}
+                          />
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <button
+                            onClick={handleSaveEdit}
+                            disabled={!editingContent.trim()}
+                            className={`px-3 py-1 text-xs rounded border transition-all duration-300 ${
+                              editingContent.trim()
+                                ? "bg-[#d1a35c] text-[#2a261f] border-[#d1a35c] hover:bg-[#c0a480]"
+                                : "bg-[#2a261f] text-[#8a8a8a] border-[#534741] cursor-not-allowed"
+                            }`}
+                          >
+                            保存
+                          </button>
+                          <button
+                            onClick={handleCancelEdit}
+                            className="px-3 py-1 text-xs bg-[#2a261f] text-[#a18d6f] border border-[#534741] rounded hover:bg-[#342f25] hover:text-[#c0a480] transition-all duration-300"
+                          >
+                            取消
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      // 显示模式
+                      <div className="flex flex-col items-end space-y-2 max-w-[80%] group">
+                        <div className="whitespace-pre-line text-[#f4e8c1] story-text leading-relaxed magical-text">
+                          <p
+                            className={`${serifFontClass}`}
+                            dangerouslySetInnerHTML={{
+                              __html: (
+                                message.content.match(
+                                  /<input_message>([\s\S]*?)<\/input_message>/,
+                                )?.[1] || ""
+                              ).replace(
+                                /^[\s\n\r]*((<[^>]+>\s*)*)?(玩家输入指令|Player Input)[:：]\s*/i,
+                                "",
+                              ),
+                            }}
+                          ></p>
+                        </div>
+                        {!isSending && (
+                          <button
+                            onClick={() => handleStartEdit(message)}
+                            className={`px-2 py-1 text-xs bg-[#2a261f] text-[#a18d6f] border border-[#534741] rounded hover:bg-[#342f25] hover:text-[#c0a480] transition-all duration-300 touch-manipulation ${
+                              isTouchDevice 
+                                ? 'opacity-100' 
+                                : 'opacity-0 group-hover:opacity-100'
+                            }`}
+                            title="编辑消息"
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="h-3 w-3"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                              />
+                            </svg>
+                          </button>
+                        )}
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div key={index} className="mb-6">

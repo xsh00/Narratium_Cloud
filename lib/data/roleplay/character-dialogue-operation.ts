@@ -244,8 +244,16 @@ export class LocalCharacterDialogueOperations {
     }
 
     const nodesToDelete = new Set<string>();
+    const visited = new Set<string>();
+    
     const collectNodesToDelete = (currentNodeId: string) => {
+      // 防止循环引用导致的无限递归
+      if (visited.has(currentNodeId)) {
+        return;
+      }
+      visited.add(currentNodeId);
       nodesToDelete.add(currentNodeId);
+      
       const children = dialogueTree.nodes.filter(
         (node) => node.parentNodeId === currentNodeId,
       );

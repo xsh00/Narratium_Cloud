@@ -538,6 +538,133 @@ export default function CharacterPage() {
     }
   };
 
+  const handleEditMessage = async (messageId: string, newContent: string) => {
+    if (!characterId || isSending) return;
+
+    setIsSending(true);
+
+    try {
+      // 找到要编辑的消息的索引
+      const messageIndex = messages.findIndex((msg) => msg.id === messageId);
+      if (messageIndex === -1) {
+        console.error("Message not found for editing");
+        return;
+      }
+
+      // 构建新的消息内容，包含当前的活动模式
+      let message = newContent;
+      let hints: string[] = [];
+
+      if (activeModes["story-progress"]) {
+        const progressHint = t("characterChat.storyProgressHint");
+        hints.push(progressHint);
+      }
+
+      if (activeModes["perspective"].active) {
+        if (activeModes["perspective"].mode === "novel") {
+          const novelHint = t("characterChat.novelPerspectiveHint");
+          hints.push(novelHint);
+        } else if (activeModes["perspective"].mode === "protagonist") {
+          const protagonistHint = t("characterChat.protagonistPerspectiveHint");
+          hints.push(protagonistHint);
+        }
+      }
+
+      if (activeModes["scene-setting"]) {
+        const sceneSettingHint = t("characterChat.sceneTransitionHint");
+        hints.push(sceneSettingHint);
+      }
+
+      if (hints.length > 0) {
+        message = `
+        <input_message>
+        ${t("characterChat.playerInput")}：${newContent}
+        </input_message>
+        <response_instructions>
+        ${t("characterChat.responseInstructions")}：${hints.join(" ")}
+        </response_instructions>
+            `.trim();
+      } else {
+        message = `
+        <input_message>
+        ${t("characterChat.playerInput")}：${newContent}
+        </input_message>
+            `.trim();
+      }
+
+      // 使用更简单的方法：直接删除编辑消息节点及其所有子节点，然后重新添加编辑后的消息
+      console.log(`🗑️ Deleting node and all children: ${messageId}`);
+      
+      const { deleteDialogueNode } = await import("@/function/dialogue/delete");
+      await deleteDialogueNode({
+        characterId,
+        nodeId: messageId,
+      });
+
+      // 更新消息列表，保留编辑消息之前的所有消息
+      const updatedMessages = messages.slice(0, messageIndex);
+      
+      // 添加编辑后的用户消息
+      const editedUserMessage: Message = {
+        id: messageId,
+        role: "user",
+        content: message,
+      };
+      updatedMessages.push(editedUserMessage);
+      setMessages(updatedMessages);
+
+      // 重新添加编辑后的消息和生成回复
+      const config = loadConfigFromLocalStorage();
+      const response = await handleCharacterChatRequest({
+        username: localStorage.getItem("username") || undefined,
+        characterId,
+        message,
+        modelName: config.defaultModel || "gemini-2.5-pro",
+        baseUrl: config.defaultBaseUrl || "https://api.sillytarven.top/v1",
+        apiKey: config.defaultApiKey || "sk-terxMbHAT7lEAKZIs7UDFp_FvScR_3p9hzwJREjgbWM9IgeN",
+        llmType: config.defaultType || "openai",
+        language: "zh",
+        nodeId: messageId,
+        fastModel: false,
+      });
+
+      if (!response.ok) {
+        console.error("Failed to send edited message", response);
+        showErrorToast("发送编辑消息失败");
+        return;
+      }
+
+      const responseData = await response.json();
+
+      if (!responseData.success) {
+        console.error("Failed to send edited message", responseData);
+        showErrorToast("发送编辑消息失败");
+        return;
+      }
+
+      const assistantMessage: Message = {
+        id: responseData.messageId || messageId,
+        role: "assistant",
+        thinkingContent: responseData.thinkingContent || "",
+        content: responseData.content,
+      };
+
+      setMessages((prev) => [...prev, assistantMessage]);
+
+      // Update suggested inputs
+      if (responseData.parsedContent?.nextPrompts) {
+        setSuggestedInputs(responseData.parsedContent.nextPrompts);
+      } else {
+        setSuggestedInputs([]);
+      }
+    } catch (error) {
+      console.error("Error editing message:", error);
+      showErrorToast("编辑消息时出错");
+    } finally {
+      setIsSending(false);
+    }
+  };
+
   useEffect(() => {
     const handleSwitchToPresetView = (event: any) => {
       setActiveView("preset");
@@ -697,6 +824,7 @@ export default function CharacterPage() {
               onSuggestedInput={handleSuggestedInput}
               onTruncate={truncateMessagesAfter}
               onRegenerate={handleRegenerate}
+              onEditMessage={handleEditMessage}
               fontClass={fontClass}
               serifFontClass={serifFontClass}
               t={t}
