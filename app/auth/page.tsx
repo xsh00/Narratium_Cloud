@@ -8,13 +8,15 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 
 export default function AuthPage() {
-  const { user, isAuthenticated, login, register, sendVerificationCode } = useAuth();
+  const { user, isAuthenticated, login, register, sendVerificationCode, sendResetPasswordCode, resetPassword } = useAuth();
   const { t, fontClass, titleFontClass, serifFontClass } = useLanguage();
   const router = useRouter();
   
   const [isLogin, setIsLogin] = useState(true);
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -63,7 +65,9 @@ export default function AuthPage() {
     setIsLoading(true);
     setError('');
 
-    const result = await sendVerificationCode(email);
+    const result = isForgotPassword 
+      ? await sendResetPasswordCode(email)
+      : await sendVerificationCode(email);
     
     if (result.success) {
       setSuccess(result.message);
@@ -82,7 +86,33 @@ export default function AuthPage() {
     setError('');
     setSuccess('');
 
-    if (isLogin) {
+    if (isForgotPassword) {
+      if (!verificationCode) {
+        setError('请输入验证码');
+        setIsLoading(false);
+        return;
+      }
+      
+      if (password !== confirmPassword) {
+        setError('两次输入的密码不一致');
+        setIsLoading(false);
+        return;
+      }
+      
+      const result = await resetPassword(email, verificationCode, password);
+      if (result.success) {
+        setSuccess(result.message);
+        setTimeout(() => {
+          setIsForgotPassword(false);
+          setPassword('');
+          setConfirmPassword('');
+          setVerificationCode('');
+          setCodeSent(false);
+        }, 2000);
+      } else {
+        setError(result.message);
+      }
+    } else if (isLogin) {
       const result = await login(email, password);
       if (result.success) {
         setSuccess(result.message);
@@ -93,6 +123,12 @@ export default function AuthPage() {
     } else {
       if (!verificationCode) {
         setError('请输入验证码');
+        setIsLoading(false);
+        return;
+      }
+      
+      if (password !== confirmPassword) {
+        setError('两次输入的密码不一致');
         setIsLoading(false);
         return;
       }
@@ -136,36 +172,48 @@ export default function AuthPage() {
           className="bg-[#1a1714] border border-[#534741] rounded-lg p-4 shadow-lg sm:p-6"
         >
           {/* Tabs */}
-          <div className="flex mb-4 sm:mb-6">
-            <button
-              onClick={() => {
-                setIsLogin(true);
-                setError('');
-                setSuccess('');
-              }}
-              className={`flex-1 py-2 px-3 rounded-l-lg transition-all duration-300 text-sm sm:text-base sm:px-4 ${
-                isLogin
-                  ? 'bg-[#f8d36a] text-[#1a1714]'
-                  : 'bg-[#2a231c] text-[#a18d6f] hover:text-[#f8d36a]'
-              }`}
-            >
-              登录
-            </button>
-            <button
-              onClick={() => {
-                setIsLogin(false);
-                setError('');
-                setSuccess('');
-              }}
-              className={`flex-1 py-2 px-3 rounded-r-lg transition-all duration-300 text-sm sm:text-base sm:px-4 ${
-                !isLogin
-                  ? 'bg-[#f8d36a] text-[#1a1714]'
-                  : 'bg-[#2a231c] text-[#a18d6f] hover:text-[#f8d36a]'
-              }`}
-            >
-              注册
-            </button>
-          </div>
+          {!isForgotPassword && (
+            <div className="flex mb-4 sm:mb-6">
+              <button
+                onClick={() => {
+                  setIsLogin(true);
+                  setIsForgotPassword(false);
+                  setError('');
+                  setSuccess('');
+                }}
+                className={`flex-1 py-2 px-3 rounded-l-lg transition-all duration-300 text-sm sm:text-base sm:px-4 ${
+                  isLogin
+                    ? 'bg-[#f8d36a] text-[#1a1714]'
+                    : 'bg-[#2a231c] text-[#a18d6f] hover:text-[#f8d36a]'
+                }`}
+              >
+                登录
+              </button>
+              <button
+                onClick={() => {
+                  setIsLogin(false);
+                  setIsForgotPassword(false);
+                  setError('');
+                  setSuccess('');
+                }}
+                className={`flex-1 py-2 px-3 rounded-r-lg transition-all duration-300 text-sm sm:text-base sm:px-4 ${
+                  !isLogin
+                    ? 'bg-[#f8d36a] text-[#1a1714]'
+                    : 'bg-[#2a231c] text-[#a18d6f] hover:text-[#f8d36a]'
+                }`}
+              >
+                注册
+              </button>
+            </div>
+          )}
+          
+          {/* Forgot Password Header */}
+          {isForgotPassword && (
+            <div className="mb-4 sm:mb-6">
+              <h2 className="text-lg font-semibold text-[#f4e8c1] text-center mb-2">重置密码</h2>
+              <p className="text-[#a18d6f] text-sm text-center">请输入您的邮箱地址，我们将发送验证码</p>
+            </div>
+          )}
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
@@ -184,19 +232,57 @@ export default function AuthPage() {
 
             {/* Password */}
             <div>
-              <label className="block text-[#f4e8c1] text-sm mb-1 sm:mb-2">密码</label>
+              <label className="block text-[#f4e8c1] text-sm mb-1 sm:mb-2">
+                {isForgotPassword ? '新密码' : '密码'}
+              </label>
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full px-3 py-2 bg-[#2a231c] border border-[#534741] rounded-lg text-[#f4e8c1] placeholder-[#a18d6f] focus:outline-none focus:border-[#f8d36a] transition-colors text-sm sm:text-base"
-                placeholder="请输入密码"
+                placeholder={isForgotPassword ? "请输入新密码" : "请输入密码"}
                 required
               />
             </div>
 
-            {/* Verification Code (Register only) */}
-            {!isLogin && (
+            {/* Confirm Password (Register and Forgot Password) */}
+            {(!isLogin || isForgotPassword) && (
+              <div>
+                <label className="block text-[#f4e8c1] text-sm mb-1 sm:mb-2">确认密码</label>
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="w-full px-3 py-2 bg-[#2a231c] border border-[#534741] rounded-lg text-[#f4e8c1] placeholder-[#a18d6f] focus:outline-none focus:border-[#f8d36a] transition-colors text-sm sm:text-base"
+                  placeholder="请再次输入密码"
+                  required
+                />
+              </div>
+            )}
+
+            {/* Forgot Password Link (Login only) */}
+            {isLogin && !isForgotPassword && (
+              <div className="text-right">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsForgotPassword(true);
+                    setError('');
+                    setSuccess('');
+                    setPassword('');
+                    setConfirmPassword('');
+                    setVerificationCode('');
+                    setCodeSent(false);
+                  }}
+                  className="text-[#f8d36a] hover:text-[#e6c85a] text-sm transition-colors"
+                >
+                  忘记密码？
+                </button>
+              </div>
+            )}
+
+            {/* Verification Code (Register and Forgot Password) */}
+            {(!isLogin || isForgotPassword) && (
               <div>
                 <label className="block text-[#f4e8c1] text-sm mb-1 sm:mb-2">验证码</label>
                 <div className="flex space-x-2">
@@ -268,8 +354,33 @@ export default function AuthPage() {
               disabled={isLoading}
               className="w-full py-2 bg-[#f8d36a] text-[#1a1714] rounded-lg hover:bg-[#e6c85a] disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium text-sm sm:text-base sm:py-3"
             >
-              {isLoading ? '处理中...' : (isLogin ? '登录' : '注册')}
+              {isLoading ? '处理中...' : (
+                isForgotPassword ? '重置密码' : 
+                isLogin ? '登录' : '注册'
+              )}
             </button>
+
+            {/* Back to Login (Forgot Password only) */}
+            {isForgotPassword && (
+              <div className="text-center mt-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsForgotPassword(false);
+                    setIsLogin(true);
+                    setError('');
+                    setSuccess('');
+                    setPassword('');
+                    setConfirmPassword('');
+                    setVerificationCode('');
+                    setCodeSent(false);
+                  }}
+                  className="text-[#a18d6f] hover:text-[#f8d36a] text-sm transition-colors"
+                >
+                  ← 返回登录
+                </button>
+              </div>
+            )}
           </form>
         </motion.div>
       </div>

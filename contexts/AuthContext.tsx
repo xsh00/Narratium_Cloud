@@ -14,6 +14,8 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<{ success: boolean; message: string }>;
   register: (email: string, password: string, code: string) => Promise<{ success: boolean; message: string }>;
   sendVerificationCode: (email: string) => Promise<{ success: boolean; message: string }>;
+  sendResetPasswordCode: (email: string) => Promise<{ success: boolean; message: string }>;
+  resetPassword: (email: string, code: string, newPassword: string) => Promise<{ success: boolean; message: string }>;
   logout: () => void;
 }
 
@@ -146,6 +148,52 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const sendResetPasswordCode = async (email: string) => {
+    try {
+      const response = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, action: 'sendCode' }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        return { success: true, message: data.message };
+      } else {
+        return { success: false, message: data.error };
+      }
+    } catch (error) {
+      console.error('发送重置密码验证码错误:', error);
+      return { success: false, message: '网络错误，请重试' };
+    }
+  };
+
+  const resetPassword = async (email: string, code: string, newPassword: string) => {
+    try {
+      const response = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, code, newPassword, action: 'resetPassword' }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        return { success: true, message: data.message };
+      } else {
+        return { success: false, message: data.error };
+      }
+    } catch (error) {
+      console.error('重置密码错误:', error);
+      return { success: false, message: '网络错误，请重试' };
+    }
+  };
+
   const logout = () => {
     setUser(null);
     localStorage.removeItem('user');
@@ -161,6 +209,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     login,
     register,
     sendVerificationCode,
+    sendResetPasswordCode,
+    resetPassword,
     logout,
   };
 

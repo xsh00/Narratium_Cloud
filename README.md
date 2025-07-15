@@ -105,6 +105,7 @@ For detailed instructions, see [GitHub Repository Setup Guide](./docs/GITHUB_REP
 - **Immersive Adventure Mode**: Create personalized worlds and make decisions that matter.
 - **Visual Memory Management**: React Flow-powered session tracing and branching.
 - **Character Cards & Lore**: Compatible with SillyTavern cards, manage everything in one place.
+- **Secure Authentication**: Email-based verification with password confirmation and recovery.
 
 | API Recommendations & Configuration |
 | :---------------------------------- |

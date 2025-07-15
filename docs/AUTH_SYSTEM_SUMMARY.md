@@ -7,11 +7,13 @@
 - ✅ 验证码验证和用户注册
 - ✅ 密码加密存储（bcryptjs）
 - ✅ 验证码过期机制（5分钟）
+- ✅ 二次密码确认功能
 
 ### 2. 邮箱密码登录系统
 - ✅ 邮箱密码登录验证
 - ✅ 密码哈希验证
 - ✅ 登录状态管理
+- ✅ 忘记密码功能
 
 ### 3. 认证状态管理
 - ✅ AuthContext 全局状态管理
@@ -27,6 +29,12 @@
 - ✅ Gmail SMTP 邮件发送
 - ✅ 邮件配置状态检查
 - ✅ 邮件发送错误处理
+
+### 6. 密码安全功能
+- ✅ 注册时二次密码确认
+- ✅ 忘记密码邮箱验证码重置
+- ✅ 密码一致性验证
+- ✅ 安全的密码重置流程
 
 ## 受保护的页面
 
@@ -46,6 +54,7 @@ app/
 ├── api/auth/
 │   ├── register/route.ts           # 注册和验证码API
 │   ├── login/route.ts              # 登录API
+│   ├── forgot-password/route.ts    # 忘记密码API
 │   └── check-email-config/route.ts # 邮件配置检查API
 ├── api/admin/
 │   └── database/route.ts           # 数据库管理API
@@ -61,7 +70,7 @@ contexts/
 └── AuthContext.tsx                 # 认证上下文
 
 lib/data/
-└── database.ts                     # SQLite数据库管理
+└── database.ts                     # MySQL数据库管理
 
 components/
 └── AuthGuard.tsx                   # 认证守卫组件
@@ -72,6 +81,7 @@ components/
 docs/
 ├── EMAIL_SETUP.md                  # 邮件配置说明
 ├── DATABASE_MIGRATION.md           # 数据库迁移说明
+├── PASSWORD_FEATURES.md            # 密码功能增强说明
 └── AUTH_SYSTEM_SUMMARY.md         # 本总结文档
 ```
 
@@ -102,13 +112,22 @@ EMAIL_PASS=your-app-password
 3. 输入邮箱地址
 4. 点击"发送验证码"
 5. 检查邮箱并输入验证码
-6. 设置密码并完成注册
+6. 输入密码和确认密码
+7. 完成注册
 
 ### 用户登录流程
 1. 访问 `/auth` 页面
 2. 输入邮箱和密码
 3. 点击"登录"
 4. 登录成功后自动跳转到主页
+
+### 忘记密码流程
+1. 在登录页面点击"忘记密码？"
+2. 输入注册邮箱地址
+3. 点击"发送验证码"
+4. 检查邮箱并输入验证码
+5. 输入新密码和确认密码
+6. 点击"重置密码"完成重置
 
 ### 页面访问控制
 - 未登录用户访问受保护页面会自动跳转到登录页
