@@ -7,11 +7,10 @@
 
 export const PRESET_CHARACTERS = [
   "斗罗大陆1.png",
-  "辉夜大小姐想让我告白--同人二创，纯文字.png",
   "星辰为冢.png",
-  "古墓丽影—邪马台传说--同人二创.png",
-  "刀剑神域：IF线：Betrayal and Lust--前端美化，同人二创，NTL.png",
-  "人生模拟器，我进入了诡异修仙界--同人二创，前端美化.png",
+  "古墓丽影—邪马台传说.png",
+  "刀剑神域：IF线：Betrayal and Lust，NTL.png",
+  "更新第三部-剧情向《龙族》同人卡.png",
 ];
 
 /**
