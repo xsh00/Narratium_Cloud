@@ -38,6 +38,7 @@ import { handleCharacterUpload } from "@/function/character/import";
 import { trackButtonClick } from "@/utils/google-analytics";
 import { COS_CONFIG, COS_CHARACTER_FILES } from "@/lib/config/cos-config";
 import { PRESET_CHARACTERS } from "@/lib/config/preset-characters";
+import { GITHUB_CONFIG } from "@/lib/config/github-config";
 
 /**
  * Interface defining the structure of a character object
@@ -79,6 +80,7 @@ export default function CharacterCards() {
   const [imagesLoaded, setImagesLoaded] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isDownloadingPresets, setIsDownloadingPresets] = useState(false);
+  const [useGitHubMode, setUseGitHubMode] = useState(false);
 
   useEffect(() => {
     const savedViewMode = localStorage.getItem("characterCardsViewMode");

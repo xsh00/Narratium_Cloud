@@ -29,26 +29,76 @@ export const COS_CONFIG = {
  */
 export const COS_CHARACTER_FILES = [
   {
+    name: "1920年大英，工业时代与神秘侧的碰撞.png",
+    displayName: "1920年大英，工业时代与神秘侧的碰撞",
+    tags: [],
+  },
+  {
+    name: "《致炽焰以战歌》——露帕.png",
+    displayName: "《致炽焰以战歌》——露帕",
+    tags: [],
+  },
+  {
+    name: "刀剑神域：IF线：Betrayal and Lust.png",
+    displayName: "刀剑神域：IF线：Betrayal and Lust",
+    tags: [],
+  },
+  {
+    name: "古墓丽影—邪马台传说.png",
+    displayName: "古墓丽影—邪马台传说",
+    tags: [],
+  },
+  {
+    name: "古风女尊大世界.png",
+    displayName: "古风女尊大世界",
+    tags: ['同人'],
+  },
+  {
+    name: "成为幸运观众，抽到知更鸟.png",
+    displayName: "成为幸运观众，抽到知更鸟",
+    tags: [],
+  },
+  {
     name: "斗罗大陆1.png",
     displayName: "斗罗大陆1",
-    tags: ["小说", "玄幻"],
+    tags: [],
+  },
+  {
+    name: "斗罗大陆2.png",
+    displayName: "斗罗大陆2",
+    tags: [],
+  },
+  {
+    name: "星穹铁道.png",
+    displayName: "星穹铁道",
+    tags: [],
   },
   {
     name: "星辰为冢.png",
     displayName: "星辰为冢",
-    tags: ["原创"],
+    tags: [],
   },
   {
-    name: "古墓丽影—邪马台传说--同人二创.png",
-    displayName: "古墓丽影—邪马台传说",
-    tags: ["同人二创", "游戏"],
+    name: "更新第三部-剧情向《龙族》同人卡.png",
+    displayName: "更新第三部-剧情向《龙族》同人卡",
+    tags: [],
   },
   {
-    name: "刀剑神域：IF线：Betrayal and Lust--前端美化，同人二创，NTL.png",
-    displayName: "刀剑神域：IF线：Betrayal and Lust",
-    tags: ["前端美化", "同人二创", "NTL"],
+    name: "知更鸟.png",
+    displayName: "知更鸟",
+    tags: [],
   },
-];
+  {
+    name: "精灵宝可梦-旅途.png",
+    displayName: "精灵宝可梦-旅途",
+    tags: [],
+  },
+  {
+    name: "金庸群侠传之武林高手.png",
+    displayName: "金庸群侠传之武林高手",
+    tags: [],
+  },
+]; 
 
 /**
  * 使用说明：
