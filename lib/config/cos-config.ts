@@ -98,6 +98,181 @@ export const COS_CHARACTER_FILES = [
     displayName: "金庸群侠传之武林高手",
     tags: [],
   },
+  {
+    name: "《微笑的国度与闪耀的每日》——菲比--同人二创.png",
+    displayName: "《微笑的国度与闪耀的每日》——菲比",
+    tags: ["同人二创"],
+  },
+  {
+    name: "《无星之海》——坎特蕾拉--同人二创.png",
+    displayName: "《无星之海》——坎特蕾拉",
+    tags: ["同人二创"],
+  },
+  {
+    name: "Niya教授--同人二创.png",
+    displayName: "Niya教授",
+    tags: ["同人二创"],
+  },
+  {
+    name: "东京喰种-喰种搜查官--同人二创.png",
+    displayName: "东京喰种-喰种搜查官",
+    tags: ["同人二创"],
+  },
+  {
+    name: "仙剑奇侠传Ⅰ--同人二创.png",
+    displayName: "仙剑奇侠传Ⅰ",
+    tags: ["同人二创"],
+  },
+  {
+    name: "全职法师--同人二创.png",
+    displayName: "全职法师",
+    tags: ["同人二创"],
+  },
+  {
+    name: "刀剑神域--同人二创.png",
+    displayName: "刀剑神域",
+    tags: ["同人二创"],
+  },
+  {
+    name: "吞噬星空--同人二创.png",
+    displayName: "吞噬星空",
+    tags: ["同人二创"],
+  },
+  {
+    name: "命运之夜--同人二创.png",
+    displayName: "命运之夜",
+    tags: ["同人二创"],
+  },
+  {
+    name: "哈利波特--同人二创.png",
+    displayName: "哈利波特",
+    tags: ["同人二创"],
+  },
+  {
+    name: "完美世界--同人二创.png",
+    displayName: "完美世界",
+    tags: ["同人二创"],
+  },
+  {
+    name: "小猪熊传奇--同人二创.png",
+    displayName: "小猪熊传奇",
+    tags: ["同人二创"],
+  },
+  {
+    name: "崩坏星穹铁道同人卡--同人二创.png",
+    displayName: "崩坏星穹铁道同人卡",
+    tags: ["同人二创"],
+  },
+  {
+    name: "开局即决斗！重返学院，你能否攻略双马尾傲娇巨乳皇女？--人妻.png",
+    displayName: "开局即决斗！重返学院，你能否攻略双马尾傲娇巨乳皇女？",
+    tags: ["人妻"],
+  },
+  {
+    name: "文学部与JOJO的奇妙融合--同人二创.png",
+    displayName: "文学部与JOJO的奇妙融合",
+    tags: ["同人二创"],
+  },
+  {
+    name: "斗破苍穹之红颜群堕--同人二创.png",
+    displayName: "斗破苍穹之红颜群堕",
+    tags: ["同人二创"],
+  },
+  {
+    name: "武侠-天龙八部--同人二创.png",
+    displayName: "武侠-天龙八部",
+    tags: ["同人二创"],
+  },
+  {
+    name: "海贼王--同人二创.png",
+    displayName: "海贼王",
+    tags: ["同人二创"],
+  },
+  {
+    name: "火影卡--同人二创.png",
+    displayName: "火影卡",
+    tags: ["同人二创"],
+  },
+  {
+    name: "狐妖小红娘（奇幻都市版）--同人二创.png",
+    displayName: "狐妖小红娘（奇幻都市版）",
+    tags: ["同人二创"],
+  },
+  {
+    name: "神鬼剑士--同人二创.png",
+    displayName: "神鬼剑士",
+    tags: ["同人二创"],
+  },
+  {
+    name: "秦时便器--同人二创.png",
+    displayName: "秦时便器",
+    tags: ["同人二创"],
+  },
+  {
+    name: "综武大世界--同人二创.png",
+    displayName: "综武大世界",
+    tags: ["同人二创"],
+  },
+  {
+    name: "英雄联盟--同人二创.png",
+    displayName: "英雄联盟",
+    tags: ["同人二创"],
+  },
+  {
+    name: "英雄联盟：符文之地--同人二创.png",
+    displayName: "英雄联盟：符文之地",
+    tags: ["同人二创"],
+  },
+  {
+    name: "葬送的芙莉莲--同人二创.png",
+    displayName: "葬送的芙莉莲",
+    tags: ["同人二创"],
+  },
+  {
+    name: "蔚蓝档案--同人二创.png",
+    displayName: "蔚蓝档案",
+    tags: ["同人二创"],
+  },
+  {
+    name: "赫敏·格兰杰--同人二创.png",
+    displayName: "赫敏·格兰杰",
+    tags: ["同人二创"],
+  },
+  {
+    name: "转生成为纣王，逆转封神之战！--古风，前端美化.png",
+    displayName: "转生成为纣王，逆转封神之战！",
+    tags: ["古风", "前端美化"],
+  },
+  {
+    name: "辉夜大小姐同人--同人二创.png",
+    displayName: "辉夜大小姐同人",
+    tags: ["同人二创"],
+  },
+  {
+    name: "鬼吹灯世界--同人二创.png",
+    displayName: "鬼吹灯世界",
+    tags: ["同人二创"],
+  },
+  {
+    name: "鲁鲁修的监禁生活！--同人二创.png",
+    displayName: "鲁鲁修的监禁生活！",
+    tags: ["同人二创"],
+  },
+  {
+    name: "鸟白岛的夏日恋曲--前端美化.png",
+    displayName: "鸟白岛的夏日恋曲",
+    tags: ["前端美化"],
+  },
+  {
+    name: "黑袍纠察队--同人二创.png",
+    displayName: "黑袍纠察队",
+    tags: ["同人二创"],
+  },
+  {
+    name: "龙族：宿命回响--同人二创.png",
+    displayName: "龙族：宿命回响",
+    tags: ["同人二创"],
+  },
 ]; 
 
 /**
