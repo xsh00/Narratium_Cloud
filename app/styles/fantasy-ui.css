@@ -479,3 +479,127 @@
     inset 0 0 26px rgba(180, 130, 70, 0.06),
     0 0 14px rgba(140, 90, 40, 0.04);
 }
+
+/* 手机端折叠功能样式 */
+.mobile-collapsible {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mobile-collapsible.collapsed {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+}
+
+.mobile-collapsible.expanded {
+  max-height: 500px;
+  opacity: 1;
+}
+
+/* 手机端底部导航栏折叠动画 */
+.mobile-bottom-nav {
+  transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 手机端头部折叠动画 */
+.mobile-header-collapsible {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mobile-header-collapsible.collapsed {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  padding: 0;
+  margin: 0;
+}
+
+.mobile-header-collapsible.expanded {
+  max-height: 200px;
+  opacity: 1;
+}
+
+/* 手机端优化间距 */
+@media (max-width: 768px) {
+  .mobile-optimized-padding {
+    padding: 0.75rem;
+  }
+  
+  .mobile-optimized-margin {
+    margin: 0.5rem;
+  }
+  
+  .mobile-optimized-gap {
+    gap: 0.5rem;
+  }
+  
+  .mobile-optimized-text {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+  }
+  
+  .mobile-optimized-icon {
+    width: 1rem;
+    height: 1rem;
+  }
+}
+
+/* 折叠按钮悬停效果 */
+.collapse-button {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.collapse-button::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    45deg,
+    rgba(209, 163, 92, 0.1),
+    rgba(245, 222, 151, 0.05),
+    rgba(209, 163, 92, 0.1)
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  border-radius: inherit;
+}
+
+.collapse-button:hover::before {
+  opacity: 1;
+}
+
+.collapse-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(209, 163, 92, 0.2);
+}
+
+/* 安全区域适配 */
+@supports (padding: max(0px)) {
+  .mobile-bottom-nav {
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+  }
+  
+  .mobile-header {
+    padding-top: max(0.5rem, env(safe-area-inset-top));
+  }
+}
+
+/* 触摸设备优化 */
+@media (hover: none) and (pointer: coarse) {
+  .mobile-collapsible {
+    transition: all 0.2s ease;
+  }
+  
+  .collapse-button:hover {
+    transform: none;
+  }
+  
+  .collapse-button:active {
+    transform: scale(0.95);
+  }
+}

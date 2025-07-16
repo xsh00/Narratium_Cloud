@@ -64,9 +64,11 @@ export default function CharacterChatHeader({
   activeView,
   toggleSidebar,
   onSwitchToView,
+  onToggleRegexEditor,
 }: Props) {
   const { t, fontClass } = useLanguage();
   const [isMobile, setIsMobile] = useState(false);
+  const [isHeaderCollapsed, setIsHeaderCollapsed] = useState(false);
 
   useEffect(() => {
     const handleResize = () => {
@@ -79,15 +81,25 @@ export default function CharacterChatHeader({
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  const toggleHeaderCollapse = () => {
+    setIsHeaderCollapsed(!isHeaderCollapsed);
+  };
+
   return (
-    <div className="bg-[#1a1816] border-b border-[#534741] p-4 flex items-center">
+    <div className={`bg-[#1a1816] border-b border-[#534741] transition-all duration-300 ease-in-out ${
+      isMobile 
+        ? isHeaderCollapsed 
+          ? "p-2" 
+          : "p-3"
+        : "p-4"
+    } flex items-center`}>
       {sidebarCollapsed && (
         <button
           onClick={() => {
             trackButtonClick("page", "切换侧边栏");
             toggleSidebar();
           }}
-          className="relative group ml-3 mr-3 px-3 py-1.5 rounded-lg bg-gradient-to-br from-[#2a2826] via-[#1e1c1b] to-[#252220] border border-[#534741]/60 hover:border-[#666]/70 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-amber-500/20 overflow-hidden"
+          className="relative group ml-2 mr-2 md:ml-3 md:mr-3 px-2 py-1 md:px-3 md:py-1.5 rounded-lg bg-gradient-to-br from-[#2a2826] via-[#1e1c1b] to-[#252220] border border-[#534741]/60 hover:border-[#666]/70 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-amber-500/20 overflow-hidden"
         >
           <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 via-transparent to-orange-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl"></div>
 
@@ -96,8 +108,8 @@ export default function CharacterChatHeader({
           <div className="relative z-5 text-[#a18d6f] group-hover:text-amber-300 transition-all duration-300 flex items-center justify-center cursor-pointer">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
+              width="14"
+              height="14"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -140,8 +152,8 @@ export default function CharacterChatHeader({
                 />
               </circle>
             </svg>
-            {isMobile && (
-              <span className={`ml-2 text-xs ${fontClass} group-hover:text-amber-300 transition-colors duration-300`}>
+            {isMobile && !isHeaderCollapsed && (
+              <span className={`ml-1 text-xs ${fontClass} group-hover:text-amber-300 transition-colors duration-300`}>
                 {t("characterChat.expandSidebar")}
               </span>
             )}
@@ -151,16 +163,18 @@ export default function CharacterChatHeader({
         </button>
       )}
 
-      <div className="flex flex-col md:flex-row md:items-center space-y-2 md:space-y-0 md:space-x-4 flex-1">
-        <div className="flex items-center space-x-4">
-          <div className="w-8 h-8 md:w-10 md:h-10 rounded-full overflow-hidden">
+      <div className={`flex flex-col md:flex-row md:items-center space-y-1 md:space-y-0 md:space-x-4 flex-1 transition-all duration-300 ${
+        isMobile && isHeaderCollapsed ? "opacity-0 max-h-0 overflow-hidden" : "opacity-100"
+      }`}>
+        <div className="flex items-center space-x-3 md:space-x-4">
+          <div className="w-7 h-7 md:w-10 md:h-10 rounded-full overflow-hidden">
             {character.avatar_path ? (
               <CharacterAvatarBackground avatarPath={character.avatar_path} />
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-[#252220]">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="h-4 w-4 md:h-5 md:w-5 text-[#534741]"
+                  className="h-3 w-3 md:h-5 md:w-5 text-[#534741]"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -177,13 +191,15 @@ export default function CharacterChatHeader({
           </div>
 
           <h2
-            className={`text-base md:text-lg text-[#eae6db] magical-text ${serifFontClass} truncate max-w-[120px] md:max-w-[200px]`}
+            className={`text-sm md:text-lg text-[#eae6db] magical-text ${serifFontClass} truncate max-w-[100px] md:max-w-[200px]`}
           >
             {character.name}
           </h2>
         </div>
 
-        <div className="flex flex-wrap gap-2 md:gap-0">
+        <div className={`flex flex-wrap gap-1 md:gap-0 transition-all duration-300 ${
+          isMobile && isHeaderCollapsed ? "opacity-0 max-h-0 overflow-hidden" : "opacity-100"
+        }`}>
           <button
             onClick={() => {
               trackButtonClick("page", "切换世界书");
@@ -194,14 +210,14 @@ export default function CharacterChatHeader({
               }
             }}
             data-tour="worldbook-button"
-            className={`group px-2 py-1.5 md:px-3 md:py-1 md:ml-2 flex items-center rounded-md border transition-all duration-300 shadow-md relative overflow-hidden portal-button ${
+            className={`group px-1.5 py-1 md:px-3 md:py-1 md:ml-2 flex items-center rounded-md border transition-all duration-300 shadow-md relative overflow-hidden portal-button ${
               activeView === "worldbook"
                 ? "border-[#59d3a2]/60 bg-gradient-to-br from-[#212821] to-[#131a16] shadow-[0_0_12px_rgba(88,248,183,0.3)]"
                 : "border-[#33403a] bg-gradient-to-br from-[#1a1f1c] to-[#0e1310] hover:from-[#212821] hover:to-[#131a16] hover:shadow-[0_0_12px_rgba(88,248,183,0.2)]"
             }`}
           >
             <div
-              className={`relative w-6 h-6 md:mr-2 flex items-center justify-center transition-colors ${
+              className={`relative w-5 h-5 md:w-6 md:h-6 md:mr-2 flex items-center justify-center transition-colors ${
                 activeView === "worldbook"
                   ? "text-[#aef6da]"
                   : "text-[#59d3a2] group-hover:text-[#aef6da]"
@@ -215,74 +231,23 @@ export default function CharacterChatHeader({
                 strokeWidth="1.5"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                className="h-5 w-5 eye-icon"
+                className="h-4 w-4 md:h-5 md:w-5 eye-icon"
               >
                 <path d="M2 12c2-4 6-7 10-7s8 3 10 7c-2 4-6 7-10 7s-8-3-10-7z" />
                 <circle cx="12" cy="12" r="3" fill="currentColor" />
                 <ellipse cx="12" cy="12" rx="0.5" ry="2" fill="#1a1816" />
               </svg>
               <span className="absolute inset-0 rounded-full border border-[#59d3a2]/40 group-hover:border-[#aef6da]/60 animate-ring-pulse pointer-events-none"></span>
-              <span className="absolute w-3 h-3 rounded-full bg-[#aef6da]/40 blur-sm animate-ping-fast top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"></span>
+              <span className="absolute w-2 h-2 md:w-3 md:h-3 rounded-full bg-[#aef6da]/40 blur-sm animate-ping-fast top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"></span>
             </div>
             <span
-              className={`font-medium text-sm transition-all duration-300 ${serifFontClass} hidden md:block ${
+              className={`font-medium text-xs md:text-sm transition-all duration-300 ${serifFontClass} hidden md:block ${
                 activeView === "worldbook"
                   ? "text-[#aef6da]"
                   : "text-[#8de9c0] group-hover:text-[#aef6da]"
               }`}
             >
               {t("characterChat.worldBook")}
-            </span>
-          </button>
-
-          <button
-            onClick={() => {
-              trackButtonClick("page", "切换正则编辑器");
-              if (activeView === "regex") {
-                onSwitchToView("chat");
-              } else {
-                onSwitchToView("regex");
-              }
-            }}
-            data-tour="regex-button"
-            className={`group px-2 py-1.5 md:px-3 md:py-1 md:ml-2 flex items-center rounded-md border transition-all duration-300 shadow-md relative overflow-hidden ${
-              activeView === "regex"
-                ? "border-[#d39a59]/60 bg-gradient-to-br from-[#282521] to-[#1a1613] shadow-[0_0_12px_rgba(248,183,88,0.3)]"
-                : "border-[#403a33] bg-gradient-to-br from-[#1f1c1a] to-[#13100e] hover:from-[#282521] hover:to-[#1a1613] hover:shadow-[0_0_12px_rgba(248,183,88,0.2)]"
-            }`}
-          >
-            <div
-              className={`relative w-6 h-6 md:mr-2 flex items-center justify-center transition-colors ${
-                activeView === "regex"
-                  ? "text-[#f6daae]"
-                  : "text-[#d39a59] group-hover:text-[#f6daae]"
-              }`}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="h-5 w-5"
-              >
-                <path d="M12 2L2 7l10 5 10-5-10-5z" />
-                <path d="M2 17l10 5 10-5" />
-                <path d="M2 12l10 5 10-5" />
-              </svg>
-              <span className="absolute inset-0 rounded-full border border-[#d39a59]/40 group-hover:border-[#f6daae]/60 animate-ring-pulse pointer-events-none"></span>
-              <span className="absolute w-3 h-3 rounded-full bg-[#f6daae]/40 blur-sm animate-ping-fast top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"></span>
-            </div>
-            <span
-              className={`font-medium text-sm transition-all duration-300 ${serifFontClass} hidden md:block ${
-                activeView === "regex"
-                  ? "text-[#f6daae]"
-                  : "text-[#c08d59] group-hover:text-[#f6daae]"
-              }`}
-            >
-              {t("characterChat.regex")}
             </span>
           </button>
 
@@ -296,14 +261,14 @@ export default function CharacterChatHeader({
               }
             }}
             data-tour="preset-button"
-            className={`group px-2 py-1.5 md:px-3 md:py-1 md:ml-2 flex items-center rounded-md border transition-all duration-300 shadow-md relative overflow-hidden ${
+            className={`group px-1.5 py-1 md:px-3 md:py-1 md:ml-2 flex items-center rounded-md border transition-all duration-300 shadow-md relative overflow-hidden portal-button ${
               activeView === "preset"
-                ? "border-[#9a59d3]/60 bg-gradient-to-br from-[#252128] to-[#161316] shadow-[0_0_12px_rgba(183,88,248,0.3)]"
-                : "border-[#3a3340] bg-gradient-to-br from-[#1c1a1f] to-[#100e13] hover:from-[#252128] hover:to-[#161316] hover:shadow-[0_0_12px_rgba(183,88,248,0.2)]"
+                ? "border-[#9a59d3]/60 bg-gradient-to-br from-[#1f1a21] to-[#161016] shadow-[0_0_12px_rgba(154,89,211,0.3)]"
+                : "border-[#403a40] bg-gradient-to-br from-[#1a1a1f] to-[#0e0e16] hover:from-[#1f1a21] hover:to-[#161016] hover:shadow-[0_0_12px_rgba(154,89,211,0.2)]"
             }`}
           >
             <div
-              className={`relative w-6 h-6 md:mr-2 flex items-center justify-center transition-colors ${
+              className={`relative w-5 h-5 md:w-6 md:h-6 md:mr-2 flex items-center justify-center transition-colors ${
                 activeView === "preset"
                   ? "text-[#daaef6]"
                   : "text-[#9a59d3] group-hover:text-[#daaef6]"
@@ -317,7 +282,7 @@ export default function CharacterChatHeader({
                 strokeWidth="1.5"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                className="h-5 w-5"
+                className="h-4 w-4 md:h-5 md:w-5"
               >
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                 <polyline points="14 2 14 8 20 8" />
@@ -326,10 +291,10 @@ export default function CharacterChatHeader({
                 <polyline points="10 9 9 9 8 9" />
               </svg>
               <span className="absolute inset-0 rounded-full border border-[#9a59d3]/40 group-hover:border-[#daaef6]/60 animate-ring-pulse pointer-events-none"></span>
-              <span className="absolute w-3 h-3 rounded-full bg-[#daaef6]/40 blur-sm animate-ping-fast top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"></span>
+              <span className="absolute w-2 h-2 md:w-3 md:h-3 rounded-full bg-[#daaef6]/40 blur-sm animate-ping-fast top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"></span>
             </div>
             <span
-              className={`font-medium text-sm transition-all duration-300 ${serifFontClass} hidden md:block ${
+              className={`font-medium text-xs md:text-sm transition-all duration-300 ${serifFontClass} hidden md:block ${
                 activeView === "preset"
                   ? "text-[#daaef6]"
                   : "text-[#8d59c0] group-hover:text-[#daaef6]"
@@ -338,8 +303,86 @@ export default function CharacterChatHeader({
               {t("characterChat.preset")}
             </span>
           </button>
+
+          <button
+            onClick={() => {
+              trackButtonClick("page", "切换正则编辑器");
+              if (activeView === "regex") {
+                onSwitchToView("chat");
+              } else {
+                onSwitchToView("regex");
+              }
+            }}
+            data-tour="regex-button"
+            className={`group px-1.5 py-1 md:px-3 md:py-1 md:ml-2 flex items-center rounded-md border transition-all duration-300 shadow-md relative overflow-hidden ${
+              activeView === "regex"
+                ? "border-[#d39a59]/60 bg-gradient-to-br from-[#282521] to-[#1a1613] shadow-[0_0_12px_rgba(248,183,88,0.3)]"
+                : "border-[#403a33] bg-gradient-to-br from-[#1f1c1a] to-[#13100e] hover:from-[#282521] hover:to-[#1a1613] hover:shadow-[0_0_12px_rgba(248,183,88,0.2)]"
+            }`}
+          >
+            <div
+              className={`relative w-5 h-5 md:w-6 md:h-6 md:mr-2 flex items-center justify-center transition-colors ${
+                activeView === "regex"
+                  ? "text-[#f6daae]"
+                  : "text-[#d39a59] group-hover:text-[#f6daae]"
+              }`}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="h-4 w-4 md:h-5 md:w-5"
+              >
+                <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                <path d="M2 17l10 5 10-5" />
+                <path d="M2 12l10 5 10-5" />
+              </svg>
+              <span className="absolute inset-0 rounded-full border border-[#d39a59]/40 group-hover:border-[#f6daae]/60 animate-ring-pulse pointer-events-none"></span>
+              <span className="absolute w-2 h-2 md:w-3 md:h-3 rounded-full bg-[#f6daae]/40 blur-sm animate-ping-fast top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"></span>
+            </div>
+            <span
+              className={`font-medium text-xs md:text-sm transition-all duration-300 ${serifFontClass} hidden md:block ${
+                activeView === "regex"
+                  ? "text-[#f6daae]"
+                  : "text-[#c08d59] group-hover:text-[#f6daae]"
+              }`}
+            >
+              {t("characterChat.regex")}
+            </span>
+          </button>
         </div>
       </div>
+
+      {/* 手机端头部折叠按钮 */}
+      {isMobile && (
+        <button
+          onClick={toggleHeaderCollapse}
+          className="relative group ml-2 px-2 py-1 rounded-lg bg-gradient-to-br from-[#2a2826] via-[#1e1c1b] to-[#252220] border border-[#534741]/60 hover:border-[#666]/70 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-amber-500/20 overflow-hidden"
+        >
+          <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 via-transparent to-orange-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl"></div>
+          <div className="relative z-5 text-[#a18d6f] group-hover:text-amber-300 transition-all duration-300 flex items-center justify-center cursor-pointer">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className={`transition-transform duration-300 ${isHeaderCollapsed ? "rotate-180" : ""}`}
+            >
+              <path d="M6 9l6 6 6-6" />
+            </svg>
+          </div>
+          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0 h-[1px] bg-gradient-to-r from-transparent via-amber-400 to-transparent group-hover:w-3/4 transition-all duration-500"></div>
+        </button>
+      )}
     </div>
   );
 }
