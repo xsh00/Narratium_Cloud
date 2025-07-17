@@ -33,8 +33,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { handleCharacterUpload } from "@/function/character/import";
 import { useLanguage } from "@/app/i18n";
-import { COS_CONFIG, COS_CHARACTER_FILES } from "@/lib/config/cos-config";
-import { GITHUB_CONFIG } from "@/lib/config/github-config";
+import { MINIO_CONFIG } from "@/lib/config/minio-config";
 
 /**
  * Interface definitions for the component's props and data structures
@@ -45,17 +44,11 @@ interface DownloadCharacterModalProps {
   onImport: () => void;
 }
 
-interface CosFile {
+interface MinioFile {
   name: string;
   displayName: string;
   tags: string[];
   download_url: string;
-}
-
-interface GitHubFile {
-  name: string;
-  download_url: string;
-  type: string;
 }
 
 interface CharacterInfo {
@@ -85,70 +78,43 @@ export default function DownloadCharacterModal({
   onImport,
 }: DownloadCharacterModalProps) {
   const { t, fontClass, serifFontClass } = useLanguage();
-  const [characterFiles, setCharacterFiles] = useState<CosFile[]>([]);
+  const [characterFiles, setCharacterFiles] = useState<MinioFile[]>([]);
   const [loading, setLoading] = useState(false);
   const [importing, setImporting] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [selectedTag, setSelectedTag] = useState<string>("all");
-  const [useGitHubMode, setUseGitHubMode] = useState(false);
-
-  // 从localStorage读取上次的选择
-  useEffect(() => {
-    const savedMode = localStorage.getItem("characterDownloadMode");
-    if (savedMode === "github") {
-      setUseGitHubMode(true);
-    }
-  }, []);
 
   useEffect(() => {
     if (!isOpen) return;
     setLoading(true);
     setError(null);
     
-    if (useGitHubMode) {
-      // 使用GitHub API获取文件列表
-      fetchGitHubFiles();
-    } else {
-      // 使用COS配置中的预设文件列表
-      const cosFiles: CosFile[] = COS_CHARACTER_FILES.map(file => ({
-        ...file,
-        download_url: COS_CONFIG.getCharacterCardUrl(file.name)
-      }));
-      
-      setCharacterFiles(cosFiles);
-      setLoading(false);
-    }
-  }, [isOpen, useGitHubMode]);
+    // 使用MinIO API获取文件列表
+    fetchMinioFiles();
+  }, [isOpen]);
 
-  const fetchGitHubFiles = async () => {
+  const fetchMinioFiles = async () => {
     try {
-      const response = await fetch(GITHUB_CONFIG.API_URL);
+      const response = await fetch(MINIO_CONFIG.LIST_API_URL);
       if (!response.ok) {
-        throw new Error('Failed to fetch GitHub files');
+        throw new Error('Failed to fetch MinIO files');
       }
       
-      const files: GitHubFile[] = await response.json();
-      const pngFiles = files.filter(file => 
-        file.type === 'file' && file.name.toLowerCase().endsWith('.png')
-      );
+      const result = await response.json();
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to fetch MinIO files');
+      }
       
-      const cosFiles: CosFile[] = pngFiles.map(file => ({
-        name: file.name,
-        displayName: file.name.replace(/\.png$/i, ''),
-        tags: [],
-        download_url: file.download_url
-      }));
-      
-      setCharacterFiles(cosFiles);
+      setCharacterFiles(result.data);
     } catch (err) {
-      setError('Failed to fetch GitHub files');
-      console.error('GitHub API error:', err);
+      setError('Failed to fetch MinIO files');
+      console.error('MinIO API error:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDownloadAndImport = async (file: CosFile) => {
+  const handleDownloadAndImport = async (file: MinioFile) => {
     setImporting(file.name);
     setError(null);
     try {
@@ -189,12 +155,7 @@ export default function DownloadCharacterModal({
     return { displayName, tags };
   };
 
-  const toggleSource = () => {
-    const newMode = !useGitHubMode;
-    setUseGitHubMode(newMode);
-    localStorage.setItem("characterDownloadMode", newMode ? "github" : "cos");
-    setSelectedTag("all"); // 重置标签筛选
-  };
+
 
   // 提取所有可用的标签
   const allTags = useMemo(() => {
@@ -241,31 +202,6 @@ export default function DownloadCharacterModal({
             >
               {t("downloadModal.title")}
             </h2>
-            <motion.button
-              className={`portal-button relative overflow-hidden px-3 py-1.5 rounded-lg cursor-pointer ${fontClass}
-                bg-gradient-to-b from-[#2a231c] to-[#1a1510]
-                border border-[#534741]
-                shadow-[0_0_15px_rgba(192,164,128,0.1)]
-                hover:shadow-[0_0_20px_rgba(192,164,128,0.2)]
-                before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-[rgba(192,164,128,0.1)] before:to-transparent
-                before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-700
-                group`}
-              whileHover={{
-                scale: 1.02,
-                boxShadow: "0 0 25px rgba(192,164,128,0.3)",
-              }}
-              whileTap={{ scale: 0.98 }}
-              transition={{
-                type: "spring",
-                stiffness: 400,
-                damping: 10,
-              }}
-              onClick={toggleSource}
-            >
-              <span className="relative z-10 text-[#c0a480] group-hover:text-[#ffd475] transition-colors duration-300 text-xs sm:text-sm">
-                {useGitHubMode ? "国内版" : "海外版（需VPN）"}
-              </span>
-            </motion.button>
           </div>
           <button
             className="text-[#c0a480] hover:text-[#ffd475] text-2xl sm:text-3xl transition-colors"

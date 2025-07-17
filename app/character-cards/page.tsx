@@ -36,9 +36,8 @@ import { getAllCharacters } from "@/function/character/list";
 import { deleteCharacter } from "@/function/character/delete";
 import { handleCharacterUpload } from "@/function/character/import";
 import { trackButtonClick } from "@/utils/google-analytics";
-import { COS_CONFIG, COS_CHARACTER_FILES } from "@/lib/config/cos-config";
 import { PRESET_CHARACTERS } from "@/lib/config/preset-characters";
-import { GITHUB_CONFIG } from "@/lib/config/github-config";
+import { MINIO_CONFIG } from "@/lib/config/minio-config";
 
 /**
  * Interface defining the structure of a character object
@@ -247,29 +246,43 @@ export default function CharacterCards() {
       // Define specific preset character files to download
       const presetCharacterNames = PRESET_CHARACTERS;
 
-      // Filter and find the specific preset characters from COS
-      const pngFiles = COS_CHARACTER_FILES.filter(
-        (item) =>
-          item.name.endsWith(".png") &&
-          presetCharacterNames.includes(item.name),
-      );
-
-      // Download and import each preset character
-      for (const file of pngFiles) {
-        try {
-          const fileResponse = await fetch(COS_CONFIG.getCharacterCardUrl(file.name));
-          if (!fileResponse.ok) {
-            console.error(`Failed to download ${file.name}`);
-            continue;
-          }
-
-          const blob = await fileResponse.blob();
-          const fileObj = new File([blob], file.name, { type: blob.type });
-
-          await handleCharacterUpload(fileObj);
-        } catch (error) {
-          console.error(`Failed to import ${file.name}:`, error);
+      // Get MinIO file list and filter preset characters
+      try {
+        const response = await fetch(MINIO_CONFIG.LIST_API_URL);
+        if (!response.ok) {
+          throw new Error('Failed to fetch MinIO file list');
         }
+        
+        const result = await response.json();
+        if (!result.success) {
+          throw new Error(result.error || 'Failed to fetch MinIO file list');
+        }
+        
+        const pngFiles = result.data.filter(
+          (item: any) =>
+            item.name.endsWith(".png") &&
+            presetCharacterNames.includes(item.name),
+        );
+
+        // Download and import each preset character
+        for (const file of pngFiles) {
+          try {
+            const fileResponse = await fetch(file.download_url);
+            if (!fileResponse.ok) {
+              console.error(`Failed to download ${file.name}`);
+              continue;
+            }
+
+            const blob = await fileResponse.blob();
+            const fileObj = new File([blob], file.name, { type: blob.type });
+
+            await handleCharacterUpload(fileObj);
+          } catch (error) {
+            console.error(`Failed to import ${file.name}:`, error);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch MinIO file list:', error);
       }
 
       // Refresh character list after importing
