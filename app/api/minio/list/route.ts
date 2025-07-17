@@ -10,7 +10,7 @@ const MINIO_CONFIG = {
 interface MinioFile {
   name: string;
   displayName: string;
-  tags: string[];
+  tags: string[]; 
   download_url: string;
 }
 
@@ -33,17 +33,21 @@ async function getMinioFileList(): Promise<MinioFile[]> {
         path: url.pathname + url.search,
         method: 'GET',
         headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+          'Accept': 'application/xml, text/xml, */*',
+          'Accept-Charset': 'utf-8'
         }
       };
 
       const req = https.request(options, (res) => {
-        let data = '';
+        const chunks: Buffer[] = [];
         res.on('data', (chunk) => {
-          data += chunk;
+          chunks.push(chunk);
         });
         res.on('end', () => {
           if (res.statusCode === 200) {
+            const buffer = Buffer.concat(chunks);
+            const data = buffer.toString('utf8');
             resolve(data);
           } else {
             reject(new Error(`MinIO API returned ${res.statusCode}: ${res.statusMessage}`));
@@ -74,7 +78,7 @@ async function getMinioFileList(): Promise<MinioFile[]> {
         name: fileName,
         displayName,
         tags,
-        download_url: `${MINIO_CONFIG.S3_API_URL}/${MINIO_CONFIG.BUCKET_NAME}/${fileName}`
+        download_url: `${MINIO_CONFIG.S3_API_URL}/${MINIO_CONFIG.BUCKET_NAME}/${encodeURIComponent(fileName)}`
       };
     });
 
@@ -93,8 +97,9 @@ async function getMinioFileList(): Promise<MinioFile[]> {
 function parseMinioXmlResponse(xmlText: string): string[] {
   const files: string[] = [];
   
-  // 简单的XML解析，提取Contents标签中的Key
-  const keyRegex = /<Key>(.*?)<\/Key>/g;
+  // 使用更精确的XML解析，提取Contents标签中的Key
+  // 使用非贪婪匹配，并确保正确处理中文字符
+  const keyRegex = /<Key>([^<]+)<\/Key>/g;
   let match;
   
   while ((match = keyRegex.exec(xmlText)) !== null) {
