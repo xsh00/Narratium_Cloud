@@ -260,26 +260,26 @@ export default function CharacterCards() {
         
         const pngFiles = result.data.filter(
           (item: any) =>
-            item.name.endsWith(".png") &&
-            presetCharacterNames.includes(item.name),
-        );
+          item.name.endsWith(".png") &&
+          presetCharacterNames.includes(item.name),
+      );
 
-        // Download and import each preset character
-        for (const file of pngFiles) {
-          try {
+      // Download and import each preset character
+      for (const file of pngFiles) {
+        try {
             const fileResponse = await fetch(file.download_url);
-            if (!fileResponse.ok) {
-              console.error(`Failed to download ${file.name}`);
-              continue;
-            }
-
-            const blob = await fileResponse.blob();
-            const fileObj = new File([blob], file.name, { type: blob.type });
-
-            await handleCharacterUpload(fileObj);
-          } catch (error) {
-            console.error(`Failed to import ${file.name}:`, error);
+          if (!fileResponse.ok) {
+            console.error(`Failed to download ${file.name}`);
+            continue;
           }
+
+          const blob = await fileResponse.blob();
+          const fileObj = new File([blob], file.name, { type: blob.type });
+
+          await handleCharacterUpload(fileObj);
+        } catch (error) {
+          console.error(`Failed to import ${file.name}:`, error);
+        }
         }
       } catch (error) {
         console.error('Failed to fetch MinIO file list:', error);
