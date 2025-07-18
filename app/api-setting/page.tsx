@@ -48,18 +48,18 @@ const MODEL_TYPES: ModelType[] = [
     name: "快速模型",
     description: "极速响应，适合日常对话",
     model: "gemini-2.5-flash-lite-preview-06-17",
-    responseTime: "平均回复时间10s以内",
+    responseTime: "平均回复时间15s左右",
     useCase: "推荐用于：日常聊天、快速问答、简单任务",
-    recommended: true,
+    recommended: false,
   },
   {
     id: "balanced",
     name: "性能模型",
     description: "平衡速度与质量",
     model: "gemini-2.5-flash",
-    responseTime: "平均回复时间20s左右",
+    responseTime: "平均回复时间30s左右",
     useCase: "推荐用于：创意写作、角色扮演、中等复杂度任务",
-    recommended: false,
+    recommended: true,
   },
   {
     id: "premium",
@@ -120,7 +120,7 @@ export default function ApiSettingPage() {
         name: "默认API配置",
         type: "openai",
         baseUrl: DEFAULT_API_URL,
-        model: "gemini-2.5-flash-lite-preview-06-17",
+        model: "gemini-2.5-flash",
         apiKey: DEFAULT_API_KEY,
       };
       mergedConfigs = [defaultConfig];
@@ -291,7 +291,7 @@ export default function ApiSettingPage() {
       name: name.trim(),
       type: "openai",
       baseUrl: DEFAULT_API_URL,
-      model: modelType?.model || "gemini-2.5-flash-lite-preview-06-17",
+      model: modelType?.model || "gemini-2.5-flash",
       apiKey: DEFAULT_API_KEY,
     };
 
@@ -336,7 +336,7 @@ export default function ApiSettingPage() {
         name: configName,
         type: 'openai' as LLMType,
         baseUrl: "https://api.gptbest.vip/v1",
-        model: "gemini-2.5-flash-lite-preview-06-17",
+        model: "gemini-2.5-flash",
         apiKey: advancedApiKey.trim(),
       };
       const currentConfigs = Array.isArray(configs) ? configs : [];

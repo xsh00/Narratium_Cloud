@@ -117,7 +117,7 @@ export async function POST(request: NextRequest) {
 
       return NextResponse.json({ 
         message: '注册成功',
-        user: { id: newUser.id, email: newUser.email }
+        user: { id: newUser.id, email: newUser.email, username: newUser.username || 'user' }
       });
     }
 

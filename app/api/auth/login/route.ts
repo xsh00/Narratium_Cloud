@@ -27,7 +27,8 @@ export async function POST(request: NextRequest) {
       message: '登录成功',
       user: {
         id: user.id,
-        email: user.email
+        email: user.email,
+        username: user.username || 'user'
       }
     });
   } catch (error) {

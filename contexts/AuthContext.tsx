@@ -5,6 +5,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 interface User {
   id: string;
   email: string;
+  username?: string;
 }
 
 interface AuthContextType {
@@ -16,6 +17,7 @@ interface AuthContextType {
   sendVerificationCode: (email: string) => Promise<{ success: boolean; message: string }>;
   sendResetPasswordCode: (email: string) => Promise<{ success: boolean; message: string }>;
   resetPassword: (email: string, code: string, newPassword: string) => Promise<{ success: boolean; message: string }>;
+  updateUsername: (username: string) => Promise<{ success: boolean; message: string }>;
   logout: () => void;
 }
 
@@ -83,8 +85,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(data.user);
         localStorage.setItem('user', JSON.stringify(data.user));
         
-        // 设置默认用户名（如果还没有的话）
-        setDefaultUsernameIfNeeded(data.user.email);
+        // 同步用户名到localStorage
+        if (data.user.username) {
+          localStorage.setItem('username', data.user.username);
+        } else {
+          setDefaultUsernameIfNeeded(data.user.email);
+        }
         
         return { success: true, message: data.message };
       } else {
@@ -112,8 +118,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(data.user);
         localStorage.setItem('user', JSON.stringify(data.user));
         
-        // 设置默认用户名（如果还没有的话）
-        setDefaultUsernameIfNeeded(data.user.email);
+        // 同步用户名到localStorage
+        if (data.user.username) {
+          localStorage.setItem('username', data.user.username);
+        } else {
+          setDefaultUsernameIfNeeded(data.user.email);
+        }
         
         return { success: true, message: data.message };
       } else {
@@ -194,6 +204,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const updateUsername = async (username: string) => {
+    if (!user) {
+      return { success: false, message: '用户未登录' };
+    }
+
+    try {
+      const response = await fetch('/api/user/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId: user.id, username }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // 更新本地用户信息
+        const updatedUser = { ...user, username };
+        setUser(updatedUser);
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+        localStorage.setItem('username', username);
+        
+        return { success: true, message: data.message };
+      } else {
+        return { success: false, message: data.error };
+      }
+    } catch (error) {
+      console.error('更新用户名错误:', error);
+      return { success: false, message: '网络错误，请重试' };
+    }
+  };
+
   const logout = () => {
     setUser(null);
     localStorage.removeItem('user');
@@ -211,6 +254,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     sendVerificationCode,
     sendResetPasswordCode,
     resetPassword,
+    updateUsername,
     logout,
   };
 

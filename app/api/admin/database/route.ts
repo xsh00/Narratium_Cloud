@@ -12,6 +12,7 @@ export async function GET() {
       users: users.map(user => ({
         id: user.id,
         email: user.email,
+        username: user.username,
         createdAt: user.created_at,
         updatedAt: user.updated_at
       }))

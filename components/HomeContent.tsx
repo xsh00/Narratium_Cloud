@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useLanguage } from "../app/i18n";
 import UserTour from "@/components/UserTour";
 import { useTour } from "@/hooks/useTour";
+import { useAuth } from "@/contexts/AuthContext";
 
 /**
  * Main content component for the home page
@@ -18,6 +19,7 @@ export default function HomeContent() {
   const [mounted, setMounted] = useState(false);
   const [imagesLoaded, setImagesLoaded] = useState(false);
   const { isTourVisible, currentTourSteps, completeTour, skipTour } = useTour();
+  const { user, updateUsername } = useAuth();
 
   // 用户名设置相关状态
   const [currentUsername, setCurrentUsername] = useState("");
@@ -69,14 +71,31 @@ export default function HomeContent() {
     setTempUsername("");
   };
 
-  const handleSaveUsername = () => {
+  const handleSaveUsername = async () => {
     if (tempUsername.trim()) {
       const newUsername = tempUsername.trim();
-      localStorage.setItem('username', newUsername);
-      setCurrentUsername(newUsername);
-      setIsEditingUsername(false);
-      setUsernameSuccess(true);
-      setTimeout(() => setUsernameSuccess(false), 3000);
+      
+      try {
+        // 如果用户已登录，同步到数据库
+        if (user) {
+          const result = await updateUsername(newUsername);
+          if (!result.success) {
+            alert(result.message);
+            return;
+          }
+        } else {
+          // 未登录用户只更新本地存储
+          localStorage.setItem('username', newUsername);
+        }
+        
+        setCurrentUsername(newUsername);
+        setIsEditingUsername(false);
+        setUsernameSuccess(true);
+        setTimeout(() => setUsernameSuccess(false), 3000);
+      } catch (error) {
+        console.error('保存用户名失败:', error);
+        alert('保存用户名失败，请重试');
+      }
     }
   };
 

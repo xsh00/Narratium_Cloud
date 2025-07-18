@@ -11,6 +11,7 @@ interface DatabaseStats {
 interface User {
   id: string;
   email: string;
+  username?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -133,6 +134,7 @@ export default function DatabaseAdminPage() {
                 <thead>
                   <tr className="border-b border-[#534741]">
                     <th className="text-left py-3 px-4">邮箱</th>
+                    <th className="text-left py-3 px-4">用户名</th>
                     <th className="text-left py-3 px-4">注册时间</th>
                     <th className="text-left py-3 px-4">更新时间</th>
                     <th className="text-left py-3 px-4">操作</th>
@@ -142,6 +144,9 @@ export default function DatabaseAdminPage() {
                   {users.map((user) => (
                     <tr key={user.id} className="border-b border-[#534741]/30">
                       <td className="py-3 px-4">{user.email}</td>
+                      <td className="py-3 px-4 text-[#f4e8c1]">
+                        {user.username || 'user'}
+                      </td>
                       <td className="py-3 px-4 text-sm text-[#a18d6f]">
                         {new Date(user.createdAt).toLocaleString('zh-CN')}
                       </td>

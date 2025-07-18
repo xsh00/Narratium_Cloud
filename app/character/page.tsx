@@ -496,7 +496,7 @@ export default function CharacterPage() {
       const config = loadConfigFromLocalStorage();
       const stage2End = Date.now();
       console.log(`✅ [性能监控] 阶段2 - 加载配置完成 - 耗时: ${stage2End - stage2Start}ms`);
-      console.log(`🔧 [性能监控] 使用模型: ${config.defaultModel || "gemini-2.5-flash-lite-preview-06-17"}`);
+      console.log(`🔧 [性能监控] 使用模型: ${config.defaultModel || "gemini-2.5-flash"}`);
       console.log(`🔧 [性能监控] API地址: ${config.defaultBaseUrl || "https://api.sillytarven.top/v1"}`);
 
       // 阶段3: 发送消息到API
@@ -507,7 +507,7 @@ export default function CharacterPage() {
         username: localStorage.getItem("username") || undefined,
         characterId,
         message,
-        modelName: config.defaultModel || "gemini-2.5-flash-lite-preview-06-17",
+        modelName: config.defaultModel || "gemini-2.5-flash",
         baseUrl: config.defaultBaseUrl || "https://api.sillytarven.top/v1",
         apiKey: config.defaultApiKey || "sk-terxMbHAT7lEAKZIs7UDFp_FvScR_3p9hzwJREjgbWM9IgeN",
         llmType: config.defaultType || "openai",
@@ -675,7 +675,7 @@ export default function CharacterPage() {
         username: localStorage.getItem("username") || undefined,
         characterId,
         message,
-        modelName: config.defaultModel || "gemini-2.5-flash-lite-preview-06-17",
+        modelName: config.defaultModel || "gemini-2.5-flash",
         baseUrl: config.defaultBaseUrl || "https://api.sillytarven.top/v1",
         apiKey: config.defaultApiKey || "sk-terxMbHAT7lEAKZIs7UDFp_FvScR_3p9hzwJREjgbWM9IgeN",
         llmType: config.defaultType || "openai",

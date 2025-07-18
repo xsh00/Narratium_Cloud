@@ -36,10 +36,25 @@ async function initializeDatabase() {
         id VARCHAR(255) PRIMARY KEY,
         email VARCHAR(255) UNIQUE NOT NULL,
         password VARCHAR(255) NOT NULL,
+        username VARCHAR(255) DEFAULT 'user',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
       )
     `);
+    
+    // 为现有表添加username字段（如果不存在）
+    try {
+      await connection.execute(`
+        ALTER TABLE users ADD COLUMN username VARCHAR(255) DEFAULT 'user'
+      `);
+      console.log('✅ 用户名字段添加成功');
+    } catch (error: any) {
+      if (error.code === 'ER_DUP_FIELDNAME') {
+        console.log('✅ 用户名字段已存在');
+      } else {
+        console.log('用户名字段检查完成');
+      }
+    }
     console.log('✅ 用户表创建成功');
     
     // 验证码表
@@ -90,18 +105,19 @@ async function initializeDatabase() {
 
 // 用户相关操作
 export const userRepository = {
-  create: async (user: { id: string; email: string; password: string }) => {
+  create: async (user: { id: string; email: string; password: string; username?: string }) => {
     let connection: PoolConnection | null = null;
     
     try {
       connection = await pool.getConnection();
       
+      const username = user.username || 'user';
       const [result] = await connection.execute(
-        'INSERT INTO users (id, email, password) VALUES (?, ?, ?)',
-        [user.id, user.email, user.password]
+        'INSERT INTO users (id, email, password, username) VALUES (?, ?, ?, ?)',
+        [user.id, user.email, user.password, username]
       );
       
-      return { ...user };
+      return { ...user, username };
     } catch (error) {
       console.error('创建用户失败:', error);
       throw error;
@@ -199,7 +215,7 @@ export const userRepository = {
     }
   },
 
-  update: async (id: string, updates: Partial<{ email: string; password: string }>) => {
+  update: async (id: string, updates: Partial<{ email: string; password: string; username: string }>) => {
     let connection: PoolConnection | null = null;
     
     try {
