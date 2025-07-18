@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
           name: "【1】默认API配置",
           type: "openai",
           baseUrl: "https://api.sillytarven.top/v1",
-          model: "gemini-2.5-pro",
+          model: "gemini-2.5-flash-lite-preview-06-17",
           apiKey: "sk-5zi5ZuqP_GADx_IYQFhA3AMbFj2X3ucDOqLB01CLvyOpcCZh",
         },
         {
@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
           name: "【2】备用API配置",
           type: "openai",
           baseUrl: "https://api.sillytarven.top/v1",
-          model: "gemini-2.5-pro",
+          model: "gemini-2.5-flash-lite-preview-06-17",
           apiKey: "sk-WanZhBPybGFKaA183aUtdqJzxXxt9X95UjUeN0XrTQReE8fS",
         },
         {
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
           name: "【3】备用API配置",
           type: "openai",
           baseUrl: "https://api.sillytarven.top/v1",
-          model: "gemini-2.5-pro",
+          model: "gemini-2.5-flash-lite-preview-06-17",
           apiKey: "sk-rbQFBU405CbCnJwniaMmr1FXEJjZpFl1gLuJbU7oMlAIEt6D",
         },
       ];

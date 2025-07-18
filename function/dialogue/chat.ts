@@ -20,6 +20,10 @@ export async function handleCharacterChatRequest(payload: {
   nodeId: string;
   fastModel: boolean;
 }): Promise<Response> {
+  const startTime = Date.now();
+  console.log(`🚀 [API性能监控] 开始处理角色聊天请求 - 时间: ${new Date().toISOString()}`);
+  console.log(`📝 [API性能监控] 角色ID: ${payload.characterId}, 消息长度: ${payload.message.length} 字符`);
+
   try {
     const {
       username,
@@ -36,6 +40,7 @@ export async function handleCharacterChatRequest(payload: {
     } = payload;
 
     if (!characterId || !message) {
+      console.error(`❌ [API性能监控] 参数验证失败 - 耗时: ${Date.now() - startTime}ms`);
       return new Response(
         JSON.stringify({ error: "Missing required parameters" }),
         { status: 400 },
@@ -43,7 +48,14 @@ export async function handleCharacterChatRequest(payload: {
     }
 
     try {
+      // 阶段1: 创建工作流实例
+      const stage1Start = Date.now();
       const workflow = new DialogueWorkflow();
+      const stage1End = Date.now();
+      console.log(`✅ [API性能监控] 阶段1 - 工作流实例创建完成 - 耗时: ${stage1End - stage1Start}ms`);
+
+      // 阶段2: 准备工作流参数
+      const stage2Start = Date.now();
       const workflowParams: DialogueWorkflowParams = {
         characterId,
         userInput: message,
@@ -59,12 +71,34 @@ export async function handleCharacterChatRequest(payload: {
         fastModel,
         systemPresetType: getCurrentSystemPresetType(),
       };
+      const stage2End = Date.now();
+      console.log(`✅ [API性能监控] 阶段2 - 工作流参数准备完成 - 耗时: ${stage2End - stage2Start}ms`);
+      console.log(`🔧 [API性能监控] 工作流参数:`, {
+        characterId,
+        language,
+        modelName,
+        llmType,
+        temperature: 0.7,
+        streaming: payload.streaming ?? true,
+        number,
+        fastModel,
+        systemPresetType: getCurrentSystemPresetType(),
+      });
+
+      // 阶段3: 执行工作流
+      const stage3Start = Date.now();
+      console.log(`🔄 [API性能监控] 阶段3 - 开始执行DialogueWorkflow`);
       const workflowResult = await workflow.execute(workflowParams);
+      const stage3End = Date.now();
+      console.log(`✅ [API性能监控] 阶段3 - 工作流执行完成 - 耗时: ${stage3End - stage3Start}ms`);
 
       if (!workflowResult || !workflowResult.outputData) {
+        console.error(`❌ [API性能监控] 工作流执行失败 - 耗时: ${Date.now() - startTime}ms`);
         throw new Error("No response returned from workflow");
       }
 
+      // 阶段4: 提取工作流结果
+      const stage4Start = Date.now();
       const {
         thinkingContent,
         screenContent,
@@ -72,7 +106,19 @@ export async function handleCharacterChatRequest(payload: {
         nextPrompts,
         event,
       } = workflowResult.outputData;
+      const stage4End = Date.now();
+      console.log(`✅ [API性能监控] 阶段4 - 结果提取完成 - 耗时: ${stage4End - stage4Start}ms`);
+      console.log(`📊 [API性能监控] 工作流输出统计:`, {
+        thinkingContentLength: thinkingContent?.length || 0,
+        screenContentLength: screenContent?.length || 0,
+        fullResponseLength: fullResponse?.length || 0,
+        nextPromptsCount: nextPrompts?.length || 0,
+        hasEvent: !!event,
+      });
 
+      // 阶段5: 后处理（异步）
+      const stage5Start = Date.now();
+      console.log(`🔄 [API性能监控] 阶段5 - 开始后处理`);
       await processPostResponseAsync({
         characterId,
         message,
@@ -82,9 +128,15 @@ export async function handleCharacterChatRequest(payload: {
         event,
         nextPrompts,
         nodeId,
-      }).catch((e) => console.error("Post-processing error:", e));
+      }).catch((e) => {
+        console.error(`⚠️ [API性能监控] 后处理错误:`, e);
+      });
+      const stage5End = Date.now();
+      console.log(`✅ [API性能监控] 阶段5 - 后处理完成 - 耗时: ${stage5End - stage5Start}ms`);
 
-      return new Response(
+      // 阶段6: 构建响应
+      const stage6Start = Date.now();
+      const response = new Response(
         JSON.stringify({
           type: "complete",
           success: true,
@@ -99,8 +151,24 @@ export async function handleCharacterChatRequest(payload: {
           },
         },
       );
+      const stage6End = Date.now();
+      console.log(`✅ [API性能监控] 阶段6 - 响应构建完成 - 耗时: ${stage6End - stage6Start}ms`);
+
+      const totalTime = Date.now() - startTime;
+      console.log(`🎉 [API性能监控] 角色聊天请求处理完成 - 总耗时: ${totalTime}ms`);
+      console.log(`📊 [API性能监控] 各阶段耗时统计:`);
+      console.log(`   - 阶段1 (工作流创建): ${stage1End - stage1Start}ms`);
+      console.log(`   - 阶段2 (参数准备): ${stage2End - stage2Start}ms`);
+      console.log(`   - 阶段3 (工作流执行): ${stage3End - stage3Start}ms`);
+      console.log(`   - 阶段4 (结果提取): ${stage4End - stage4Start}ms`);
+      console.log(`   - 阶段5 (后处理): ${stage5End - stage5Start}ms`);
+      console.log(`   - 阶段6 (响应构建): ${stage6End - stage6Start}ms`);
+      console.log(`   - 总耗时: ${totalTime}ms`);
+
+      return response;
     } catch (error: any) {
-      console.error("Processing error:", error);
+      const errorTime = Date.now() - startTime;
+      console.error(`❌ [API性能监控] 处理错误 - 耗时: ${errorTime}ms:`, error);
       return new Response(
         JSON.stringify({
           type: "error",
@@ -116,7 +184,8 @@ export async function handleCharacterChatRequest(payload: {
       );
     }
   } catch (error: any) {
-    console.error("Fatal error:", error);
+    const errorTime = Date.now() - startTime;
+    console.error(`❌ [API性能监控] 致命错误 - 耗时: ${errorTime}ms:`, error);
     return new Response(
       JSON.stringify({
         error: `Failed to process request: ${error.message}`,

@@ -382,7 +382,7 @@ export default function CharacterPage() {
       const response = await initCharacterDialogue({
          username: localStorage.getItem("username") || undefined,
          characterId: charId,
-        modelName: config.defaultModel || "gemini-2.5-pro",
+        modelName: config.defaultModel || "gemini-2.5-flash-lite-preview-06-17",
         baseUrl: config.defaultBaseUrl || "https://api.sillytarven.top/v1",
         apiKey: config.defaultApiKey || "sk-terxMbHAT7lEAKZIs7UDFp_FvScR_3p9hzwJREjgbWM9IgeN",
         llmType: config.defaultType || "openai",
@@ -470,11 +470,16 @@ export default function CharacterPage() {
   const handleSendMessage = async (message: string) => {
     if (!characterId || isSending) return;
 
+    const startTime = Date.now();
+    console.log(`🚀 [性能监控] 开始处理用户消息 - 时间: ${new Date().toISOString()}`);
+    console.log(`📝 [性能监控] 用户消息长度: ${message.length} 字符`);
+
     setIsSending(true);
     const messageId = uuidv4();
 
     try {
-      // Add user message to the list
+      // 阶段1: 添加用户消息到列表
+      const stage1Start = Date.now();
       const userMessage: Message = {
         id: messageId,
         role: "user",
@@ -483,16 +488,26 @@ export default function CharacterPage() {
 
       setMessages((prev) => [...prev, userMessage]);
       setUserInput("");
+      const stage1End = Date.now();
+      console.log(`✅ [性能监控] 阶段1 - 添加用户消息完成 - 耗时: ${stage1End - stage1Start}ms`);
 
-      // Load configuration from localStorage
+      // 阶段2: 加载配置
+      const stage2Start = Date.now();
       const config = loadConfigFromLocalStorage();
+      const stage2End = Date.now();
+      console.log(`✅ [性能监控] 阶段2 - 加载配置完成 - 耗时: ${stage2End - stage2Start}ms`);
+      console.log(`🔧 [性能监控] 使用模型: ${config.defaultModel || "gemini-2.5-flash-lite-preview-06-17"}`);
+      console.log(`🔧 [性能监控] API地址: ${config.defaultBaseUrl || "https://api.sillytarven.top/v1"}`);
 
-      // Send message to API
-              const response = await handleCharacterChatRequest({
-         username: localStorage.getItem("username") || undefined,
-         characterId,
+      // 阶段3: 发送消息到API
+      const stage3Start = Date.now();
+      console.log(`🔄 [性能监控] 阶段3 - 开始调用handleCharacterChatRequest`);
+      
+      const response = await handleCharacterChatRequest({
+        username: localStorage.getItem("username") || undefined,
+        characterId,
         message,
-        modelName: config.defaultModel || "gemini-2.5-pro",
+        modelName: config.defaultModel || "gemini-2.5-flash-lite-preview-06-17",
         baseUrl: config.defaultBaseUrl || "https://api.sillytarven.top/v1",
         apiKey: config.defaultApiKey || "sk-terxMbHAT7lEAKZIs7UDFp_FvScR_3p9hzwJREjgbWM9IgeN",
         llmType: config.defaultType || "openai",
@@ -501,20 +516,29 @@ export default function CharacterPage() {
         fastModel: false,
       });
 
+      const stage3End = Date.now();
+      console.log(`✅ [性能监控] 阶段3 - API调用完成 - 耗时: ${stage3End - stage3Start}ms`);
+
       if (!response.ok) {
-        console.error("Failed to send message", response);
+        console.error("❌ [性能监控] API调用失败", response);
         showErrorToast("发送消息失败");
         return;
       }
 
+      // 阶段4: 解析响应
+      const stage4Start = Date.now();
       const responseData = await response.json();
+      const stage4End = Date.now();
+      console.log(`✅ [性能监控] 阶段4 - 响应解析完成 - 耗时: ${stage4End - stage4Start}ms`);
 
       if (!responseData.success) {
-        console.error("Failed to send message", responseData);
+        console.error("❌ [性能监控] 响应数据无效", responseData);
         showErrorToast("发送消息失败");
         return;
       }
 
+      // 阶段5: 更新UI状态
+      const stage5Start = Date.now();
       const assistantMessage: Message = {
         id: responseData.messageId || messageId,
         role: "assistant",
@@ -530,8 +554,22 @@ export default function CharacterPage() {
       } else {
         setSuggestedInputs([]);
       }
+      const stage5End = Date.now();
+      console.log(`✅ [性能监控] 阶段5 - UI状态更新完成 - 耗时: ${stage5End - stage5Start}ms`);
+
+      const totalTime = Date.now() - startTime;
+      console.log(`🎉 [性能监控] 消息处理完成 - 总耗时: ${totalTime}ms`);
+      console.log(`📊 [性能监控] 各阶段耗时统计:`);
+      console.log(`   - 阶段1 (添加用户消息): ${stage1End - stage1Start}ms`);
+      console.log(`   - 阶段2 (加载配置): ${stage2End - stage2Start}ms`);
+      console.log(`   - 阶段3 (API调用): ${stage3End - stage3Start}ms`);
+      console.log(`   - 阶段4 (响应解析): ${stage4End - stage4Start}ms`);
+      console.log(`   - 阶段5 (UI更新): ${stage5End - stage5Start}ms`);
+      console.log(`   - 总耗时: ${totalTime}ms`);
+
     } catch (error) {
-      console.error("Error sending message:", error);
+      const errorTime = Date.now() - startTime;
+      console.error(`❌ [性能监控] 消息处理失败 - 耗时: ${errorTime}ms`, error);
       showErrorToast("发送消息时出错");
     } finally {
       setIsSending(false);
@@ -541,17 +579,25 @@ export default function CharacterPage() {
   const handleEditMessage = async (messageId: string, newContent: string) => {
     if (!characterId || isSending) return;
 
+    const startTime = Date.now();
+    console.log(`🚀 [编辑性能监控] 开始处理消息编辑 - 时间: ${new Date().toISOString()}`);
+    console.log(`📝 [编辑性能监控] 消息ID: ${messageId}, 新内容长度: ${newContent.length} 字符`);
+
     setIsSending(true);
 
     try {
-      // 找到要编辑的消息的索引
+      // 阶段1: 找到要编辑的消息
+      const stage1Start = Date.now();
       const messageIndex = messages.findIndex((msg) => msg.id === messageId);
       if (messageIndex === -1) {
-        console.error("Message not found for editing");
+        console.error("❌ [编辑性能监控] 未找到要编辑的消息");
         return;
       }
+      const stage1End = Date.now();
+      console.log(`✅ [编辑性能监控] 阶段1 - 消息查找完成 - 耗时: ${stage1End - stage1Start}ms`);
 
-      // 构建新的消息内容，包含当前的活动模式
+      // 阶段2: 构建新的消息内容
+      const stage2Start = Date.now();
       let message = newContent;
       let hints: string[] = [];
 
@@ -591,20 +637,25 @@ export default function CharacterPage() {
         </input_message>
             `.trim();
       }
+      const stage2End = Date.now();
+      console.log(`✅ [编辑性能监控] 阶段2 - 消息内容构建完成 - 耗时: ${stage2End - stage2Start}ms`);
 
-      // 使用更简单的方法：直接删除编辑消息节点及其所有子节点，然后重新添加编辑后的消息
-      console.log(`🗑️ Deleting node and all children: ${messageId}`);
+      // 阶段3: 删除对话节点
+      const stage3Start = Date.now();
+      console.log(`🔄 [编辑性能监控] 阶段3 - 开始删除对话节点: ${messageId}`);
       
       const { deleteDialogueNode } = await import("@/function/dialogue/delete");
       await deleteDialogueNode({
         characterId,
         nodeId: messageId,
       });
+      const stage3End = Date.now();
+      console.log(`✅ [编辑性能监控] 阶段3 - 对话节点删除完成 - 耗时: ${stage3End - stage3Start}ms`);
 
-      // 更新消息列表，保留编辑消息之前的所有消息
+      // 阶段4: 更新消息列表
+      const stage4Start = Date.now();
       const updatedMessages = messages.slice(0, messageIndex);
       
-      // 添加编辑后的用户消息
       const editedUserMessage: Message = {
         id: messageId,
         role: "user",
@@ -612,14 +663,19 @@ export default function CharacterPage() {
       };
       updatedMessages.push(editedUserMessage);
       setMessages(updatedMessages);
+      const stage4End = Date.now();
+      console.log(`✅ [编辑性能监控] 阶段4 - 消息列表更新完成 - 耗时: ${stage4End - stage4Start}ms`);
 
-      // 重新添加编辑后的消息和生成回复
+      // 阶段5: 重新生成回复
+      const stage5Start = Date.now();
+      console.log(`🔄 [编辑性能监控] 阶段5 - 开始重新生成回复`);
+      
       const config = loadConfigFromLocalStorage();
       const response = await handleCharacterChatRequest({
         username: localStorage.getItem("username") || undefined,
         characterId,
         message,
-        modelName: config.defaultModel || "gemini-2.5-pro",
+        modelName: config.defaultModel || "gemini-2.5-flash-lite-preview-06-17",
         baseUrl: config.defaultBaseUrl || "https://api.sillytarven.top/v1",
         apiKey: config.defaultApiKey || "sk-terxMbHAT7lEAKZIs7UDFp_FvScR_3p9hzwJREjgbWM9IgeN",
         llmType: config.defaultType || "openai",
@@ -627,17 +683,21 @@ export default function CharacterPage() {
         nodeId: messageId,
         fastModel: false,
       });
+      const stage5End = Date.now();
+      console.log(`✅ [编辑性能监控] 阶段5 - 回复生成完成 - 耗时: ${stage5End - stage5Start}ms`);
 
       if (!response.ok) {
-        console.error("Failed to send edited message", response);
+        console.error("❌ [编辑性能监控] 回复生成失败", response);
         showErrorToast("发送编辑消息失败");
         return;
       }
 
+      // 阶段6: 处理响应
+      const stage6Start = Date.now();
       const responseData = await response.json();
 
       if (!responseData.success) {
-        console.error("Failed to send edited message", responseData);
+        console.error("❌ [编辑性能监控] 响应数据无效", responseData);
         showErrorToast("发送编辑消息失败");
         return;
       }
@@ -651,14 +711,28 @@ export default function CharacterPage() {
 
       setMessages((prev) => [...prev, assistantMessage]);
 
-      // Update suggested inputs
       if (responseData.parsedContent?.nextPrompts) {
         setSuggestedInputs(responseData.parsedContent.nextPrompts);
       } else {
         setSuggestedInputs([]);
       }
+      const stage6End = Date.now();
+      console.log(`✅ [编辑性能监控] 阶段6 - 响应处理完成 - 耗时: ${stage6End - stage6Start}ms`);
+
+      const totalTime = Date.now() - startTime;
+      console.log(`🎉 [编辑性能监控] 消息编辑完成 - 总耗时: ${totalTime}ms`);
+      console.log(`📊 [编辑性能监控] 各阶段耗时统计:`);
+      console.log(`   - 阶段1 (消息查找): ${stage1End - stage1Start}ms`);
+      console.log(`   - 阶段2 (内容构建): ${stage2End - stage2Start}ms`);
+      console.log(`   - 阶段3 (节点删除): ${stage3End - stage3Start}ms`);
+      console.log(`   - 阶段4 (列表更新): ${stage4End - stage4Start}ms`);
+      console.log(`   - 阶段5 (回复生成): ${stage5End - stage5Start}ms`);
+      console.log(`   - 阶段6 (响应处理): ${stage6End - stage6Start}ms`);
+      console.log(`   - 总耗时: ${totalTime}ms`);
+
     } catch (error) {
-      console.error("Error editing message:", error);
+      const errorTime = Date.now() - startTime;
+      console.error(`❌ [编辑性能监控] 消息编辑失败 - 耗时: ${errorTime}ms:`, error);
       showErrorToast("编辑消息时出错");
     } finally {
       setIsSending(false);

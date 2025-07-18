@@ -153,7 +153,7 @@ export default function ModelSidebar({
         name: "【1】默认API配置",
         type: "openai",
         baseUrl: DEFAULT_API_URL,
-        model: "gemini-2.5-pro",
+        model: "gemini-2.5-flash-lite-preview-06-17",
         apiKey: DEFAULT_API_KEY,
       };
       mergedConfigs = [defaultConfig];
@@ -725,7 +725,7 @@ export default function ModelSidebar({
         name: configName,
         type: "openai",
         baseUrl: "https://api.gptbest.vip/v1",
-        model: "gemini-2.5-pro",
+        model: "gemini-2.5-flash-lite-preview-06-17",
         apiKey: advancedApiKey.trim(),
       };
 
@@ -1014,7 +1014,7 @@ export default function ModelSidebar({
                         className="bg-[#292929] border border-[#534741] rounded py-2 px-3 text-[#f4e8c1] text-sm w-full focus:border-[#d1a35c] focus:outline-none transition-colors"
                         placeholder={
                           llmType === "openai"
-                            ? "gemini-2.5-pro, gpt-4-turbo, claude-3-opus-20240229..."
+                            ? "gemini-2.5-flash-lite-preview-06-17, gpt-4-turbo, claude-3-opus-20240229..."
                             : "llama3, mistral, mixtral..."
                         }
                       />
@@ -1155,7 +1155,7 @@ export default function ModelSidebar({
                       className="bg-[#292929] border border-[#534741] rounded w-full py-3 px-3 text-sm text-[#d0d0d0] leading-tight focus:outline-none focus:border-[#d1a35c] transition-colors"
                       placeholder={
                         llmType === "openai"
-                          ? "gemini-2.5-pro, gpt-4-turbo, claude-3-opus-20240229..."
+                          ? "gemini-2.5-flash-lite-preview-06-17, gpt-4-turbo, claude-3-opus-20240229..."
                           : "llama3, mistral, mixtral..."
                       }
                       value={model}
@@ -1742,7 +1742,7 @@ export default function ModelSidebar({
                     className="bg-[#292929] border border-[#534741] rounded py-0.5 px-1.5 sm:py-0.5 sm:px-1.5 py-0 px-1 text-[#f4e8c1] text-xs sm:text-xs text-[10px] max-w-[200px] sm:max-w-[200px] max-w-[150px] focus:border-[#d1a35c] focus:outline-none transition-colors"
                     placeholder={
                       llmType === "openai"
-                        ? "gemini-2.5-pro, gpt-4-turbo, claude-3-opus-20240229..."
+                        ? "gemini-2.5-flash-lite-preview-06-17, gpt-4-turbo, claude-3-opus-20240229..."
                         : "llama3, mistral, mixtral..."
                     }
                   />
@@ -1887,7 +1887,7 @@ export default function ModelSidebar({
                   className="bg-[#292929] border border-[#534741] rounded w-full py-1.5 px-2 sm:py-1.5 sm:px-2 py-1 px-1.5 text-xs sm:text-xs text-[10px] text-[#d0d0d0] leading-tight focus:outline-none focus:border-[#d1a35c] transition-colors"
                   placeholder={
                     llmType === "openai"
-                      ? "gemini-2.5-pro, gpt-4-turbo, claude-3-opus-20240229..."
+                      ? "gemini-2.5-flash-lite-preview-06-17, gpt-4-turbo, claude-3-opus-20240229..."
                       : "llama3, mistral, mixtral..."
                   }
                   value={model}

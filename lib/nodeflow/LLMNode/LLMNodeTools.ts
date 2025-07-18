@@ -66,21 +66,54 @@ export class LLMNodeTools extends NodeTool {
     userMessage: string,
     config: LLMConfig,
   ): Promise<string> {
+    const startTime = Date.now();
+    console.log(`🚀 [LLM性能监控] 开始LLM调用 - 时间: ${new Date().toISOString()}`);
+    console.log(`📝 [LLM性能监控] 模型: ${config.modelName}, 类型: ${config.llmType}`);
+    console.log(`📝 [LLM性能监控] 系统消息长度: ${systemMessage.length} 字符`);
+    console.log(`📝 [LLM性能监控] 用户消息长度: ${userMessage.length} 字符`);
+    
     try {
-      console.log("invokeLLM");
+      // 阶段1: 创建LLM实例
+      const stage1Start = Date.now();
+      console.log(`🔄 [LLM性能监控] 阶段1 - 开始创建LLM实例`);
       const llm = this.createLLM(config);
+      const stage1End = Date.now();
+      console.log(`✅ [LLM性能监控] 阶段1 - LLM实例创建完成 - 耗时: ${stage1End - stage1Start}ms`);
+
+      // 阶段2: 创建对话链
+      const stage2Start = Date.now();
+      console.log(`🔄 [LLM性能监控] 阶段2 - 开始创建对话链`);
       const dialogueChain = this.createDialogueChain(llm);
+      const stage2End = Date.now();
+      console.log(`✅ [LLM性能监控] 阶段2 - 对话链创建完成 - 耗时: ${stage2End - stage2Start}ms`);
+
+      // 阶段3: 执行LLM调用
+      const stage3Start = Date.now();
+      console.log(`🔄 [LLM性能监控] 阶段3 - 开始执行LLM调用`);
       const response = await dialogueChain.invoke({
         system_message: systemMessage,
         user_message: userMessage,
       });
+      const stage3End = Date.now();
+      console.log(`✅ [LLM性能监控] 阶段3 - LLM调用完成 - 耗时: ${stage3End - stage3Start}ms`);
 
       if (!response || typeof response !== "string") {
         throw new Error("Invalid response from LLM");
       }
 
+      const totalTime = Date.now() - startTime;
+      console.log(`🎉 [LLM性能监控] LLM调用完成 - 总耗时: ${totalTime}ms`);
+      console.log(`📊 [LLM性能监控] 各阶段耗时统计:`);
+      console.log(`   - 阶段1 (LLM创建): ${stage1End - stage1Start}ms`);
+      console.log(`   - 阶段2 (对话链创建): ${stage2End - stage2Start}ms`);
+      console.log(`   - 阶段3 (LLM调用): ${stage3End - stage3Start}ms`);
+      console.log(`   - 总耗时: ${totalTime}ms`);
+      console.log(`📝 [LLM性能监控] 响应长度: ${response.length} 字符`);
+
       return response;
     } catch (error) {
+      const errorTime = Date.now() - startTime;
+      console.error(`❌ [LLM性能监控] LLM调用失败 - 耗时: ${errorTime}ms:`, error);
       this.handleError(error as Error, "invokeLLM");
     }
   }

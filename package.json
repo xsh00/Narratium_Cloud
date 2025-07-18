@@ -27,6 +27,7 @@
     "@types/nodemailer": "^6.4.17",
     "@types/react-color": "^3.0.13",
     "@vercel/analytics": "^1.5.0",
+    "axios": "^1.10.0",
     "bcryptjs": "^3.0.2",
     "cos-nodejs-sdk-v5": "2.16.0-beta.3",
     "dotenv": "^16.5.0",

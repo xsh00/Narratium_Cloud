@@ -20,6 +20,17 @@ interface APIConfig {
   apiKey?: string;
 }
 
+// 模型类型定义
+interface ModelType {
+  id: string;
+  name: string;
+  description: string;
+  model: string;
+  responseTime: string;
+  useCase: string;
+  recommended: boolean;
+}
+
 const DEFAULT_API_KEY =
   typeof process !== "undefined"
     ? process.env.NEXT_PUBLIC_API_KEY ||
@@ -30,16 +41,44 @@ const DEFAULT_API_URL =
     ? process.env.NEXT_PUBLIC_API_URL || "https://api.sillytarven.top/v1"
     : "https://api.sillytarven.top/v1";
 
+// 模型类型配置
+const MODEL_TYPES: ModelType[] = [
+  {
+    id: "fast",
+    name: "快速模型",
+    description: "极速响应，适合日常对话",
+    model: "gemini-2.5-flash-lite-preview-06-17",
+    responseTime: "平均回复时间10s以内",
+    useCase: "推荐用于：日常聊天、快速问答、简单任务",
+    recommended: true,
+  },
+  {
+    id: "balanced",
+    name: "性能模型",
+    description: "平衡速度与质量",
+    model: "gemini-2.5-flash",
+    responseTime: "平均回复时间20s左右",
+    useCase: "推荐用于：创意写作、角色扮演、中等复杂度任务",
+    recommended: false,
+  },
+  {
+    id: "premium",
+    name: "顶级模型",
+    description: "最高质量，适合复杂任务",
+    model: "gemini-2.5-pro",
+    responseTime: "平均回复时间大于30s",
+    useCase: "推荐用于：复杂推理、深度分析、专业任务",
+    recommended: false,
+  },
+];
+
 export default function ApiSettingPage() {
   const { t, fontClass, serifFontClass, titleFontClass } = useLanguage();
   
   // 状态管理
   const [configs, setConfigs] = useState<APIConfig[]>([]);
   const [activeConfigId, setActiveConfigId] = useState<string>("");
-  const [showNewConfigForm, setShowNewConfigForm] = useState(false);
-  const [editingConfigId, setEditingConfigId] = useState<string>("");
-  const [editingName, setEditingName] = useState("");
-  // 将tab的类型声明为字符串联合类型
+  const [selectedModelType, setSelectedModelType] = useState<string>("fast");
   const [tab, setTab] = useState<'free' | 'pro'>("free");
 
   const [llmType, setLlmType] = useState<LLMType>("openai");
@@ -47,8 +86,6 @@ export default function ApiSettingPage() {
   const [model, setModel] = useState("");
   const [apiKey, setApiKey] = useState("");
   const [openaiModelList, setOpenaiModelList] = useState<string[]>([]);
-
-
 
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [getModelListSuccess, setGetModelListSuccess] = useState(false);
@@ -60,7 +97,6 @@ export default function ApiSettingPage() {
   const [advancedApiKey, setAdvancedApiKey] = useState("");
   const [advancedConfigSuccess, setAdvancedConfigSuccess] = useState(false);
   const [advancedConfigError, setAdvancedConfigError] = useState(false);
-  // 删除balance, balanceError, isCheckingBalance相关状态
 
   // 初始化配置
   useEffect(() => {
@@ -81,10 +117,10 @@ export default function ApiSettingPage() {
     if (mergedConfigs.length === 0) {
       const defaultConfig: APIConfig = {
         id: generateId(),
-        name: "【1】默认API配置",
+        name: "默认API配置",
         type: "openai",
         baseUrl: DEFAULT_API_URL,
-        model: "gemini-2.5-pro",
+        model: "gemini-2.5-flash-lite-preview-06-17",
         apiKey: DEFAULT_API_KEY,
       };
       mergedConfigs = [defaultConfig];
@@ -105,11 +141,14 @@ export default function ApiSettingPage() {
       const activeConfig = mergedConfigs.find((c) => c.id === activeIdCandidate);
       if (activeConfig) {
         loadConfigToForm(activeConfig);
+        // 根据当前模型确定选中的模型类型
+        const currentModelType = MODEL_TYPES.find(mt => mt.model === activeConfig.model);
+        if (currentModelType) {
+          setSelectedModelType(currentModelType.id);
+        }
       }
     }
   }, []);
-
-
 
   // 工具函数
   const generateId = () => {
@@ -129,29 +168,29 @@ export default function ApiSettingPage() {
     setApiKey(config.apiKey || "");
   };
 
-  const handleSwitchConfig = (id: string) => {
-    const selectedConfig = configs.find((c) => c.id === id);
-    if (selectedConfig) {
-      setActiveConfigId(id);
-      loadConfigToForm(selectedConfig);
-      localStorage.setItem("activeConfigId", id);
+  // 选择模型类型
+  const handleSelectModelType = (modelTypeId: string) => {
+    setSelectedModelType(modelTypeId);
+    const modelType = MODEL_TYPES.find(mt => mt.id === modelTypeId);
+    if (modelType) {
+      setModel(modelType.model);
     }
   };
 
-  const handleSave = () => {
-    if (!baseUrl.trim() || !model.trim()) {
-      return;
-    }
+  // 应用模型选择
+  const handleApplyModelSelection = () => {
+    const modelType = MODEL_TYPES.find(mt => mt.id === selectedModelType);
+    if (!modelType) return;
 
     const activeConfig = configs.find((c) => c.id === activeConfigId);
     if (!activeConfig) return;
 
     const updatedConfig: APIConfig = {
       ...activeConfig,
-      type: llmType,
-      baseUrl: baseUrl.trim(),
-      model: model.trim(),
-      apiKey: apiKey.trim(),
+      type: "openai",
+      baseUrl: DEFAULT_API_URL,
+      model: modelType.model,
+      apiKey: DEFAULT_API_KEY,
     };
 
     const updatedConfigs = configs.map((c) =>
@@ -169,7 +208,7 @@ export default function ApiSettingPage() {
       new CustomEvent("modelChanged", {
         detail: {
           configId: activeConfigId,
-          modelName: model.trim(),
+          modelName: modelType.model,
           configName: activeConfig.name,
         },
       })
@@ -177,34 +216,28 @@ export default function ApiSettingPage() {
   };
 
   const handleTestModel = async () => {
-    if (!baseUrl.trim() || !model.trim()) {
-      return;
-    }
+    const modelType = MODEL_TYPES.find(mt => mt.id === selectedModelType);
+    if (!modelType) return;
 
     setIsTesting(true);
     setTestModelSuccess(false);
     setTestModelError(false);
 
     try {
-      let llm;
-      if (llmType === "openai") {
-        llm = new ChatOpenAI({
-          openAIApiKey: apiKey.trim(),
-          modelName: model.trim(),
-          configuration: {
-            baseURL: baseUrl.trim(),
-          },
-        });
-      } else {
-        llm = new ChatOllama({
-          baseUrl: baseUrl.trim(),
-          model: model.trim(),
-        });
-      }
+      const llm = new ChatOpenAI({
+        openAIApiKey: DEFAULT_API_KEY,
+        modelName: modelType.model,
+        configuration: {
+          baseURL: DEFAULT_API_URL,
+        },
+      });
 
-      await llm.invoke("Hello");
-      setTestModelSuccess(true);
-      setTimeout(() => setTestModelSuccess(false), 3000);
+      const response = await llm.invoke("Hello");
+      
+      if (response) {
+        setTestModelSuccess(true);
+        setTimeout(() => setTestModelSuccess(false), 3000);
+      }
     } catch (error) {
       console.error("Model test failed:", error);
       setTestModelError(true);
@@ -215,50 +248,50 @@ export default function ApiSettingPage() {
   };
 
   const handleGetModelList = async () => {
-    if (!baseUrl.trim() || !apiKey.trim()) {
-      return;
-    }
+    setGetModelListSuccess(false);
+    setGetModelListError(false);
 
     try {
-      const response = await fetch(`${baseUrl.trim()}/models`, {
+      const response = await fetch(`${DEFAULT_API_URL}/models`, {
         headers: {
-          Authorization: `Bearer ${apiKey.trim()}`,
+          Authorization: `Bearer ${DEFAULT_API_KEY}`,
         },
       });
 
       if (response.ok) {
         const data = await response.json();
-        const models = data.data?.map((model: any) => model.id) || [];
-        setOpenaiModelList(models);
+        const modelNames = data.data?.map((model: any) => model.id) || [];
+        setOpenaiModelList(modelNames);
         setGetModelListSuccess(true);
         setTimeout(() => setGetModelListSuccess(false), 3000);
       } else {
-        throw new Error("Failed to fetch models");
+        throw new Error("Failed to fetch model list");
       }
     } catch (error) {
-      console.error("Get model list failed:", error);
+      console.error("Error fetching model list:", error);
       setGetModelListError(true);
       setTimeout(() => setGetModelListError(false), 3000);
     }
   };
 
   const handleCreateConfig = () => {
-    setShowNewConfigForm(true);
+    // 保留原有功能，但简化处理
   };
 
   const handleCancelCreate = () => {
-    setShowNewConfigForm(false);
+    // 保留原有功能，但简化处理
   };
 
   const handleCreateNewConfig = (name: string) => {
     if (!name.trim()) return;
 
+    const modelType = MODEL_TYPES.find(mt => mt.id === selectedModelType);
     const newConfig: APIConfig = {
       id: generateId(),
       name: name.trim(),
       type: "openai",
       baseUrl: DEFAULT_API_URL,
-      model: "gemini-2.5-pro",
+      model: modelType?.model || "gemini-2.5-flash-lite-preview-06-17",
       apiKey: DEFAULT_API_KEY,
     };
 
@@ -266,7 +299,6 @@ export default function ApiSettingPage() {
     setConfigs(updatedConfigs);
     localStorage.setItem("apiConfigs", JSON.stringify(updatedConfigs));
     setActiveConfigId(newConfig.id);
-    loadConfigToForm(newConfig);
     setShowNewConfigForm(false);
   };
 
@@ -284,11 +316,6 @@ export default function ApiSettingPage() {
       localStorage.setItem("activeConfigId", newActiveId);
     }
   };
-
-  // 判断是否为默认API（假设默认API为前3个）
-  const defaultApiCount = 3;
-  const defaultApis = configs.slice(0, defaultApiCount);
-  const customApis = configs.slice(defaultApiCount);
 
   // 高级API相关逻辑
   const handleGetAdvancedAPI = () => {
@@ -309,7 +336,7 @@ export default function ApiSettingPage() {
         name: configName,
         type: 'openai' as LLMType,
         baseUrl: "https://api.gptbest.vip/v1",
-        model: "gemini-2.5-pro",
+        model: "gemini-2.5-flash-lite-preview-06-17",
         apiKey: advancedApiKey.trim(),
       };
       const currentConfigs = Array.isArray(configs) ? configs : [];
@@ -338,14 +365,14 @@ export default function ApiSettingPage() {
     }
   };
 
-  // 删除handleCheckBalance函数
-
-
+  const [showNewConfigForm, setShowNewConfigForm] = useState(false);
+  const [editingConfigId, setEditingConfigId] = useState<string>("");
+  const [editingName, setEditingName] = useState("");
 
   return (
     <AuthGuard>
-      <div className="min-h-screen w-full h-full overflow-auto login-fantasy-bg relative">
-        {/* 背景层 */}
+      <div className="min-h-screen relative overflow-hidden fantasy-bg">
+        {/* 背景图层 */}
         <div
           className="absolute inset-0 z-0 opacity-35"
           style={{
@@ -394,7 +421,7 @@ export default function ApiSettingPage() {
               className={`px-8 py-3 rounded-t-lg text-lg font-bold transition-all duration-200 border-b-2 ${tab === 'free' ? 'bg-[#1a1714] text-amber-400 border-amber-400' : 'bg-[#23201c] text-[#c0a480]/60 border-transparent hover:text-amber-400'}`}
               onClick={() => setTab('free')}
             >
-              免费API
+              免费模型
             </button>
             <button
               className={`px-8 py-3 rounded-t-lg text-lg font-bold transition-all duration-200 border-b-2 ml-2 ${tab === 'pro' ? 'bg-[#1a1714] text-amber-400 border-amber-400' : 'bg-[#23201c] text-[#c0a480]/60 border-transparent hover:text-amber-400'}`}
@@ -404,11 +431,9 @@ export default function ApiSettingPage() {
             </button>
           </div>
 
-
-
           {/* Tab内容区 */}
           <div className="flex-1 flex justify-center px-4 pb-24">
-            <div className="w-full max-w-3xl">
+            <div className="w-full max-w-4xl">
               {tab === 'free' && (
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
@@ -416,49 +441,128 @@ export default function ApiSettingPage() {
                   transition={{ duration: 0.8, delay: 0.2 }}
                   className="bg-black/20 backdrop-blur-sm border border-amber-500/30 rounded-2xl p-8 shadow-[0_0_20px_rgba(251,146,60,0.3)]"
                 >
-                  {/* 只显示默认3个API卡片，每个卡片有启用/测试按钮 */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-2">
-                    {defaultApis.map((config) => (
+                  {/* 模型类型选择 */}
+                  <div className="mb-6">
+                    <h3 className={`text-xl font-semibold text-[#f8d36a] mb-4 ${fontClass}`}>
+                      选择适合您的模型类型
+                    </h3>
+                    <p className={`text-[#c0a480] text-sm mb-6 ${fontClass}`}>
+                      我们提供三种不同性能的模型，您可以根据使用场景选择合适的模型
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    {MODEL_TYPES.map((modelType) => (
                       <div
-                        key={config.id}
-                        className={`flex flex-col items-center p-3 rounded-lg border transition-all duration-300 ${
-                          activeConfigId === config.id
-                            ? "border-amber-500/50 bg-amber-500/10"
-                            : "border-[#333333] bg-[#1c1c1c] hover:border-amber-500/30"
+                        key={modelType.id}
+                        className={`relative p-6 rounded-xl border-2 transition-all duration-300 cursor-pointer ${
+                          selectedModelType === modelType.id
+                            ? "border-amber-500 bg-amber-500/10 shadow-[0_0_20px_rgba(251,146,60,0.3)]"
+                            : "border-[#333333] bg-[#1c1c1c] hover:border-amber-500/30 hover:bg-[#1c1c1c]/80"
                         }`}
+                        onClick={() => handleSelectModelType(modelType.id)}
                       >
-                        <div className="w-full flex items-center justify-between mb-1">
-                          <span className={`text-xs text-[#c0a480] ${fontClass}`}>{config.name}</span>
+                        {/* 推荐标签 */}
+                        {modelType.recommended && (
+                          <div className="absolute -top-3 -right-3 bg-gradient-to-r from-amber-500 to-orange-400 text-black px-3 py-1 rounded-full text-xs font-bold">
+                            推荐
+                          </div>
+                        )}
+
+                        {/* 模型名称 */}
+                        <div className="mb-4">
+                          <h4 className={`text-lg font-bold text-[#f8d36a] mb-2 ${fontClass}`}>
+                            {modelType.name}
+                          </h4>
+                          <p className={`text-sm text-[#c0a480] ${fontClass}`}>
+                            {modelType.description}
+                          </p>
                         </div>
-                        <div className="text-xs text-[#c0a480]/60 mb-2">{config.type} • {config.model}</div>
-                        <button
-                          onClick={() => { handleSwitchConfig(config.id); handleSave(); }}
-                          className="w-full p-1.5 mb-1.5 bg-gradient-to-r from-amber-500 to-orange-400 text-black rounded-lg hover:from-amber-400 hover:to-orange-300 transition-all duration-200 font-medium text-xs"
-                        >
-                          {t("modelSettings.saveSettings")}
-                        </button>
-                        <button
-                          onClick={handleTestModel}
-                          disabled={isTesting}
-                          className="w-full p-1.5 bg-blue-500/20 text-blue-400 rounded-lg hover:bg-blue-500/30 transition-colors disabled:opacity-50 text-xs"
-                        >
-                          {isTesting ? t("modelSettings.testing") : t("modelSettings.testModel")}
-                        </button>
-                        {/* 状态提示 */}
-                        {activeConfigId === config.id && saveSuccess && (
-                          <div className="p-1.5 mt-1.5 bg-green-500/20 text-green-400 rounded-lg text-xs w-full text-center">{t("modelSettings.settingsSaved")}</div>
-                        )}
-                        {activeConfigId === config.id && testModelSuccess && (
-                          <div className="p-1.5 mt-1.5 bg-green-500/20 text-green-400 rounded-lg text-xs w-full text-center">{t("modelSettings.testSuccess")}</div>
-                        )}
-                        {activeConfigId === config.id && testModelError && (
-                          <div className="p-1.5 mt-1.5 bg-red-500/20 text-red-400 rounded-lg text-xs w-full text-center">{t("modelSettings.testError")}</div>
-                        )}
+
+                        {/* 响应时间 */}
+                        <div className="mb-4">
+                          <div className="flex items-center mb-2">
+                            <div className="w-2 h-2 bg-green-400 rounded-full mr-2"></div>
+                            <span className={`text-sm text-[#c0a480] ${fontClass}`}>
+                              {modelType.responseTime}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* 使用场景 */}
+                        <div className="mb-4">
+                          <p className={`text-xs text-[#c0a480]/70 leading-relaxed ${fontClass}`}>
+                            {modelType.useCase}
+                          </p>
+                        </div>
+
+                        {/* 选择指示器 */}
+                        <div className="flex justify-center">
+                          <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                            selectedModelType === modelType.id
+                              ? "border-amber-500 bg-amber-500"
+                              : "border-[#333333]"
+                          }`}>
+                            {selectedModelType === modelType.id && (
+                              <div className="w-2 h-2 bg-black rounded-full"></div>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     ))}
                   </div>
+
+                  {/* 操作按钮 */}
+                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                    <button
+                      onClick={handleApplyModelSelection}
+                      className="px-8 py-3 bg-gradient-to-r from-amber-500 to-orange-400 text-black rounded-lg hover:from-amber-400 hover:to-orange-300 transition-all duration-200 font-bold text-lg"
+                    >
+                      应用选择
+                    </button>
+                    <button
+                      onClick={handleTestModel}
+                      disabled={isTesting}
+                      className="px-8 py-3 bg-blue-500/20 text-blue-400 rounded-lg hover:bg-blue-500/30 transition-colors disabled:opacity-50 font-bold text-lg"
+                    >
+                      {isTesting ? "测试中..." : "测试模型"}
+                    </button>
+                  </div>
+
+                  {/* 状态提示 */}
+                  <div className="mt-6 text-center">
+                    {saveSuccess && (
+                      <div className="p-3 bg-green-500/20 text-green-400 rounded-lg text-sm">
+                        模型设置已保存！
+                      </div>
+                    )}
+                    {testModelSuccess && (
+                      <div className="p-3 bg-green-500/20 text-green-400 rounded-lg text-sm">
+                        模型测试成功！
+                      </div>
+                    )}
+                    {testModelError && (
+                      <div className="p-3 bg-red-500/20 text-red-400 rounded-lg text-sm">
+                        模型测试失败，请稍后重试
+                      </div>
+                    )}
+                  </div>
+
+                  {/* 当前选择信息 */}
+                  <div className="mt-6 p-4 bg-[#1c1c1c]/50 rounded-lg">
+                    <h4 className={`text-sm font-semibold text-[#f8d36a] mb-2 ${fontClass}`}>
+                      当前选择
+                    </h4>
+                    <p className={`text-sm text-[#c0a480] ${fontClass}`}>
+                      模型：{MODEL_TYPES.find(mt => mt.id === selectedModelType)?.model}
+                    </p>
+                    <p className={`text-sm text-[#c0a480] ${fontClass}`}>
+                      类型：{MODEL_TYPES.find(mt => mt.id === selectedModelType)?.name}
+                    </p>
+                  </div>
                 </motion.div>
               )}
+
               {tab === 'pro' && (
                 <>
                   <motion.div
@@ -507,52 +611,10 @@ export default function ApiSettingPage() {
                       )}
                     </div>
                   </motion.div>
-
                 </>
               )}
             </div>
           </div>
-          {/* 新建配置弹窗 */}
-          {showNewConfigForm && (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="bg-[#1a1714] border border-amber-500/30 rounded-lg p-6 max-w-md w-full mx-4"
-              >
-                <h3 className={`text-lg font-semibold text-[#f8d36a] mb-4 ${fontClass}`}>{t("modelSettings.newConfig")}</h3>
-                <input
-                  type="text"
-                  placeholder={t("modelSettings.configNamePlaceholder")}
-                  className="w-full p-3 bg-[#1c1c1c] border border-[#333333] rounded-lg text-[#c0a480] focus:border-amber-500/50 focus:outline-none mb-4"
-                  onKeyPress={(e) => {
-                    if (e.key === "Enter") {
-                      handleCreateNewConfig((e.target as HTMLInputElement).value);
-                    }
-                  }}
-                />
-                <div className="flex gap-3">
-                  <button
-                    onClick={handleCancelCreate}
-                    className="flex-1 p-3 border border-[#333333] text-[#c0a480] rounded-lg hover:bg-[#333333] transition-colors"
-                  >
-                    {t("common.cancel")}
-                  </button>
-                  <button
-                    onClick={() => {
-                      const input = document.querySelector('input[placeholder*="配置"]') as HTMLInputElement;
-                      if (input) {
-                        handleCreateNewConfig(input.value);
-                      }
-                    }}
-                    className="flex-1 p-3 bg-gradient-to-r from-amber-500 to-orange-400 text-black rounded-lg hover:from-amber-400 hover:to-orange-300 transition-all duration-200"
-                  >
-                    {t("modelSettings.createConfig")}
-                  </button>
-                </div>
-              </motion.div>
-            </div>
-          )}
         </div>
       </div>
     </AuthGuard>

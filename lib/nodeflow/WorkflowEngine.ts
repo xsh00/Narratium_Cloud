@@ -94,7 +94,32 @@ export class WorkflowEngine {
     nodes: NodeBase[],
     context: NodeContext,
   ): Promise<NodeOutput[]> {
-    return Promise.all(nodes.map((node) => this.executeNode(node, context)));
+    const parallelStart = Date.now();
+    console.log(`🔄 [并行执行性能监控] 开始并行执行${nodes.length}个节点: ${nodes.map(n => n.getId()).join(', ')}`);
+    
+    const nodePromises = nodes.map(async (node) => {
+      const nodeStart = Date.now();
+      const nodeId = node.getId();
+      console.log(`🔄 [节点性能监控] 开始执行节点: ${nodeId}`);
+      
+      try {
+        const result = await this.executeNode(node, context);
+        const nodeEnd = Date.now();
+        console.log(`✅ [节点性能监控] 节点${nodeId}执行完成 - 耗时: ${nodeEnd - nodeStart}ms`);
+        return result;
+      } catch (error) {
+        const nodeEnd = Date.now();
+        console.error(`❌ [节点性能监控] 节点${nodeId}执行失败 - 耗时: ${nodeEnd - nodeStart}ms:`, error);
+        throw error;
+      }
+    });
+
+    const results = await Promise.all(nodePromises);
+    const parallelEnd = Date.now();
+    console.log(`✅ [并行执行性能监控] 并行执行完成 - 总耗时: ${parallelEnd - parallelStart}ms`);
+    console.log(`📊 [并行执行性能监控] 平均每个节点耗时: ${(parallelEnd - parallelStart) / nodes.length}ms`);
+    
+    return results;
   }
 
   /**
@@ -108,6 +133,13 @@ export class WorkflowEngine {
     const { executeAfterNodes = true, awaitAfterNodes = false } = options;
     const ctx = context || new NodeContext();
     const startTime = new Date();
+    const workflowStartTime = Date.now();
+    
+    console.log(`🚀 [工作流性能监控] 开始执行工作流 - 时间: ${startTime.toISOString()}`);
+    console.log(`📝 [工作流性能监控] 工作流ID: ${this.config.id}`);
+    console.log(`📝 [工作流性能监控] 工作流名称: ${this.config.name}`);
+    console.log(`📝 [工作流性能监控] 节点总数: ${this.config.nodes.length}`);
+    
     const result: WorkflowExecutionResult = {
       workflowId: this.config.id,
       status: NodeExecutionStatus.RUNNING,
@@ -117,12 +149,19 @@ export class WorkflowEngine {
 
     try {
       // Set initial input
+      const inputSetupStart = Date.now();
       for (const key in initialWorkflowInput) {
         ctx.setInput(key, initialWorkflowInput[key]);
       }
+      const inputSetupEnd = Date.now();
+      console.log(`✅ [工作流性能监控] 输入设置完成 - 耗时: ${inputSetupEnd - inputSetupStart}ms`);
 
       // Execute main workflow (ENTRY -> MIDDLE -> EXIT)
+      const mainWorkflowStart = Date.now();
+      console.log(`🔄 [工作流性能监控] 开始执行主工作流`);
       const mainWorkflowResult = await this.executeMainWorkflow(ctx);
+      const mainWorkflowEnd = Date.now();
+      console.log(`✅ [工作流性能监控] 主工作流执行完成 - 耗时: ${mainWorkflowEnd - mainWorkflowStart}ms`);
 
       // Set main workflow results
       result.outputData = mainWorkflowResult.outputData;
@@ -130,22 +169,32 @@ export class WorkflowEngine {
 
       // Handle AFTER nodes
       if (executeAfterNodes) {
+        const afterNodesStart = Date.now();
+        console.log(`🔄 [工作流性能监控] 开始执行AFTER节点`);
         const afterNodesPromise = this.executeAfterNodes(ctx);
 
         if (awaitAfterNodes) {
           // Wait for AFTER nodes to complete before returning
           await afterNodesPromise;
+          const afterNodesEnd = Date.now();
+          console.log(`✅ [工作流性能监控] AFTER节点执行完成 - 耗时: ${afterNodesEnd - afterNodesStart}ms`);
         } else {
           // Execute AFTER nodes in background (fire and forget)
           afterNodesPromise.catch((error) => {
-            console.error("AFTER nodes execution failed:", error);
+            console.error("❌ [工作流性能监控] AFTER节点执行失败:", error);
           });
+          console.log(`🔄 [工作流性能监控] AFTER节点在后台执行中`);
         }
       }
     } catch (error) {
+      const errorTime = Date.now() - workflowStartTime;
+      console.error(`❌ [工作流性能监控] 工作流执行失败 - 耗时: ${errorTime}ms:`, error);
       result.status = NodeExecutionStatus.FAILED;
     } finally {
       result.endTime = new Date();
+      const totalTime = Date.now() - workflowStartTime;
+      console.log(`🎉 [工作流性能监控] 工作流执行完成 - 总耗时: ${totalTime}ms`);
+      console.log(`📊 [工作流性能监控] 执行结果状态: ${result.status}`);
     }
 
     return result;
@@ -158,12 +207,20 @@ export class WorkflowEngine {
     status: NodeExecutionStatus;
     outputData: Record<string, any>;
   }> {
+    const mainWorkflowStart = Date.now();
+    console.log(`🚀 [主工作流性能监控] 开始执行主工作流`);
+    
     const entryNodes = this.getEntryNodes();
     if (entryNodes.length === 0) {
       throw new Error("No entry nodes found in workflow");
     }
 
+    // 执行入口节点
+    const entryNodesStart = Date.now();
+    console.log(`🔄 [主工作流性能监控] 开始执行入口节点: ${entryNodes.map(n => n.getId()).join(', ')}`);
     await this.executeParallel(entryNodes, context);
+    const entryNodesEnd = Date.now();
+    console.log(`✅ [主工作流性能监控] 入口节点执行完成 - 耗时: ${entryNodesEnd - entryNodesStart}ms`);
 
     const processedNodes = new Set<string>();
     entryNodes.forEach((node) => processedNodes.add(node.getId()));
@@ -192,8 +249,11 @@ export class WorkflowEngine {
       queue.push({ nodes: Array.from(nextLevelNodesSet) });
     }
 
+    let batchCount = 0;
     // Process nodes level by level until EXIT nodes
     while (queue.length > 0) {
+      batchCount++;
+      const batchStart = Date.now();
       const currentBatch = queue.shift()!;
       const nodesToExecuteInBatch = currentBatch.nodes.filter(
         (node) => !processedNodes.has(node.getId()),
@@ -201,7 +261,11 @@ export class WorkflowEngine {
 
       if (nodesToExecuteInBatch.length === 0) continue;
 
+      console.log(`🔄 [主工作流性能监控] 批次${batchCount} - 开始执行节点: ${nodesToExecuteInBatch.map(n => n.getId()).join(', ')}`);
+      const batchExecutionStart = Date.now();
       await this.executeParallel(nodesToExecuteInBatch, context);
+      const batchExecutionEnd = Date.now();
+      console.log(`✅ [主工作流性能监控] 批次${batchCount} - 节点执行完成 - 耗时: ${batchExecutionEnd - batchExecutionStart}ms`);
 
       nodesToExecuteInBatch.forEach((node) => processedNodes.add(node.getId()));
 
@@ -213,6 +277,8 @@ export class WorkflowEngine {
 
       // If we reached EXIT nodes, stop main workflow execution
       if (hasExitNodes) {
+        const batchEnd = Date.now();
+        console.log(`🎯 [主工作流性能监控] 批次${batchCount} - 检测到EXIT节点，停止执行 - 批次总耗时: ${batchEnd - batchStart}ms`);
         break;
       }
 
@@ -234,7 +300,14 @@ export class WorkflowEngine {
       if (nextLevelNodesSet.size > 0) {
         queue.push({ nodes: Array.from(nextLevelNodesSet) });
       }
+      
+      const batchEnd = Date.now();
+      console.log(`📊 [主工作流性能监控] 批次${batchCount} - 完成 - 总耗时: ${batchEnd - batchStart}ms`);
     }
+
+    const mainWorkflowEnd = Date.now();
+    console.log(`🎉 [主工作流性能监控] 主工作流执行完成 - 总耗时: ${mainWorkflowEnd - mainWorkflowStart}ms`);
+    console.log(`📊 [主工作流性能监控] 执行统计: 总批次${batchCount}个, 处理节点${processedNodes.size}个`);
 
     return {
       status: NodeExecutionStatus.COMPLETED,
