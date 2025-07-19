@@ -7,6 +7,8 @@ import AuthGuard from "@/components/AuthGuard";
 import { trackButtonClick } from "@/utils/google-analytics";
 import { ChatOpenAI } from "@langchain/openai";
 import { ChatOllama } from "@langchain/ollama";
+import BalanceQueryModal from "@/components/BalanceQueryModal";
+import ModelPricingTable from "@/components/ModelPricingTable";
 
 // 复制ModelSidebar中的类型定义
 type LLMType = "openai" | "ollama";
@@ -97,6 +99,9 @@ export default function ApiSettingPage() {
   const [advancedApiKey, setAdvancedApiKey] = useState("");
   const [advancedConfigSuccess, setAdvancedConfigSuccess] = useState(false);
   const [advancedConfigError, setAdvancedConfigError] = useState(false);
+  
+  // 添加余额查询模态框状态
+  const [isBalanceModalOpen, setIsBalanceModalOpen] = useState(false);
 
   // 初始化配置
   useEffect(() => {
@@ -364,6 +369,12 @@ export default function ApiSettingPage() {
       setTimeout(() => setAdvancedConfigError(false), 2000);
     }
   };
+  
+  // 打开余额查询模态框
+  const handleOpenBalanceModal = () => {
+    trackButtonClick("ModelSidebar", "查询余额");
+    setIsBalanceModalOpen(true);
+  };
 
   const [showNewConfigForm, setShowNewConfigForm] = useState(false);
   const [editingConfigId, setEditingConfigId] = useState<string>("");
@@ -371,6 +382,13 @@ export default function ApiSettingPage() {
 
   return (
     <AuthGuard>
+      {/* 模态框组件 */}
+      <BalanceQueryModal 
+        isOpen={isBalanceModalOpen} 
+        onClose={() => setIsBalanceModalOpen(false)}
+        defaultApiKey={advancedApiKey}
+      />
+      
       <div className="min-h-screen relative overflow-hidden fantasy-bg">
         {/* 背景图层 */}
         <div
@@ -598,7 +616,7 @@ export default function ApiSettingPage() {
                         创建高级配置
                       </button>
                       <button
-                        onClick={() => window.open("https://usage.gptbest.vip/", "_blank")}
+                        onClick={handleOpenBalanceModal}
                         className="w-full p-3 mt-2 bg-green-500/20 text-green-400 rounded-lg hover:bg-green-500/30 transition-colors"
                       >
                         查询余额
@@ -610,6 +628,16 @@ export default function ApiSettingPage() {
                         <div className="p-3 mt-3 bg-red-500/20 text-red-400 rounded-lg text-sm text-center">高级配置创建失败，请检查API Key</div>
                       )}
                     </div>
+                  </motion.div>
+                  
+                  {/* 模型计费规则表格 */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.8, delay: 0.4 }}
+                    className="bg-black/20 backdrop-blur-sm border border-amber-500/30 rounded-2xl p-8 shadow-[0_0_20px_rgba(251,146,60,0.3)] mb-8"
+                  >
+                    <ModelPricingTable />
                   </motion.div>
                 </>
               )}
