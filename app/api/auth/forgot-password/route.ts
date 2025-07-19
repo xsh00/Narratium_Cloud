@@ -1,21 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import nodemailer from 'nodemailer';
 import { hash } from 'bcryptjs';
 import { userRepository, verificationCodeRepository } from '@/lib/data/database';
-
-// 邮件发送配置
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
-
-// 验证邮件配置
-if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-  console.error('邮件配置错误: EMAIL_USER 或 EMAIL_PASS 未设置');
-}
+import { sendEmail } from '@/lib/email/email-pool';
 
 // 生成验证码
 function generateVerificationCode(): string {
@@ -25,7 +11,6 @@ function generateVerificationCode(): string {
 // 发送重置密码邮件
 async function sendResetPasswordEmail(email: string, code: string) {
   const mailOptions = {
-    from: process.env.EMAIL_USER,
     to: email,
     subject: 'Narratium - 重置密码验证码',
     html: `
@@ -46,7 +31,7 @@ async function sendResetPasswordEmail(email: string, code: string) {
     `,
   };
 
-  await transporter.sendMail(mailOptions);
+  return sendEmail(mailOptions);
 }
 
 export async function POST(request: NextRequest) {
@@ -69,25 +54,18 @@ export async function POST(request: NextRequest) {
       const verificationCode = generateVerificationCode();
       await verificationCodeRepository.set(email, verificationCode, 5 * 60 * 1000); // 5分钟过期
 
-      try {
-        await sendResetPasswordEmail(email, verificationCode);
-        console.log(`重置密码验证码已发送到: ${email}`);
-        return NextResponse.json({ message: '重置密码验证码已发送' });
-      } catch (emailError: any) {
-        console.error('邮件发送失败:', emailError);
+      const result = await sendResetPasswordEmail(email, verificationCode);
+      
+      if (result.success) {
+        console.log(`重置密码验证码已发送到: ${email}，使用账户: ${result.usedAccount}`);
+        return NextResponse.json({ 
+          message: '重置密码验证码已发送',
+          usedAccount: result.usedAccount 
+        });
+      } else {
+        console.error('邮件发送失败:', result.error);
         await verificationCodeRepository.delete(email);
-        
-        // 提供更详细的错误信息
-        let errorMessage = '邮件发送失败，请检查邮箱配置';
-        if (emailError.code === 'ETIMEDOUT') {
-          errorMessage = '邮件发送超时，请检查网络连接';
-        } else if (emailError.code === 'EAUTH') {
-          errorMessage = '邮箱认证失败，请检查邮箱和密码配置';
-        } else if (emailError.code === 'ESOCKET') {
-          errorMessage = '邮件服务器连接失败，请稍后重试';
-        }
-        
-        return NextResponse.json({ error: errorMessage }, { status: 500 });
+        return NextResponse.json({ error: result.message }, { status: 500 });
       }
     }
 
