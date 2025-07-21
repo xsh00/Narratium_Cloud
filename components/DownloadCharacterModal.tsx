@@ -83,14 +83,28 @@ export default function DownloadCharacterModal({
   const [importing, setImporting] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [selectedTag, setSelectedTag] = useState<string>("all");
+  const [isTagsExpanded, setIsTagsExpanded] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     if (!isOpen) return;
     setLoading(true);
     setError(null);
     
+    // 检测是否为移动设备
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    
     // 使用MinIO API获取文件列表
     fetchMinioFiles();
+    
+    return () => {
+      window.removeEventListener("resize", checkMobile);
+    };
   }, [isOpen]);
 
   const fetchMinioFiles = async () => {
@@ -213,45 +227,72 @@ export default function DownloadCharacterModal({
 
 
 
-        {/* Tag Filter */}
+        {/* Tag Filter - 移动端可折叠版本 */}
         {allTags.length > 0 && (
-          <div className="mb-3">
-            <div className={`text-xs sm:text-sm text-[#c0a480] mb-1.5 sm:mb-2 ${fontClass}`}>
-              {t("downloadModal.filterByTags")}
+          <div className="mb-3 relative">
+            <div className="flex justify-between items-center">
+              <div className={`text-xs sm:text-sm text-[#c0a480] mb-1.5 sm:mb-2 ${fontClass}`}>
+                {t("downloadModal.filterByTags")}
+              </div>
+              {isMobile && (
+                <button 
+                  onClick={() => setIsTagsExpanded(!isTagsExpanded)}
+                  className="text-[#c0a480] hover:text-[#ffd475] transition-colors"
+                >
+                  {isTagsExpanded ? (
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clipRule="evenodd" />
+                    </svg>
+                  ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                    </svg>
+                  )}
+                </button>
+              )}
             </div>
-            <div className="flex flex-wrap gap-1.5 sm:gap-2">
-              <button
-                onClick={() => setSelectedTag("all")}
-                className={`px-2.5 sm:px-3 py-1.25 sm:py-1.5 rounded-full text-xs sm:text-sm min-w-[56px] max-w-[45vw] break-all truncate transition-all duration-200 ${
-                  selectedTag === "all"
-                    ? "bg-[#e0cfa0] text-[#534741] border border-[#c0a480]"
-                    : "bg-[#252220] text-[#c0a480] border border-[#534741] hover:bg-[#3a2a2a] hover:text-[#ffd475]"
-                } ${fontClass}`}
-                style={{wordBreak: 'break-all'}}
-              >
-                {t("downloadModal.allTags")} ({characterFiles.length})
-              </button>
-              {allTags.map((tag) => (
+            
+            {/* 标签栏 - 在移动端可折叠 */}
+            {(!isMobile || isTagsExpanded) && (
+              <div className="flex overflow-x-auto pb-2 scrollbar-hide gap-1.5 sm:gap-2" style={{WebkitOverflowScrolling: 'touch'}}>
                 <button
-                  key={tag}
-                  onClick={() => setSelectedTag(tag)}
-                  className={`px-2.5 sm:px-3 py-1.25 sm:py-1.5 rounded-full text-xs sm:text-sm min-w-[56px] max-w-[45vw] break-all truncate transition-all duration-200 ${
-                    selectedTag === tag
+                  onClick={() => setSelectedTag("all")}
+                  className={`px-2.5 sm:px-3 py-1.25 sm:py-1.5 rounded-full text-xs sm:text-sm min-w-[56px] flex-shrink-0 whitespace-nowrap transition-all duration-200 ${
+                    selectedTag === "all"
                       ? "bg-[#e0cfa0] text-[#534741] border border-[#c0a480]"
                       : "bg-[#252220] text-[#c0a480] border border-[#534741] hover:bg-[#3a2a2a] hover:text-[#ffd475]"
                   } ${fontClass}`}
-                  style={{wordBreak: 'break-all'}}
                 >
-                  {tag} (
-                  {
-                    characterFiles.filter((file) =>
-                      extractCharacterInfo(file.name).tags.includes(tag),
-                    ).length
-                  }
-                  )
+                  {t("downloadModal.allTags")} ({characterFiles.length})
                 </button>
-              ))}
-            </div>
+                {allTags.map((tag) => (
+                  <button
+                    key={tag}
+                    onClick={() => setSelectedTag(tag)}
+                    className={`px-2.5 sm:px-3 py-1.25 sm:py-1.5 rounded-full text-xs sm:text-sm min-w-[56px] flex-shrink-0 whitespace-nowrap transition-all duration-200 ${
+                      selectedTag === tag
+                        ? "bg-[#e0cfa0] text-[#534741] border border-[#c0a480]"
+                        : "bg-[#252220] text-[#c0a480] border border-[#534741] hover:bg-[#3a2a2a] hover:text-[#ffd475]"
+                    } ${fontClass}`}
+                  >
+                    {tag} (
+                    {
+                      characterFiles.filter((file) =>
+                        extractCharacterInfo(file.name).tags.includes(tag),
+                      ).length
+                    }
+                    )
+                  </button>
+                ))}
+              </div>
+            )}
+            
+            {/* 移动端选中标签指示器 - 当标签栏折叠时显示 */}
+            {isMobile && !isTagsExpanded && selectedTag !== "all" && (
+              <div className="mt-1 py-1 px-3 bg-[#252220] rounded-full inline-block text-xs text-[#c0a480]">
+                当前筛选: <span className="text-[#ffd475]">{selectedTag}</span>
+              </div>
+            )}
           </div>
         )}
 
