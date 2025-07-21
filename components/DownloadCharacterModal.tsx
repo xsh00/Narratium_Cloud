@@ -85,7 +85,43 @@ export default function DownloadCharacterModal({
   const [selectedTag, setSelectedTag] = useState<string>("all");
   const [isTagsExpanded, setIsTagsExpanded] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const tagScrollRef = React.useRef<HTMLDivElement>(null);
+  const [showLeftScroll, setShowLeftScroll] = useState(false);
+  const [showRightScroll, setShowRightScroll] = useState(false);
 
+  const extractCharacterInfo = (fileName: string): CharacterInfo => {
+    const nameWithoutExt = fileName.replace(/\.png$/, "");
+    const parts = nameWithoutExt.split(/--/);
+
+    let displayName = nameWithoutExt;
+    let tags: string[] = [];
+
+    if (parts.length >= 1) {
+      displayName = parts[0].trim();
+
+      // 提取标签（如果有的话）
+      if (parts.length > 1) {
+        const tagPart = parts.slice(1).join("--");
+        tags = tagPart
+          .split(/[,，、]/)
+          .map((tag) => tag.trim())
+          .filter((tag) => tag.length > 0);
+      }
+    }
+
+    return { displayName, tags };
+  };
+
+  // 提取所有可用的标签
+  const allTags = useMemo(() => {
+    const tagSet = new Set<string>();
+    characterFiles.forEach((file) => {
+      const { tags } = extractCharacterInfo(file.name);
+      tags.forEach((tag) => tagSet.add(tag));
+    });
+    return Array.from(tagSet).sort();
+  }, [characterFiles]);
+  
   useEffect(() => {
     if (!isOpen) return;
     setLoading(true);
@@ -106,6 +142,41 @@ export default function DownloadCharacterModal({
       window.removeEventListener("resize", checkMobile);
     };
   }, [isOpen]);
+
+  // 检测标签滚动区域是否需要显示滚动按钮
+  useEffect(() => {
+    if (!tagScrollRef.current || isMobile) return;
+    
+    const checkScrollButtons = () => {
+      const element = tagScrollRef.current;
+      if (!element) return;
+      
+      setShowLeftScroll(element.scrollLeft > 0);
+      setShowRightScroll(element.scrollLeft < element.scrollWidth - element.clientWidth);
+    };
+    
+    const scrollElement = tagScrollRef.current;
+    scrollElement.addEventListener('scroll', checkScrollButtons);
+    checkScrollButtons();
+    
+    return () => {
+      scrollElement?.removeEventListener('scroll', checkScrollButtons);
+    };
+  }, [allTags, isMobile]);
+
+  // 标签滚动函数
+  const scrollTags = (direction: 'left' | 'right') => {
+    if (!tagScrollRef.current) return;
+    const scrollAmount = tagScrollRef.current.clientWidth / 2;
+    const newScrollLeft = direction === 'left' 
+      ? tagScrollRef.current.scrollLeft - scrollAmount
+      : tagScrollRef.current.scrollLeft + scrollAmount;
+    
+    tagScrollRef.current.scrollTo({
+      left: newScrollLeft,
+      behavior: 'smooth'
+    });
+  };
 
   const fetchMinioFiles = async () => {
     try {
@@ -145,41 +216,6 @@ export default function DownloadCharacterModal({
       setImporting(null);
     }
   };
-
-  const extractCharacterInfo = (fileName: string): CharacterInfo => {
-    const nameWithoutExt = fileName.replace(/\.png$/, "");
-    const parts = nameWithoutExt.split(/--/);
-
-    let displayName = nameWithoutExt;
-    let tags: string[] = [];
-
-    if (parts.length >= 1) {
-      displayName = parts[0].trim();
-
-      // 提取标签（如果有的话）
-      if (parts.length > 1) {
-        const tagPart = parts.slice(1).join("--");
-        tags = tagPart
-          .split(/[,，、]/)
-          .map((tag) => tag.trim())
-          .filter((tag) => tag.length > 0);
-      }
-    }
-
-    return { displayName, tags };
-  };
-
-
-
-  // 提取所有可用的标签
-  const allTags = useMemo(() => {
-    const tagSet = new Set<string>();
-    characterFiles.forEach((file) => {
-      const { tags } = extractCharacterInfo(file.name);
-      tags.forEach((tag) => tagSet.add(tag));
-    });
-    return Array.from(tagSet).sort();
-  }, [characterFiles]);
 
   // 根据选中的标签筛选角色
   const filteredCharacters = useMemo(() => {
@@ -254,36 +290,66 @@ export default function DownloadCharacterModal({
             
             {/* 标签栏 - 在移动端可折叠 */}
             {(!isMobile || isTagsExpanded) && (
-              <div className="flex overflow-x-auto pb-2 scrollbar-hide gap-1.5 sm:gap-2" style={{WebkitOverflowScrolling: 'touch'}}>
-                <button
-                  onClick={() => setSelectedTag("all")}
-                  className={`px-2.5 sm:px-3 py-1.25 sm:py-1.5 rounded-full text-xs sm:text-sm min-w-[56px] flex-shrink-0 whitespace-nowrap transition-all duration-200 ${
-                    selectedTag === "all"
-                      ? "bg-[#e0cfa0] text-[#534741] border border-[#c0a480]"
-                      : "bg-[#252220] text-[#c0a480] border border-[#534741] hover:bg-[#3a2a2a] hover:text-[#ffd475]"
-                  } ${fontClass}`}
+              <div className="relative">
+                {/* PC端左侧滚动按钮 */}
+                {!isMobile && showLeftScroll && (
+                  <button 
+                    onClick={() => scrollTags('left')}
+                    className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-[#1a1714] bg-opacity-80 p-1 rounded-full shadow-md text-[#c0a480] hover:text-[#ffd475]"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                )}
+                
+                <div 
+                  ref={tagScrollRef}
+                  className="flex overflow-x-auto pb-2 scrollbar-hide gap-1.5 sm:gap-2" 
+                  style={{WebkitOverflowScrolling: 'touch'}}
                 >
-                  {t("downloadModal.allTags")} ({characterFiles.length})
-                </button>
-                {allTags.map((tag) => (
                   <button
-                    key={tag}
-                    onClick={() => setSelectedTag(tag)}
+                    onClick={() => setSelectedTag("all")}
                     className={`px-2.5 sm:px-3 py-1.25 sm:py-1.5 rounded-full text-xs sm:text-sm min-w-[56px] flex-shrink-0 whitespace-nowrap transition-all duration-200 ${
-                      selectedTag === tag
+                      selectedTag === "all"
                         ? "bg-[#e0cfa0] text-[#534741] border border-[#c0a480]"
                         : "bg-[#252220] text-[#c0a480] border border-[#534741] hover:bg-[#3a2a2a] hover:text-[#ffd475]"
                     } ${fontClass}`}
                   >
-                    {tag} (
-                    {
-                      characterFiles.filter((file) =>
-                        extractCharacterInfo(file.name).tags.includes(tag),
-                      ).length
-                    }
-                    )
+                    {t("downloadModal.allTags")} ({characterFiles.length})
                   </button>
-                ))}
+                  {allTags.map((tag) => (
+                    <button
+                      key={tag}
+                      onClick={() => setSelectedTag(tag)}
+                      className={`px-2.5 sm:px-3 py-1.25 sm:py-1.5 rounded-full text-xs sm:text-sm min-w-[56px] flex-shrink-0 whitespace-nowrap transition-all duration-200 ${
+                        selectedTag === tag
+                          ? "bg-[#e0cfa0] text-[#534741] border border-[#c0a480]"
+                          : "bg-[#252220] text-[#c0a480] border border-[#534741] hover:bg-[#3a2a2a] hover:text-[#ffd475]"
+                      } ${fontClass}`}
+                    >
+                      {tag} (
+                      {
+                        characterFiles.filter((file) =>
+                          extractCharacterInfo(file.name).tags.includes(tag),
+                        ).length
+                      }
+                      )
+                    </button>
+                  ))}
+                </div>
+                
+                {/* PC端右侧滚动按钮 */}
+                {!isMobile && showRightScroll && (
+                  <button 
+                    onClick={() => scrollTags('right')}
+                    className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-[#1a1714] bg-opacity-80 p-1 rounded-full shadow-md text-[#c0a480] hover:text-[#ffd475]"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                )}
               </div>
             )}
             
