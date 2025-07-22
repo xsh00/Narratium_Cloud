@@ -18,6 +18,7 @@ import {
   getGoogleLoginUrl,
   getBackUpFile,
 } from "@/function/data/google-control";
+import { useRouter } from "next/navigation";
 
 interface SettingsDropdownProps {
   toggleModelSidebar: () => void;
@@ -35,7 +36,8 @@ export default function SettingsDropdown({
   const { language, setLanguage, t } = useLanguage();
   const { soundEnabled, toggleSound } = useSoundContext();
   const { resetTour } = useTour();
-  const { user, updateUsername } = useAuth();
+  const { user, updateUsername, logout } = useAuth();
+  const router = useRouter();
 
   // 用户名设置相关状态
   const [currentUsername, setCurrentUsername] = useState("");
@@ -173,6 +175,12 @@ export default function SettingsDropdown({
   const openModelSettings = () => {
     toggleModelSidebar();
     setIsOpen(false);
+  };
+
+  const handleLogout = () => {
+    logout();
+    setIsOpen(false);
+    router.push("/");
   };
 
   // 用户名设置相关函数
@@ -458,6 +466,32 @@ export default function SettingsDropdown({
                   {t("common.restartTour")}
                 </button>
 
+                {/* 添加退出登录按钮 */}
+                {user && (
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center w-full px-4 py-3 text-sm text-[#f4e8c1] hover:bg-[#252525] transition-colors"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="mr-3"
+                    >
+                      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                      <polyline points="16 17 21 12 16 7" />
+                      <line x1="21" y1="12" x2="9" y2="12" />
+                    </svg>
+                    {t("sidebar.logout")}
+                  </button>
+                )}
+
                 <div className="border-t border-[#333333] my-2"></div>
 
                 <button
@@ -714,6 +748,32 @@ export default function SettingsDropdown({
               </svg>
               {t("common.restartTour")}
             </button>
+
+            {/* 添加退出登录按钮 */}
+            {user && (
+              <button
+                onClick={handleLogout}
+                className="flex items-center w-full px-4 py-2 text-sm text-[#f4e8c1] hover:bg-[#252525] transition-colors"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="mr-2"
+                >
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                  <polyline points="16 17 21 12 16 7" />
+                  <line x1="21" y1="12" x2="9" y2="12" />
+                </svg>
+                {t("sidebar.logout")}
+              </button>
+            )}
 
             <div className="border-t border-[#333333] my-1"></div>
 

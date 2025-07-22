@@ -29,18 +29,26 @@ import SettingsDropdown from "@/components/SettingsDropdown";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import "@/app/styles/fantasy-ui.css";
 
+interface MainLayoutProps {
+  children: React.ReactNode;
+  hideBottomNav?: boolean; // 添加控制是否隐藏底部导航的属性
+  hideSettings?: boolean; // 添加控制是否隐藏设置按钮的属性
+}
+
 /**
  * Main layout wrapper component that manages the application's core structure
  *
  * @param {Object} props - Component props
  * @param {React.ReactNode} props.children - Child components to be rendered in the main content area
+ * @param {boolean} [props.hideBottomNav] - Whether to hide the mobile bottom navigation
+ * @param {boolean} [props.hideSettings] - Whether to hide the settings dropdown
  * @returns {JSX.Element} The complete layout structure with sidebars and content area
  */
 export default function MainLayout({
   children,
-}: {
-  children: React.ReactNode;
-}) {
+  hideBottomNav = false,
+  hideSettings = false,
+}: MainLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [modelSidebarOpen, setModelSidebarOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -90,9 +98,11 @@ export default function MainLayout({
           `}
       >
         <div className="h-full relative">
-          <div className="absolute top-18 right-4 z-[999] md:top-4 md:right-4">
-            <SettingsDropdown toggleModelSidebar={toggleModelSidebar} />
-          </div>
+          {!hideSettings && (
+            <div className="absolute top-18 right-4 z-[999] md:top-4 md:right-4">
+              <SettingsDropdown toggleModelSidebar={toggleModelSidebar} />
+            </div>
+          )}
 
           {children}
         </div>
@@ -105,8 +115,8 @@ export default function MainLayout({
         />
       </div>
 
-      {/* Mobile Bottom Navigation */}
-      <MobileBottomNav openLoginModal={() => {}} />
+      {/* Mobile Bottom Navigation - 可以选择性隐藏 */}
+      {!hideBottomNav && <MobileBottomNav openLoginModal={() => {}} />}
     </div>
   );
 }

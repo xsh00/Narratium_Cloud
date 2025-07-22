@@ -1,0 +1,13 @@
+{
+  "name": "narratium-scripts",
+  "version": "1.0.0",
+  "description": "Scripts for Narratium Cloud",
+  "type": "module",
+  "scripts": {
+    "test-minio": "node test-posts-minio-connection.js"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.850.0",
+    "minio": "^8.0.5"
+  }
+}

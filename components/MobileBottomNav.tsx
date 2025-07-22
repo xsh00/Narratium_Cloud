@@ -186,6 +186,35 @@ export default function MobileBottomNav({
           </span>
         </Link>
 
+        {/* Social Feed - 新增社交发帖区入口 */}
+        <Link
+          href="/social-feed"
+          className={`flex flex-col items-center justify-center p-1 rounded-lg transition-all duration-300 ${
+            isActive("/social-feed")
+              ? "text-[#f8d36a] bg-[#2a231c]/50"
+              : "text-[#a18d6f] hover:text-[#f8d36a] hover:bg-[#2a231c]/30"
+          }`}
+        >
+          <div className="w-4 h-4 flex items-center justify-center mb-0.5">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            </svg>
+          </div>
+          <span className={`text-[7px] ${fontClass}`}>
+            {t("sidebar.socialFeed")}
+          </span>
+        </Link>
+
         {/* API Setting */}
         <Link
           href="/api-setting"
@@ -216,17 +245,16 @@ export default function MobileBottomNav({
           </span>
         </Link>
 
-        {/* Login/User */}
-        <button
-          onClick={isAuthenticated ? handleLogout : openLoginModal}
+        {/* Character Creator - 角色创作入口 */}
+        <Link
+          href="/creator-area"
           className={`flex flex-col items-center justify-center p-1 rounded-lg transition-all duration-300 ${
-            isAuthenticated
-              ? "text-[#f8d36a] hover:bg-[#2a231c]/30"
+            isActive("/creator-area")
+              ? "text-[#f8d36a] bg-[#2a231c]/50"
               : "text-[#a18d6f] hover:text-[#f8d36a] hover:bg-[#2a231c]/30"
           }`}
         >
           <div className="w-4 h-4 flex items-center justify-center mb-0.5">
-            {isAuthenticated ? (
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="14"
@@ -238,32 +266,14 @@ export default function MobileBottomNav({
                 strokeLinecap="round"
                 strokeLinejoin="round"
               >
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                <polyline points="16 17 21 12 16 7" />
-                <line x1="21" y1="12" x2="9" y2="12" />
+              <path d="M12 20h9"></path>
+              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
               </svg>
-            ) : (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
-                <polyline points="10 17 15 12 10 7" />
-                <line x1="15" y1="12" x2="3" y2="12" />
-              </svg>
-            )}
           </div>
           <span className={`text-[7px] ${fontClass}`}>
-            {isAuthenticated ? t("sidebar.logout") : t("sidebar.nologin")}
+            {t("sidebar.creatorStudio")}
           </span>
-        </button>
+        </Link>
       </div>
 
       {/* Bottom safe area for devices with home indicator */}

@@ -30,6 +30,8 @@
     "storyCollection": "Story Collection",
     "characterCards": "Character Cards",
     "characterMarket": "Character Market",
+    "socialFeed": "Community Feed",
+    "creatorStudio": "Character Creator",
     "login": "Login & Explore",
     "nologin": "Define User Name",
     "logout": "Logout",
@@ -775,5 +777,25 @@
     "skip": "Skip",
     "finish": "Finish",
     "resetTour": "Reset Tour"
+  },
+  "socialFeed": {
+    "title": "Community Feed",
+    "subtitle": "Share your ideas, creations and characters with the community",
+    "whatOnYourMind": "What's on your mind?",
+    "post": "Post",
+    "posting": "Posting...",
+    "addImage": "Add Image",
+    "loginRequired": "Please login first to continue",
+    "likes": "likes",
+    "comment": "Comment",
+    "noPosts": "No posts yet, be the first to share!",
+    "minutesAgo": "minutes ago",
+    "hoursAgo": "hours ago",
+    "daysAgo": "days ago",
+    "search": "Search",
+    "searchPosts": "Search posts...",
+    "loading": "Loading...",
+    "loadMore": "Load More",
+    "postFailed": "Failed to post, please try again"
   }
 }
