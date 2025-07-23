@@ -16,6 +16,8 @@ interface Post {
   createdAt: string;
   likesCount: number; // 修改字段名，从likes改为likesCount以匹配API
   liked: boolean;
+  status?: string; // 帖子状态：pending, approved, rejected
+  isPinned?: boolean; // 是否置顶
 }
 
 /**
@@ -35,6 +37,7 @@ export default function SocialFeedContent() {
   const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [activeSearch, setActiveSearch] = useState(""); // 添加当前活动的搜索词状态
 
   // 加载帖子
   const fetchPosts = useCallback(async (reset = false, search = "") => {
@@ -42,6 +45,9 @@ export default function SocialFeedContent() {
       setIsLoading(true);
       const newOffset = reset ? 0 : offset;
       const searchParam = search ? `&search=${encodeURIComponent(search)}` : "";
+      
+      console.log(`Fetching posts with search: "${search}", params: ${searchParam}`);
+      
       const response = await fetch(`/api/posts?limit=10&offset=${newOffset}${searchParam}`);
       
       if (!response.ok) {
@@ -50,8 +56,13 @@ export default function SocialFeedContent() {
       
       const data = await response.json();
       
+      console.log(`Received ${data.length} posts for search: "${search}"`);
+      
       if (reset) {
         setPosts(data);
+        if (search) {
+          setActiveSearch(search); // 更新当前活动的搜索词
+        }
       } else {
         setPosts(prev => [...prev, ...data]);
       }
@@ -67,8 +78,11 @@ export default function SocialFeedContent() {
 
   // 初始加载
   useEffect(() => {
-    fetchPosts(true);
-  }, [fetchPosts]);
+    // 初始加载时不应该有搜索词
+    if (!activeSearch) {
+      fetchPosts(true);
+    }
+  }, []); // 移除fetchPosts依赖，避免循环加载
 
   // 处理图片选择
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -98,75 +112,89 @@ export default function SocialFeedContent() {
     formData.append("file", file);
     
     // 添加用户ID到请求头，实际环境中应该使用更安全的方式
-    const headers = new Headers();
-    if (user?.id) {
-      headers.append("x-user-id", user.id);
-    }
-    
     const response = await fetch("/api/posts/upload", {
       method: "POST",
-      headers,
       body: formData,
+      headers: {
+        "x-user-id": user?.id || ""
+      }
     });
     
     if (!response.ok) {
-      throw new Error("Failed to upload image");
+      throw new Error("Image upload failed");
     }
     
     const data = await response.json();
     return data.url;
   };
-
-  // 提交发帖
+  
+  // 提交新帖子
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!content.trim() && !image) return;
     if (!isAuthenticated) {
-      alert(t("socialFeed.loginRequired"));
+      alert(t("socialFeed.pleaseLogin"));
       return;
     }
     
-    setIsSubmitting(true);
-
+    if (!content.trim() && !image) {
+      alert(t("socialFeed.emptyPost"));
+      return;
+    }
+    
     try {
-      let imageUrl = undefined;
+      setIsSubmitting(true);
       
-      // 如果有图片，先上传
+      // 上传图片（如果有）
+      let imageUrl = null;
       if (image) {
         imageUrl = await uploadImage(image);
       }
       
-      // 发布帖子
-      const headers = new Headers({
-        'Content-Type': 'application/json'
-      });
-      
-      if (user?.id) {
-        headers.append("x-user-id", user.id);
-      }
-      if (localStorage.getItem('username')) {
-        headers.append("x-username", localStorage.getItem('username') || "");
-      }
-      
+      // 创建帖子
       const response = await fetch("/api/posts", {
         method: "POST",
-        headers,
-        body: JSON.stringify({ content, imageUrl }),
+        headers: {
+          "Content-Type": "application/json",
+          "x-user-id": user?.id || "",
+          "x-username": user?.username || ""
+        },
+        body: JSON.stringify({
+          content: content.trim(),
+          imageUrl
+        })
       });
       
       if (!response.ok) {
         throw new Error("Failed to create post");
       }
       
+      // 获取刚创建的帖子数据
       const newPost = await response.json();
       
-      setPosts(prevPosts => [newPost, ...prevPosts]);
+      // 清除表单
       setContent("");
-      removeImage();
+      setImage(null);
+      setImagePreview(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+      
+      // 提示用户帖子已提交，等待审核
+      alert(t("socialFeed.postSubmittedForReview"));
+      
+      // 添加新发布的待审核帖子到列表顶部，这样用户可以看到自己发布的内容，但会显示"待审核"标记
+      setPosts(prevPosts => [
+        { 
+          ...newPost, 
+          status: 'pending' 
+        }, 
+        ...prevPosts
+      ]);
+      
     } catch (error) {
-      console.error("Failed to create post:", error);
-      alert(t("socialFeed.postFailed"));
+      console.error("Error creating post:", error);
+      alert(t("socialFeed.errorCreatingPost"));
     } finally {
       setIsSubmitting(false);
     }
@@ -175,6 +203,8 @@ export default function SocialFeedContent() {
   // 处理搜索
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
+    console.log(`Initiating search for: "${searchTerm}"`);
+    setOffset(0); // 重置偏移量
     fetchPosts(true, searchTerm);
   };
 
@@ -235,7 +265,7 @@ export default function SocialFeedContent() {
   // 加载更多
   const loadMore = () => {
     if (!isLoading && hasMore) {
-      fetchPosts(false, searchTerm);
+      fetchPosts(false, activeSearch);
     }
   };
 
@@ -260,21 +290,50 @@ export default function SocialFeedContent() {
       {/* 搜索栏 */}
       <div className="bg-[#1c1c1c] rounded-lg p-3 mb-6 border border-[#333] shadow-md">
         <form onSubmit={handleSearch} className="flex items-center">
-          <input
-            type="text"
-            placeholder={t("socialFeed.searchPosts")}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="flex-grow bg-[#252525] text-[#e0e0e0] border border-[#444] rounded-md p-2 mr-2 focus:outline-none focus:border-amber-500 transition"
-          />
+          <div className="relative flex-grow">
+            <input
+              type="text"
+              placeholder={t("socialFeed.searchPlaceholder")}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full bg-[#252525] text-[#e0e0e0] border border-[#444] rounded-md p-2 pl-3 pr-10 focus:outline-none focus:border-amber-500 transition"
+            />
+            {searchTerm && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchTerm("");
+                  setActiveSearch("");
+                  fetchPosts(true, "");
+                }}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            )}
+          </div>
           <button
             type="submit"
-            className="px-4 py-2 bg-gradient-to-r from-amber-600 to-amber-500 text-white rounded-md hover:from-amber-500 hover:to-amber-400 transition"
+            className="px-4 py-2 bg-gradient-to-r from-amber-600 to-amber-500 text-white rounded-md hover:from-amber-500 hover:to-amber-400 transition ml-2"
           >
             {t("socialFeed.search")}
           </button>
         </form>
       </div>
+      
+      {/* 搜索结果提示 */}
+      {activeSearch && (
+        <div className="mb-4 text-[#a18d6f]">
+          {posts.length > 0 ? (
+            <p>{t("socialFeed.searchResults").replace('{count}', String(posts.length)).replace('{term}', activeSearch)}</p>
+          ) : (
+            <p>{t("socialFeed.noSearchResults").replace('{term}', activeSearch)}</p>
+          )}
+        </div>
+      )}
       
       {/* 发帖表单 */}
       <div className="bg-[#1c1c1c] rounded-lg p-4 mb-6 border border-[#333] shadow-md">
@@ -283,7 +342,7 @@ export default function SocialFeedContent() {
             <textarea
               className="w-full bg-[#252525] text-[#e0e0e0] border border-[#444] rounded-md p-3 focus:outline-none focus:border-amber-500 transition"
               rows={3}
-              placeholder={t("socialFeed.whatOnYourMind")}
+              placeholder={t("socialFeed.writeContent")}
               value={content}
               onChange={(e) => setContent(e.target.value)}
             ></textarea>
@@ -351,7 +410,7 @@ export default function SocialFeedContent() {
                   {t("socialFeed.posting")}
                 </div>
               ) : (
-                t("socialFeed.post")
+                t("socialFeed.postButton")
               )}
             </button>
           </div>
@@ -359,96 +418,109 @@ export default function SocialFeedContent() {
       </div>
 
       {/* 帖子列表 */}
-      <div className="space-y-6">
-        {posts.length > 0 ? (
-          <>
-            {posts.map((post) => (
-              <div
-                key={post.id}
-                className="bg-[#1c1c1c] rounded-lg p-5 border border-[#333] shadow-md transition hover:border-[#444]"
-              >
-                <div className="flex items-center mb-3">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-r from-amber-600 to-amber-400 flex items-center justify-center text-white font-bold">
-                    {post.userName.charAt(0).toUpperCase()}
-                  </div>
-                  <div className="ml-3">
-                    <h3 className="text-[#f4e8c1] font-semibold">{post.userName}</h3>
-                    <p className="text-[#a18d6f] text-xs">{formatDate(post.createdAt)}</p>
-                  </div>
-                </div>
-                
-                <p className="text-[#e0e0e0] mb-4 whitespace-pre-line">{post.content}</p>
-                
-                {/* 帖子中的图片显示 */}
-                {post.imageUrl && (
-                  <div className="mb-4 relative w-full h-80 bg-[#1a1a1a] rounded-md overflow-hidden">
-                    <Image
-                      src={post.imageUrl}
-                      alt="Post image"
-                      fill
-                      className="object-contain"
-                      unoptimized={true}
-                      loader={({ src }) => src} // 确保使用原始URL，不添加Next.js的图片优化参数
-                    />
-                  </div>
-                )}
-                
-                <div className="flex justify-between items-center pt-3 border-t border-[#333]">
-                  <button
-                    onClick={() => handleLike(post.id, post.liked)}
-                    className={`flex items-center ${
-                      post.liked ? "text-amber-500" : "text-[#a18d6f] hover:text-amber-400"
-                    } transition`}
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill={post.liked ? "currentColor" : "none"}
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="mr-1"
-                    >
-                      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                    </svg>
-                    {post.likesCount} {t("socialFeed.likes")}
-                  </button>
-                </div>
+      <div className="mt-8">
+        {posts.map((post) => (
+          <div key={post.id} className={`mb-6 p-4 bg-[#1c1c1c] rounded-lg border ${post.isPinned ? 'border-amber-500' : 'border-[#333]'} shadow-md transition-all duration-200`}>
+            {post.isPinned && (
+              <div className="flex items-center mb-2 text-amber-400">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                  <path d="m12 1 9 9-9 9-9-9z" />
+                </svg>
+                <span className="text-xs font-bold">{t("socialFeed.pinnedPost")}</span>
               </div>
-            ))}
+            )}
             
-            {/* 加载更多按钮 */}
-            {hasMore && (
-              <div className="flex justify-center mt-6 mb-4">
-                <button
-                  onClick={loadMore}
-                  disabled={isLoading}
-                  className="px-6 py-2 bg-[#1c1c1c] text-amber-400 border border-amber-500/50 rounded-md hover:bg-[#252525] transition"
+            {post.status === 'pending' && (
+              <div className="flex items-center mb-2 text-yellow-400">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="12" y1="8" x2="12" y2="12"></line>
+                  <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+                <span className="text-xs font-bold">{t("socialFeed.pendingReview")}</span>
+              </div>
+            )}
+            
+            {/* 帖子头部：用户名和时间 */}
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-amber-600 to-amber-400 flex items-center justify-center text-white font-bold mr-3">
+                  {post.userName.charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <div className="font-medium text-[#e0e0e0]">{post.userName}</div>
+                  <div className="text-xs text-[#999]">{formatDate(post.createdAt)}</div>
+                </div>
+              </div>
+            </div>
+            
+            {/* 帖子内容 */}
+            <div className={`text-[#e0e0e0] mb-3 whitespace-pre-wrap ${fontClass}`}>
+              {post.content}
+            </div>
+            
+            {/* 帖子图片（如果有） */}
+            {post.imageUrl && (
+              <div className="mb-3 relative">
+                <div className="rounded-lg overflow-hidden max-w-full">
+                  <Image 
+                    src={post.imageUrl} 
+                    alt="Post" 
+                    width={0} 
+                    height={0} 
+                    sizes="100vw"
+                    className="max-h-[400px] w-auto object-contain"
+                    unoptimized={true}
+                  />
+                </div>
+              </div>
+            )}
+            
+            {/* 帖子互动区：点赞和评论 */}
+            <div className="flex items-center pt-2 border-t border-[#333]">
+              {/* 点赞按钮 */}
+              <button 
+                className={`flex items-center mr-4 ${post.liked ? 'text-red-500' : 'text-[#aaa] hover:text-red-400'} transition`}
+                onClick={() => handleLike(post.id, post.liked)}
+                disabled={!isAuthenticated}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill={post.liked ? "currentColor" : "none"}
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="mr-1"
                 >
-                  {isLoading ? (
-                    <div className="flex items-center">
-                      <div className="animate-spin mr-2 h-4 w-4 border-2 border-b-transparent border-amber-400 rounded-full"></div>
-                      {t("socialFeed.loading")}
-                    </div>
-                  ) : (
-                    t("socialFeed.loadMore")
-                  )}
-                </button>
-              </div>
-            )}
-          </>
-        ) : (
-          <div className="bg-[#1c1c1c] rounded-lg p-5 border border-[#333] text-center">
-            {isLoading ? (
-              <div className="flex justify-center items-center py-8">
-                <div className="animate-spin h-8 w-8 border-2 border-b-transparent border-amber-400 rounded-full"></div>
-              </div>
-            ) : (
-              <p className="text-[#a18d6f]">{t("socialFeed.noPosts")}</p>
-            )}
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"></path>
+                </svg>
+                <span>{post.likesCount}</span>
+              </button>
+            </div>
+          </div>
+        ))}
+        
+        {/* 加载更多按钮 */}
+        {hasMore && (
+          <div className="flex justify-center mt-6 mb-4">
+            <button
+              onClick={loadMore}
+              disabled={isLoading}
+              className="px-6 py-2 bg-[#1c1c1c] text-amber-400 border border-amber-500/50 rounded-md hover:bg-[#252525] transition"
+            >
+              {isLoading ? (
+                <div className="flex items-center">
+                  <div className="animate-spin mr-2 h-4 w-4 border-2 border-b-transparent border-amber-400 rounded-full"></div>
+                  {t("socialFeed.loading")}
+                </div>
+              ) : (
+                t("socialFeed.loadMore")
+              )}
+            </button>
           </div>
         )}
       </div>

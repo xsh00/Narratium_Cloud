@@ -5,6 +5,12 @@ import { motion } from "framer-motion";
 import { useLanguage } from "@/app/i18n";
 import { parseCharacterCard } from "@/utils/character-parser";
 import { toast } from "react-hot-toast";
+import { useRouter } from "next/navigation";
+import { v4 as uuidv4 } from "uuid";
+import { LocalCharacterRecordOperations } from "@/lib/data/roleplay/character-record-operation";
+import { setBlob } from "@/lib/data/local-storage";
+import { WorldBookOperations } from "@/lib/data/roleplay/world-book-operation";
+import { RawCharacterData } from "@/lib/models/rawdata-model";
 
 interface WorldBookEntry {
   entry_id?: string;
@@ -59,6 +65,7 @@ interface CharacterData {
 
 export default function CreatorAreaPage() {
   const { t, fontClass, serifFontClass } = useLanguage();
+  const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [imagesLoaded, setImagesLoaded] = useState(false);
   const [activeTab, setActiveTab] = useState<"import" | "create" | "edit">("import");
@@ -74,6 +81,7 @@ export default function CreatorAreaPage() {
   const [characterMesExample, setCharacterMesExample] = useState("");
   const [characterCreatorComment, setCharacterCreatorComment] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -407,6 +415,116 @@ export default function CreatorAreaPage() {
   const createNewCharacter = () => {
     resetForm();
     setActiveTab("create");
+  };
+
+  // 直接导入到角色库
+  const importToCharacterLibrary = async () => {
+    if (!currentImage) {
+      toast.error(t("characterCreator.noImage") || "请上传角色卡图片");
+      return;
+    }
+
+    if (!characterName) {
+      toast.error(t("characterCreator.noName") || "请输入角色名称");
+      return;
+    }
+
+    setIsImporting(true);
+    try {
+      // 构建角色数据
+      const characterDataToImport: RawCharacterData = {
+        id: `char_${Date.now()}`,
+        name: characterName,
+        description: characterDescription,
+        personality: characterPersonality,
+        first_mes: characterFirstMessage,
+        scenario: characterScenario,
+        mes_example: characterMesExample,
+        creatorcomment: characterCreatorComment,
+        avatar: currentImage.name,
+        sample_status: '',
+        data: {
+          name: characterName,
+          description: characterDescription,
+          personality: characterPersonality,
+          first_mes: characterFirstMessage,
+          scenario: characterScenario,
+          mes_example: characterMesExample,
+          creator_notes: characterCreatorComment,
+          system_prompt: '',
+          post_history_instructions: '',
+          tags: [],
+          creator: '',
+          character_version: '1.0',
+          alternate_greetings: [],
+          character_book: {
+            entries: worldBookEntries.reduce((acc, entry, index) => {
+              acc[`entry_${index}`] = {
+                ...entry,
+                disable: entry.enabled === false,
+                key: entry.keys
+              };
+              return acc;
+            }, {} as Record<string, any>)
+          }
+        }
+      };
+
+      // 确保图像是PNG格式
+      let pngImage = currentImage;
+      if (currentImage.type !== 'image/png') {
+        try {
+          // 显示转换提示
+          toast(t("characterCreator.convertingImage") || "正在转换图像格式...");
+          // 转换图像格式
+          pngImage = await convertToPNG(currentImage);
+        } catch (error) {
+          console.error("图像转换失败:", error);
+          toast.error(t("characterCreator.conversionFailed") || "图像格式转换失败");
+          setIsImporting(false);
+          return;
+        }
+      }
+
+      // 创建角色ID和图像路径
+      const characterId = `char_${Date.now()}`;
+      const imagePath = `${characterId}.png`;
+      
+      // 保存世界书条目
+      const worldBookData = worldBookEntries.reduce((acc, entry, index) => {
+        acc[`entry_${index}`] = {
+          ...entry,
+          disable: entry.enabled === false,
+          key: entry.keys
+        };
+        return acc;
+      }, {} as Record<string, any>);
+      
+      await WorldBookOperations.updateWorldBook(characterId, worldBookData);
+      
+      // 保存角色数据
+      await LocalCharacterRecordOperations.createCharacter(
+        characterId,
+        characterDataToImport,
+        imagePath
+      );
+      
+      // 保存图像数据
+      await setBlob(imagePath, pngImage);
+      
+      toast.success(t("characterCreator.importSuccess") || "角色已成功导入到角色库");
+      
+      // 询问用户是否要立即前往对话
+      if (confirm(t("characterCreator.startChatNow") || "角色已导入。是否立即开始对话？")) {
+        // 跳转到角色对话页面
+        router.push(`/character?id=${characterId}`);
+      }
+    } catch (error: any) {
+      console.error("导入角色失败:", error);
+      toast.error(error.message || t("characterCreator.importFailed") || "导入角色失败");
+    } finally {
+      setIsImporting(false);
+    }
   };
 
   if (!mounted) return null;
@@ -823,21 +941,31 @@ export default function CreatorAreaPage() {
                 )}
               </div>
 
-              {/* 操作按钮 */}
-              <div className="flex justify-end space-x-4 mt-8 flex-wrap gap-2">
+              {/* 操作按钮 - 优化移动端布局 */}
+              <div className="flex flex-col sm:flex-row gap-3 mt-8">
                 <button
                   type="button"
                   onClick={resetForm}
-                  className="px-4 py-2 rounded-md border border-[#534741] text-[#a18d6f] hover:text-[#eae6db] hover:border-[#a18d6f] transition-colors"
-                  disabled={isProcessing}
+                  className="w-full sm:w-auto px-4 py-3 rounded-md border border-[#534741] text-[#a18d6f] hover:text-[#eae6db] hover:border-[#a18d6f] transition-colors"
+                  disabled={isProcessing || isImporting}
                 >
                   {t("characterCreator.reset") || "重置"}
                 </button>
                 <button
                   type="button"
+                  onClick={importToCharacterLibrary}
+                  className="w-full sm:w-auto px-4 py-3 rounded-md bg-gradient-to-r from-green-600 to-green-500 text-white hover:from-green-500 hover:to-green-400 transition-colors"
+                  disabled={isProcessing || isImporting}
+                >
+                  {isImporting
+                    ? t("characterCreator.importing") || "导入中..."
+                    : t("characterCreator.importToLibrary") || "导入到角色库"}
+                </button>
+                <button
+                  type="button"
                   onClick={exportCharacterCard}
-                  className="px-4 py-2 rounded-md bg-gradient-to-r from-amber-600 to-amber-500 text-white hover:from-amber-500 hover:to-amber-400 transition-colors"
-                  disabled={isProcessing}
+                  className="w-full sm:w-auto px-4 py-3 rounded-md bg-gradient-to-r from-amber-600 to-amber-500 text-white hover:from-amber-500 hover:to-amber-400 transition-colors"
+                  disabled={isProcessing || isImporting}
                 >
                   {isProcessing
                     ? t("characterCreator.processing") || "处理中..."

@@ -28,14 +28,20 @@ export async function GET(request: NextRequest) {
     const offset = parseInt(searchParams.get('offset') || '0', 10);
     const searchTerm = searchParams.get('search') || undefined;
     const userId = searchParams.get('userId') || undefined;
+    const isAdmin = request.headers.get('x-admin-token') === 'true';
+    const statusFilter = isAdmin ? searchParams.get('status') || undefined : undefined;
 
     // 获取帖子
     let posts;
-    if (userId) {
+    if (isAdmin) {
+      // 管理员可以看到所有帖子，包括待审核和被拒绝的
+      posts = await postRepository.findAllForAdmin(limit, offset, searchTerm, statusFilter);
+    } else if (userId) {
+      // 用户查看自己的帖子
       posts = await postRepository.findByUserId(userId, limit, offset);
-    } else if (searchTerm) {
-      posts = await postRepository.search(searchTerm, limit, offset);
     } else {
+      // 对于普通用户，不区分搜索和普通列表，统一使用findAll方法，但传递searchTerm参数
+      // 这样可以确保无论有没有搜索词，都使用相同的查询逻辑
       posts = await postRepository.findAll(limit, offset, searchTerm);
     }
 
@@ -54,6 +60,8 @@ export async function GET(request: NextRequest) {
           content: post.content,
           imageUrl: post.image_url,
           likesCount: post.likes_count,
+          status: post.status,
+          isPinned: post.is_pinned === 1,
           createdAt: post.created_at,
           updatedAt: post.updated_at,
           liked: false

@@ -76,12 +76,66 @@ async function initializeDatabase() {
         content TEXT NOT NULL,
         image_url VARCHAR(1024),
         likes_count INT DEFAULT 0,
+        status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending',
+        is_pinned BOOLEAN DEFAULT FALSE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
       )
     `);
     console.log('✅ 社交帖子表创建成功');
+    
+    // 检查并添加帖子表中的status字段（如果不存在）
+    try {
+      // 检查字段是否存在
+      const [statusColumns] = await connection.execute(`
+        SELECT COLUMN_NAME
+        FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE TABLE_NAME = 'posts'
+        AND COLUMN_NAME = 'status'
+        AND TABLE_SCHEMA = DATABASE()
+      `);
+      
+      if ((statusColumns as any[]).length === 0) {
+        await connection.execute(`
+          ALTER TABLE posts
+          ADD COLUMN status ENUM('pending', 'approved', 'rejected') DEFAULT 'approved'
+        `);
+        console.log('✅ posts表status字段添加成功');
+        
+        // 将现有帖子设为已批准状态
+        await connection.execute(`
+          UPDATE posts
+          SET status = 'approved'
+          WHERE status IS NULL
+        `);
+        console.log('✅ 现有帖子状态已更新为已批准');
+      }
+    } catch (error) {
+      console.error('检查posts表status字段时出错:', error);
+    }
+    
+    // 检查并添加帖子表中的is_pinned字段（如果不存在）
+    try {
+      // 检查字段是否存在
+      const [pinnedColumns] = await connection.execute(`
+        SELECT COLUMN_NAME
+        FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE TABLE_NAME = 'posts'
+        AND COLUMN_NAME = 'is_pinned'
+        AND TABLE_SCHEMA = DATABASE()
+      `);
+      
+      if ((pinnedColumns as any[]).length === 0) {
+        await connection.execute(`
+          ALTER TABLE posts
+          ADD COLUMN is_pinned BOOLEAN DEFAULT FALSE
+        `);
+        console.log('✅ posts表is_pinned字段添加成功');
+      }
+    } catch (error) {
+      console.error('检查posts表is_pinned字段时出错:', error);
+    }
     
     // 帖子点赞表
     await connection.execute(`
@@ -381,13 +435,13 @@ export const postRepository = {
     try {
       connection = await pool.getConnection();
       
-      // 创建帖子，支持imageUrl
+      // 创建帖子，支持imageUrl，默认状态为pending
       const [result] = await connection.execute(
-        'INSERT INTO posts (id, user_id, content, image_url) VALUES (?, ?, ?, ?)',
-        [post.id, post.userId, post.content, post.imageUrl || null]
+        'INSERT INTO posts (id, user_id, content, image_url, status) VALUES (?, ?, ?, ?, ?)',
+        [post.id, post.userId, post.content, post.imageUrl || null, 'pending']
       );
       
-      return { ...post, createdAt: new Date().toISOString(), likesCount: 0 };
+      return { ...post, createdAt: new Date().toISOString(), likesCount: 0, status: 'pending', isPinned: false };
     } catch (error) {
       console.error('创建帖子失败:', error);
       throw error;
@@ -423,7 +477,7 @@ export const postRepository = {
     }
   },
 
-  findAll: async (limit: number = 20, offset: number = 0, searchTerm?: string) => {
+  findAll: async (limit: number = 20, offset: number = 0, searchTerm?: string, showPending: boolean = false) => {
     let connection: PoolConnection | null = null;
     
     try {
@@ -437,19 +491,74 @@ export const postRepository = {
       
       const params: any[] = [];
       
+      // 基础条件：只显示已批准的帖子或者根据showPending参数决定是否显示待审核帖子
+      if (!showPending) {
+        query += ` WHERE p.status = 'approved'`;
+      }
+      
+      // 搜索条件
       if (searchTerm) {
-        query += ` WHERE p.content LIKE ?`;
+        query += showPending ? ` WHERE p.content LIKE ?` : ` AND p.content LIKE ?`;
         params.push(`%${searchTerm}%`);
       }
       
-      // 使用具体数字而不是参数占位符，避免类型问题
-      query += ` ORDER BY p.created_at DESC LIMIT ${parseInt(limit.toString())} OFFSET ${parseInt(offset.toString())}`;
+      // 先按置顶状态排序，再按创建时间排序
+      query += ` ORDER BY p.is_pinned DESC, p.created_at DESC LIMIT ${parseInt(limit.toString())} OFFSET ${parseInt(offset.toString())}`;
       
+      console.log("Search query:", query, params); // 添加日志以便调试
       const [rows] = await connection.execute(query, params);
       
       return rows as any[];
     } catch (error) {
       console.error('获取帖子列表失败:', error);
+      throw error;
+    } finally {
+      if (connection) {
+        connection.release();
+      }
+    }
+  },
+
+  // 管理员获取所有帖子，包括待审核、已批准和被拒绝的
+  findAllForAdmin: async (limit: number = 20, offset: number = 0, searchTerm?: string, status?: string) => {
+    let connection: PoolConnection | null = null;
+    
+    try {
+      connection = await pool.getConnection();
+      
+      let query = `
+        SELECT p.*, u.username 
+        FROM posts p 
+        JOIN users u ON p.user_id = u.id
+      `;
+      
+      const params: any[] = [];
+      
+      // 构建WHERE子句
+      const conditions: string[] = [];
+      
+      if (searchTerm) {
+        conditions.push(`p.content LIKE ?`);
+        params.push(`%${searchTerm}%`);
+      }
+      
+      if (status && ['pending', 'approved', 'rejected'].includes(status)) {
+        conditions.push(`p.status = ?`);
+        params.push(status);
+      }
+      
+      if (conditions.length > 0) {
+        query += ` WHERE ${conditions.join(' AND ')}`;
+      }
+      
+      // 先按置顶状态排序，再按创建时间排序
+      query += ` ORDER BY p.is_pinned DESC, p.created_at DESC LIMIT ${parseInt(limit.toString())} OFFSET ${parseInt(offset.toString())}`;
+      
+      const [rows] = await connection.execute(query, params);
+      
+      return rows as any[];
+    } catch (error) {
+      console.error('获取管理员帖子列表失败:', error);
       throw error;
     } finally {
       if (connection) {
@@ -480,21 +589,41 @@ export const postRepository = {
     }
   },
 
-  update: async (id: string, updates: Partial<{ content: string; imageUrl: string }>) => {
+  update: async (id: string, updates: Partial<{ content: string; imageUrl: string; status: string; isPinned: boolean }>) => {
     let connection: PoolConnection | null = null;
     
     try {
       connection = await pool.getConnection();
       
-      const fields = Object.keys(updates).map(key => {
-        if (key === 'imageUrl') return 'image_url = ?';
-        return `${key} = ?`;
-      }).join(', ');
+      const updateFields: string[] = [];
+      const values: any[] = [];
       
-      const values = Object.values(updates);
+      if (updates.content !== undefined) {
+        updateFields.push('content = ?');
+        values.push(updates.content);
+      }
+      
+      if (updates.imageUrl !== undefined) {
+        updateFields.push('image_url = ?');
+        values.push(updates.imageUrl);
+      }
+      
+      if (updates.status !== undefined && ['pending', 'approved', 'rejected'].includes(updates.status)) {
+        updateFields.push('status = ?');
+        values.push(updates.status);
+      }
+      
+      if (updates.isPinned !== undefined) {
+        updateFields.push('is_pinned = ?');
+        values.push(updates.isPinned ? 1 : 0);
+      }
+      
+      if (updateFields.length === 0) {
+        return false;
+      }
       
       const [result] = await connection.execute(
-        `UPDATE posts SET ${fields} WHERE id = ?`,
+        `UPDATE posts SET ${updateFields.join(', ')} WHERE id = ?`,
         [...values, id]
       );
       
@@ -509,32 +638,18 @@ export const postRepository = {
     }
   },
 
-  // 搜索帖子
-  search: async (searchTerm: string, limit: number = 20, offset: number = 0) => {
-    let connection: PoolConnection | null = null;
-    
-    try {
-      connection = await pool.getConnection();
-      
-      // 使用具体数字而不是参数占位符，避免类型问题
-      const query = `SELECT p.*, u.username 
-         FROM posts p 
-         JOIN users u ON p.user_id = u.id 
-         WHERE p.content LIKE ? 
-         ORDER BY p.created_at DESC 
-         LIMIT ${parseInt(limit.toString())} OFFSET ${parseInt(offset.toString())}`;
-      
-      const [rows] = await connection.execute(query, [`%${searchTerm}%`]);
-      
-      return rows as any[];
-    } catch (error) {
-      console.error('搜索帖子失败:', error);
-      throw error;
-    } finally {
-      if (connection) {
-        connection.release();
-      }
-    }
+  // 审核帖子
+  approvePost: async (id: string) => {
+    return postRepository.update(id, { status: 'approved' });
+  },
+  
+  rejectPost: async (id: string) => {
+    return postRepository.update(id, { status: 'rejected' });
+  },
+  
+  // 置顶/取消置顶帖子
+  togglePinned: async (id: string, isPinned: boolean) => {
+    return postRepository.update(id, { isPinned });
   },
 
   // 获取用户发布的帖子
