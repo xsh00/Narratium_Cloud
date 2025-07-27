@@ -108,6 +108,18 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
               </li>
               <li>
                 <Link 
+                  href="/admin/customanage"
+                  className={`block py-2 px-4 rounded ${
+                    isActive('/admin/customanage') 
+                      ? 'bg-[#252525] text-[#f4e8c1]' 
+                      : 'hover:bg-[#252525] text-[#a18d6f] hover:text-[#f4e8c1]'
+                  } transition-colors`}
+                >
+                  角色卡定制管理
+                </Link>
+              </li>
+              <li>
+                <Link 
                   href="/admin/codemanage"
                   className={`block py-2 px-4 rounded ${
                     isActive('/admin/codemanage') 

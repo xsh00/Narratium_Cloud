@@ -151,6 +151,20 @@ async function initializeDatabase() {
     `);
     console.log('✅ 帖子点赞表创建成功');
     
+    // 创建角色卡定制请求表
+    await connection.execute(`
+      CREATE TABLE IF NOT EXISTS custom_requests (
+        id VARCHAR(255) PRIMARY KEY,
+        user_id VARCHAR(255) NOT NULL,
+        description TEXT NOT NULL,
+        status ENUM('pending', 'processing', 'completed', 'rejected') DEFAULT 'pending',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      )
+    `);
+    console.log('✅ 角色卡定制请求表创建成功');
+    
     // 创建索引
     try {
       await connection.execute(`CREATE INDEX idx_users_email ON users(email)`);
@@ -182,6 +196,19 @@ async function initializeDatabase() {
     } catch (error: any) {
       if (error.code === 'ER_DUP_KEYNAME') {
         console.log('✅ 帖子索引已存在');
+      } else {
+        throw error;
+      }
+    }
+    
+    // 创建角色卡定制请求索引
+    try {
+      await connection.execute(`CREATE INDEX idx_custom_requests_user_id ON custom_requests(user_id)`);
+      await connection.execute(`CREATE INDEX idx_custom_requests_status ON custom_requests(status)`);
+      console.log('✅ 角色卡定制请求索引创建成功');
+    } catch (error: any) {
+      if (error.code === 'ER_DUP_KEYNAME') {
+        console.log('✅ 角色卡定制请求索引已存在');
       } else {
         throw error;
       }
@@ -1406,6 +1433,175 @@ export const redeemCodeRepository = {
       };
     } catch (error) {
       console.error('获取兑换码列表失败:', error);
+      throw error;
+    } finally {
+      if (connection) {
+        connection.release();
+      }
+    }
+  }
+};
+
+// 角色卡定制请求相关操作
+export const customRequestRepository = {
+  // 创建定制请求
+  create: async (request: { id: string; userId: string; description: string }) => {
+    let connection: PoolConnection | null = null;
+    
+    try {
+      connection = await pool.getConnection();
+      
+      // 开启事务
+      await connection.beginTransaction();
+      
+      try {
+        // 添加定制请求记录
+        await connection.execute(
+          'INSERT INTO custom_requests (id, user_id, description) VALUES (?, ?, ?)',
+          [request.id, request.userId, request.description]
+        );
+        
+        // 扣除用户积分
+        await connection.execute(
+          'UPDATE users SET credits = credits - 10 WHERE id = ?',
+          [request.userId]
+        );
+        
+        // 添加积分历史记录
+        await connection.execute(
+          'INSERT INTO credits_history (user_id, amount, description) VALUES (?, ?, ?)',
+          [request.userId, -10, '提交角色卡定制请求']
+        );
+        
+        // 提交事务
+        await connection.commit();
+        
+        // 获取请求的完整信息
+        const [rows] = await connection.execute(
+          'SELECT c.*, u.username FROM custom_requests c JOIN users u ON c.user_id = u.id WHERE c.id = ?',
+          [request.id]
+        );
+        
+        return (rows as any[])[0];
+      } catch (error) {
+        // 回滚事务
+        await connection.rollback();
+        throw error;
+      }
+    } catch (error) {
+      console.error('创建角色卡定制请求失败:', error);
+      throw error;
+    } finally {
+      if (connection) {
+        connection.release();
+      }
+    }
+  },
+
+  // 获取指定用户的所有定制请求
+  getUserRequests: async (userId: string) => {
+    let connection: PoolConnection | null = null;
+    
+    try {
+      connection = await pool.getConnection();
+      
+      // 获取用户的所有定制请求，按创建时间倒序排列
+      const [rows] = await connection.execute(
+        'SELECT * FROM custom_requests WHERE user_id = ? ORDER BY created_at DESC',
+        [userId]
+      );
+      
+      return rows as any[];
+    } catch (error) {
+      console.error('获取用户定制请求失败:', error);
+      throw error;
+    } finally {
+      if (connection) {
+        connection.release();
+      }
+    }
+  },
+  
+  // 获取所有定制请求（用于管理后台）
+  findAll: async (limit = 100, offset = 0, status?: string) => {
+    let connection: PoolConnection | null = null;
+    
+    try {
+      connection = await pool.getConnection();
+      
+      let query = 'SELECT c.*, u.username FROM custom_requests c JOIN users u ON c.user_id = u.id';
+      const params: any[] = [];
+      
+      // 如果指定了状态，添加状态过滤
+      if (status) {
+        query += ' WHERE c.status = ?';
+        params.push(status);
+      }
+      
+      // 将分页参数直接嵌入SQL查询中，而不是使用参数占位符
+      const safeLimit = parseInt(String(limit), 10);
+      const safeOffset = parseInt(String(offset), 10);
+      query += ` ORDER BY c.created_at DESC LIMIT ${safeLimit} OFFSET ${safeOffset}`;
+      
+      const [rows] = await connection.execute(query, params);
+      
+      return rows as any[];
+    } catch (error) {
+      console.error('获取定制请求列表失败:', error);
+      throw error;
+    } finally {
+      if (connection) {
+        connection.release();
+      }
+    }
+  },
+  
+  // 获取特定用户的定制请求（包含用户名）
+  findByUserId: async (userId: string, limit = 100, offset = 0) => {
+    let connection: PoolConnection | null = null;
+    
+    try {
+      connection = await pool.getConnection();
+      
+      // 将分页参数直接嵌入SQL查询中
+      const safeLimit = parseInt(String(limit), 10);
+      const safeOffset = parseInt(String(offset), 10);
+      const query = `SELECT c.*, u.username FROM custom_requests c JOIN users u ON c.user_id = u.id WHERE c.user_id = ? ORDER BY c.created_at DESC LIMIT ${safeLimit} OFFSET ${safeOffset}`;
+      
+      const [rows] = await connection.execute(query, [userId]);
+      
+      return rows as any[];
+    } catch (error) {
+      console.error('获取用户定制请求失败:', error);
+      throw error;
+    } finally {
+      if (connection) {
+        connection.release();
+      }
+    }
+  },
+  
+  // 更新定制请求状态
+  updateStatus: async (id: string, status: 'pending' | 'processing' | 'completed' | 'rejected') => {
+    let connection: PoolConnection | null = null;
+    
+    try {
+      connection = await pool.getConnection();
+      
+      await connection.execute(
+        'UPDATE custom_requests SET status = ? WHERE id = ?',
+        [status, id]
+      );
+      
+      // 获取更新后的请求信息
+      const [rows] = await connection.execute(
+        'SELECT c.*, u.username FROM custom_requests c JOIN users u ON c.user_id = u.id WHERE c.id = ?',
+        [id]
+      );
+      
+      return (rows as any[])[0];
+    } catch (error) {
+      console.error('更新定制请求状态失败:', error);
       throw error;
     } finally {
       if (connection) {

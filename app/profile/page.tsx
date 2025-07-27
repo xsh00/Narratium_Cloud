@@ -5,6 +5,7 @@ import { useLanguage } from "@/app/i18n";
 import { motion } from "framer-motion";
 import AuthGuard from "@/components/AuthGuard";
 import { useAuth } from "@/contexts/AuthContext";
+import { nanoid } from "nanoid";
 
 // 定义积分历史记录类型
 interface CreditHistory {
@@ -65,6 +66,72 @@ export default function ProfilePage() {
   const [isSubscribing, setIsSubscribing] = useState(false);
   const [subscribeError, setSubscribeError] = useState("");
   const [subscribeSuccess, setSubscribeSuccess] = useState("");
+
+  // 角色卡定制相关状态
+  const [customCharacterDesc, setCustomCharacterDesc] = useState("");
+  const [isSubmittingCustom, setIsSubmittingCustom] = useState(false);
+  const [customError, setCustomError] = useState("");
+  const [customSuccess, setCustomSuccess] = useState("");
+  const [customRequests, setCustomRequests] = useState<any[]>([]);
+  const [isLoadingCustomRequests, setIsLoadingCustomRequests] = useState(false);
+  const [customCurrentPage, setCustomCurrentPage] = useState(1);
+  const [customTotalPages, setCustomTotalPages] = useState(1);
+  const CUSTOM_ITEMS_PER_PAGE = 5;
+  
+  // 获取当前页的定制请求
+  const getCurrentPageCustomRequests = () => {
+    const startIndex = (customCurrentPage - 1) * CUSTOM_ITEMS_PER_PAGE;
+    return customRequests.slice(startIndex, startIndex + CUSTOM_ITEMS_PER_PAGE);
+  };
+  
+  // 生成状态进度条
+  const getStatusProgressBar = (status: string) => {
+    const steps = [
+      { key: 'pending', label: '已提交', color: 'bg-yellow-500' },
+      { key: 'processing', label: '处理中', color: 'bg-blue-500' },
+      { key: 'completed', label: '已完成', color: 'bg-green-500' }
+    ];
+    
+    // 如果是被拒绝的请求，显示特殊样式
+    if (status === 'rejected') {
+      return (
+        <div className="flex items-center w-full">
+          <div className="w-full h-2 bg-red-500/30 rounded-full">
+            <div className="h-full bg-red-500 rounded-full w-full"></div>
+          </div>
+          <span className="ml-2 text-xs text-red-400">已拒绝</span>
+        </div>
+      );
+    }
+    
+    // 找出当前状态的索引
+    let currentStepIndex = steps.findIndex(step => step.key === status);
+    if (currentStepIndex === -1) currentStepIndex = 0; // 默认为第一步
+    
+    // 计算进度条宽度
+    const progress = (currentStepIndex + 1) / steps.length * 100;
+    
+    return (
+      <div className="space-y-1">
+        <div className="flex justify-between items-center text-xs text-[#a18d6f]">
+          {steps.map((step, idx) => (
+            <div 
+              key={step.key} 
+              className={`${idx <= currentStepIndex ? 'text-amber-400' : 'text-[#666]'}`}
+            >
+              {step.label}
+            </div>
+          ))}
+        </div>
+        <div className="w-full h-1.5 bg-[#333]/50 rounded-full overflow-hidden">
+          <div 
+            className={`h-full ${steps[currentStepIndex].color} rounded-full transition-all duration-500 ease-in-out`}
+            style={{ width: `${progress}%` }}
+          ></div>
+        </div>
+      </div>
+    );
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -148,11 +215,104 @@ export default function ProfilePage() {
     }
   };
   
+  // 获取用户的角色卡定制请求历史
+  const fetchCustomRequests = async () => {
+    if (!user?.id) return;
+    
+    try {
+      setIsLoadingCustomRequests(true);
+      const response = await fetch(`/api/user/custom-character?userId=${user.id}`);
+      
+      if (!response.ok) {
+        throw new Error('获取定制请求失败');
+      }
+      
+      const data = await response.json();
+      if (data.success) {
+        setCustomRequests(data.requests || []);
+        // 计算总页数
+        setCustomTotalPages(Math.max(1, Math.ceil((data.requests?.length || 0) / CUSTOM_ITEMS_PER_PAGE)));
+      } else {
+        console.error('获取定制请求失败:', data.error);
+      }
+    } catch (error) {
+      console.error('获取定制请求错误:', error);
+    } finally {
+      setIsLoadingCustomRequests(false);
+    }
+  };
+  
+  // 提交角色卡定制请求
+  const handleSubmitCustomRequest = async () => {
+    if (!customCharacterDesc.trim()) {
+      setCustomError("请输入角色卡描述");
+      return;
+    }
+    
+    if (customCharacterDesc.length < 10) {
+      setCustomError("描述太短，请详细描述您想要的角色卡");
+      return;
+    }
+    
+    if (!user?.id) {
+      setCustomError("请先登录后再提交");
+      return;
+    }
+    
+    // 检查用户积分是否足够
+    if (credits < 10) {
+      setCustomError("积分不足，定制一个角色卡需要10积分");
+      return;
+    }
+    
+    try {
+      setIsSubmittingCustom(true);
+      setCustomError("");
+      setCustomSuccess("");
+      
+      const requestId = nanoid();
+      
+      const response = await fetch('/api/user/custom-character', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          id: requestId,
+          userId: user.id,
+          description: customCharacterDesc
+        })
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        setCustomSuccess("角色卡定制请求提交成功！我们会尽快处理");
+        setCustomCharacterDesc("");
+        // 更新积分和请求历史
+        setCredits(prev => prev - 10);
+        fetchCreditsData();
+        fetchCustomRequests();
+        
+        // 3秒后清除成功消息
+        setTimeout(() => setCustomSuccess(''), 5000);
+      } else {
+        setCustomError(result.error || "提交失败，请稍后再试");
+      }
+    } catch (error) {
+      console.error('提交定制请求失败:', error);
+      setCustomError("提交过程中出错，请稍后再试");
+    } finally {
+      setIsSubmittingCustom(false);
+    }
+  };
+
   // 从API获取数据
   useEffect(() => {
     if (user) {
       fetchCreditsData();
       fetchVIPStatus();
+      fetchCustomRequests(); // 获取定制请求历史
     } else {
       // 未登录用户，设置积分为0并清空历史记录
       setCredits(0);
@@ -160,6 +320,7 @@ export default function ProfilePage() {
       setIsLoadingCredits(false);
       setCreditError("");
       setVipStatus({ isVIP: false, vipExpiry: null });
+      setCustomRequests([]);
     }
   }, [user]);
 
@@ -749,6 +910,174 @@ export default function ProfilePage() {
                         <div className={`text-xs text-[#a18d6f] mt-3 ${fontClass}`}>
                           VIP会员可以下载并导入VIP角色专区中的所有角色卡
                         </div>
+                      </div>
+                    </div>
+
+                    {/* 角色卡定制区域 */}
+                    <div id="custom-character" className="bg-[#1c1c1c]/60 rounded-lg p-4 border border-[#333]/40 mb-6">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="text-amber-400 mr-2"
+                          >
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                          </svg>
+                          <span className={`text-amber-400 font-medium ${fontClass}`}>
+                            角色卡定制
+                          </span>
+                        </div>
+                        <div className="text-amber-400 font-bold">
+                          10 积分/次
+                        </div>
+                      </div>
+
+                      <div className="space-y-4">
+                        <p className={`text-sm text-[#c0a480] ${fontClass}`}>
+                          找不到心仪的角色？告诉我们您想要的角色卡描述，我们会为您定制！
+                        </p>
+                        
+                        <div>
+                          <label className={`block text-sm text-[#c0a480] mb-2 ${fontClass}`}>
+                            角色卡描述
+                          </label>
+                          <textarea 
+                            value={customCharacterDesc}
+                            onChange={(e) => setCustomCharacterDesc(e.target.value)}
+                            placeholder="请详细描述您想要的角色卡，包括性格、外貌、背景故事等..."
+                            className="w-full px-3 py-2 bg-black/50 border border-amber-500/30 rounded-lg text-[#f4e8c1] focus:border-amber-500/60 focus:outline-none placeholder-[#c0a480]/60 min-h-[120px]"
+                          ></textarea>
+                        </div>
+                        
+                        {customError && (
+                          <div className="text-red-400 text-sm px-3 py-2 rounded bg-red-500/10">
+                            {customError}
+                          </div>
+                        )}
+                        
+                        {customSuccess && (
+                          <div className="text-green-400 text-sm px-3 py-2 rounded bg-green-500/10">
+                            {customSuccess}
+                          </div>
+                        )}
+                        
+                        <motion.button
+                          onClick={handleSubmitCustomRequest}
+                          disabled={isSubmittingCustom || !customCharacterDesc.trim() || credits < 10}
+                          className={`w-full px-4 py-3 rounded-lg text-sm ${
+                            isSubmittingCustom
+                              ? 'bg-gray-600 cursor-not-allowed text-gray-300'
+                              : credits < 10 || !customCharacterDesc.trim()
+                              ? 'bg-gray-700 cursor-not-allowed text-gray-400'
+                              : 'bg-gradient-to-r from-amber-500 to-amber-400 text-black hover:from-amber-400 hover:to-amber-300'
+                          } transition-colors ${fontClass}`}
+                          whileHover={!isSubmittingCustom && credits >= 10 && customCharacterDesc.trim() ? { scale: 1.01 } : {}}
+                          whileTap={!isSubmittingCustom && credits >= 10 && customCharacterDesc.trim() ? { scale: 0.98 } : {}}
+                        >
+                          {isSubmittingCustom ? '提交中...' : credits < 10 ? '积分不足' : '提交定制请求'}
+                        </motion.button>
+                        
+                        <div className={`text-xs text-[#a18d6f] ${fontClass}`}>
+                          每次提交定制请求需要消耗10积分，我们会尽快处理您的请求。
+                        </div>
+                        
+                        {/* 定制请求历史 */}
+                        {user && (
+                          <div className="mt-4">
+                            <div className="flex justify-between items-center mb-2">
+                              <h3 className={`text-[#f4e8c1] font-medium ${fontClass}`}>定制请求历史</h3>
+                            </div>
+                            
+                            <div className="bg-black/30 rounded-lg border border-[#333]/40 overflow-hidden">
+                              {isLoadingCustomRequests ? (
+                                <div className={`py-6 text-center text-[#a18d6f] ${fontClass}`}>
+                                  <div className="flex justify-center items-center space-x-2">
+                                    <svg className="animate-spin h-5 w-5 text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    <span>加载中...</span>
+                                  </div>
+                                </div>
+                              ) : customRequests.length === 0 ? (
+                                <div className={`py-6 text-center text-[#a18d6f] ${fontClass}`}>
+                                  暂无定制请求记录
+                                </div>
+                              ) : (
+                                <div className="divide-y divide-[#333]/40">
+                                  {getCurrentPageCustomRequests().map((request) => (
+                                    <div key={request.id} className="p-3">
+                                      <div className="flex justify-between items-start mb-2">
+                                        <span className={`text-xs text-[#a18d6f] ${fontClass}`}>
+                                          {new Date(request.created_at).toLocaleString()}
+                                        </span>
+                                        <span className={`text-xs px-2 py-0.5 rounded ${
+                                          request.status === 'completed' ? 'bg-green-500/20 text-green-400' :
+                                          request.status === 'processing' ? 'bg-blue-500/20 text-blue-400' :
+                                          request.status === 'rejected' ? 'bg-red-500/20 text-red-400' :
+                                          'bg-yellow-500/20 text-yellow-400'
+                                        } ${fontClass}`}>
+                                          {
+                                            request.status === 'completed' ? '已完成' :
+                                            request.status === 'processing' ? '处理中' :
+                                            request.status === 'rejected' ? '已拒绝' :
+                                            '待处理'
+                                          }
+                                        </span>
+                                      </div>
+                                      <div className={`text-[#f4e8c1] text-sm mb-3 ${fontClass}`}>
+                                        <div className="line-clamp-2">{request.description}</div>
+                                      </div>
+                                      
+                                      {/* 状态进度条 */}
+                                      <div className="mb-1">
+                                        {getStatusProgressBar(request.status)}
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                            
+                            {/* 分页控件 */}
+                            {customTotalPages > 1 && (
+                              <div className="flex justify-center items-center space-x-2 py-2 px-3 border-t border-[#333]/20">
+                                <button
+                                  onClick={() => setCustomCurrentPage(p => Math.max(1, p - 1))}
+                                  disabled={customCurrentPage === 1}
+                                  className={`p-1 rounded ${customCurrentPage === 1 ? 'text-[#534741] cursor-not-allowed' : 'text-[#c0a480] hover:text-[#ffd475]'} transition-colors`}
+                                >
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+                                  </svg>
+                                </button>
+                                
+                                <div className={`text-xs text-[#c0a480] ${fontClass}`}>
+                                  第 {customCurrentPage} 页，共 {customTotalPages} 页
+                                </div>
+                                
+                                <button
+                                  onClick={() => setCustomCurrentPage(p => Math.min(customTotalPages, p + 1))}
+                                  disabled={customCurrentPage === customTotalPages}
+                                  className={`p-1 rounded ${customCurrentPage === customTotalPages ? 'text-[#534741] cursor-not-allowed' : 'text-[#c0a480] hover:text-[#ffd475]'} transition-colors`}
+                                >
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                                  </svg>
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
 
