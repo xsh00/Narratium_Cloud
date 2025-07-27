@@ -130,9 +130,9 @@ export default function MobileBottomNav({
       }`}>
         {/* Home */}
         <Link
-          href="/"
+          href="/character-cards"
           className={`flex flex-col items-center justify-center p-1 rounded-lg transition-all duration-300 ${
-            isActive("/")
+            isActive("/") || isActive("/character-cards")
               ? "text-[#f8d36a] bg-[#2a231c]/50"
               : "text-[#a18d6f] hover:text-[#f8d36a] hover:bg-[#2a231c]/30"
           }`}
@@ -153,66 +153,7 @@ export default function MobileBottomNav({
               <polyline points="9 22 9 12 15 12 15 22" />
             </svg>
           </div>
-          <span className={`text-[7px] ${fontClass}`}>{t("sidebar.home")}</span>
-        </Link>
-
-        {/* Character Cards */}
-        <Link
-          href="/character-cards"
-          className={`flex flex-col items-center justify-center p-1 rounded-lg transition-all duration-300 ${
-            isActive("/character-cards")
-              ? "text-[#f8d36a] bg-[#2a231c]/50"
-              : "text-[#a18d6f] hover:text-[#f8d36a] hover:bg-[#2a231c]/30"
-          }`}
-        >
-          <div className="w-4 h-4 flex items-center justify-center mb-0.5">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-              <circle cx="12" cy="7" r="4" />
-            </svg>
-          </div>
-          <span className={`text-[7px] ${fontClass}`}>
-            {t("sidebar.characterCards")}
-          </span>
-        </Link>
-
-        {/* Social Feed - 新增社交发帖区入口 */}
-        <Link
-          href="/social-feed"
-          className={`flex flex-col items-center justify-center p-1 rounded-lg transition-all duration-300 ${
-            isActive("/social-feed")
-              ? "text-[#f8d36a] bg-[#2a231c]/50"
-              : "text-[#a18d6f] hover:text-[#f8d36a] hover:bg-[#2a231c]/30"
-          }`}
-        >
-          <div className="w-4 h-4 flex items-center justify-center mb-0.5">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-            </svg>
-          </div>
-          <span className={`text-[7px] ${fontClass}`}>
-            {t("sidebar.socialFeed")}
-          </span>
+          <span className={`text-[7px] ${fontClass}`}>{t("sidebar.characterCards")}</span>
         </Link>
 
         {/* API Setting */}
@@ -272,6 +213,65 @@ export default function MobileBottomNav({
           </div>
           <span className={`text-[7px] ${fontClass}`}>
             {t("sidebar.creatorStudio")}
+          </span>
+        </Link>
+
+        {/* 社区发帖 - 移到倒数第二位 */}
+        <Link
+          href="/social-feed"
+          className={`flex flex-col items-center justify-center p-1 rounded-lg transition-all duration-300 ${
+            isActive("/social-feed")
+              ? "text-[#f8d36a] bg-[#2a231c]/50"
+              : "text-[#a18d6f] hover:text-[#f8d36a] hover:bg-[#2a231c]/30"
+          }`}
+        >
+          <div className="w-4 h-4 flex items-center justify-center mb-0.5">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            </svg>
+          </div>
+          <span className={`text-[7px] ${fontClass}`}>
+            {t("sidebar.socialFeed")}
+          </span>
+        </Link>
+
+        {/* 个人中心 - User Profile */}
+        <Link
+          href="/profile"
+          className={`flex flex-col items-center justify-center p-1 rounded-lg transition-all duration-300 ${
+            isActive("/profile")
+              ? "text-[#f8d36a] bg-[#2a231c]/50"
+              : "text-[#a18d6f] hover:text-[#f8d36a] hover:bg-[#2a231c]/30"
+          }`}
+        >
+          <div className="w-4 h-4 flex items-center justify-center mb-0.5">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+          </div>
+          <span className={`text-[7px] ${fontClass}`}>
+            {t("profile.title")}
           </span>
         </Link>
       </div>

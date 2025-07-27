@@ -185,9 +185,8 @@ export default function SettingsDropdown({
 
   // 用户名设置相关函数
   const handleEditUsername = () => {
-    setTempUsername(currentUsername);
-    setIsEditingUsername(true);
     setIsOpen(false);
+    router.push('/profile');
   };
 
   const handleCancelEditUsername = () => {
@@ -692,7 +691,7 @@ export default function SettingsDropdown({
                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                 <circle cx="12" cy="7" r="4"></circle>
               </svg>
-              用户名设置
+              {t("profile.title")}
             </button>
 
             <button

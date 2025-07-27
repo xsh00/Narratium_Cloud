@@ -20,12 +20,18 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
     router.push("/admin/posts/login");
   };
 
+  // 添加检查当前路径的函数，用于高亮显示当前页面
+  const isActive = (path: string) => {
+    if (typeof window === 'undefined') return false;
+    return window.location.pathname.startsWith(path);
+  };
+
   return (
     <div className="min-h-screen bg-[#121212] flex flex-col">
       {/* 顶部导航栏 */}
       <header className="bg-[#1c1c1c] border-b border-[#333] py-3 px-4 flex justify-between items-center">
         <div className="flex items-center">
-          <Link href="/admin/posts" className="flex items-center">
+          <Link href="/admin/dashboard" className="flex items-center">
             <Image src="/logo.png" alt="Logo" width={100} height={30} className="mr-2" />
             <span className="text-[#f4e8c1] font-bold text-lg">管理后台</span>
           </Link>
@@ -33,7 +39,7 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
         
         <div className="flex items-center">
           <span className="text-[#a18d6f] mr-4">
-            管理员: {typeof window !== 'undefined' && localStorage.getItem("adminUsername")}
+            管理员: {typeof window !== 'undefined' && localStorage.getItem("adminUsername") || 'admin'}
           </span>
           <button
             onClick={handleLogout}
@@ -78,13 +84,65 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
             <ul className="space-y-2">
               <li>
                 <Link 
+                  href="/admin/dashboard"
+                  className={`block py-2 px-4 rounded ${
+                    isActive('/admin/dashboard') 
+                      ? 'bg-[#252525] text-[#f4e8c1]' 
+                      : 'hover:bg-[#252525] text-[#a18d6f] hover:text-[#f4e8c1]'
+                  } transition-colors`}
+                >
+                  管理首页
+                </Link>
+              </li>
+              <li>
+                <Link 
                   href="/admin/posts"
-                  className="block py-2 px-4 rounded hover:bg-[#252525] text-[#a18d6f] hover:text-[#f4e8c1] transition-colors"
+                  className={`block py-2 px-4 rounded ${
+                    isActive('/admin/posts') 
+                      ? 'bg-[#252525] text-[#f4e8c1]' 
+                      : 'hover:bg-[#252525] text-[#a18d6f] hover:text-[#f4e8c1]'
+                  } transition-colors`}
                 >
                   帖子管理
                 </Link>
               </li>
               <li>
+                <Link 
+                  href="/admin/codemanage"
+                  className={`block py-2 px-4 rounded ${
+                    isActive('/admin/codemanage') 
+                      ? 'bg-[#252525] text-[#f4e8c1]' 
+                      : 'hover:bg-[#252525] text-[#a18d6f] hover:text-[#f4e8c1]'
+                  } transition-colors`}
+                >
+                  积分兑换码管理
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  href="/admin/database"
+                  className={`block py-2 px-4 rounded ${
+                    isActive('/admin/database') 
+                      ? 'bg-[#252525] text-[#f4e8c1]' 
+                      : 'hover:bg-[#252525] text-[#a18d6f] hover:text-[#f4e8c1]'
+                  } transition-colors`}
+                >
+                  数据库管理
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  href="/admin/email-pool"
+                  className={`block py-2 px-4 rounded ${
+                    isActive('/admin/email-pool') 
+                      ? 'bg-[#252525] text-[#f4e8c1]' 
+                      : 'hover:bg-[#252525] text-[#a18d6f] hover:text-[#f4e8c1]'
+                  } transition-colors`}
+                >
+                  邮箱池管理
+                </Link>
+              </li>
+              <li className="pt-4 border-t border-[#333] mt-4">
                 <Link 
                   href="/social-feed"
                   target="_blank"

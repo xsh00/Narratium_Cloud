@@ -11,6 +11,7 @@
  * - Tag-based categorization and filtering
  * - Enhanced UI with larger modal size
  * - Toggle between GitHub and COS sources
+ * - Character name search functionality
  *
  * The component handles:
  * - GitHub API integration for character fetching
@@ -21,6 +22,7 @@
  * - Modal state management and animations
  * - Tag extraction and filtering
  * - Source switching between GitHub and COS
+ * - Character search filtering
  *
  * Dependencies:
  * - useLanguage: For internationalization
@@ -68,6 +70,7 @@ interface CharacterInfo {
  * - Tag-based categorization and filtering
  * - Enhanced UI with larger modal size
  * - Toggle between GitHub and COS sources
+ * - Character name search functionality
  *
  * @param {DownloadCharacterModalProps} props - Component props
  * @returns {JSX.Element | null} The download character modal or null if closed
@@ -88,6 +91,7 @@ export default function DownloadCharacterModal({
   const tagScrollRef = React.useRef<HTMLDivElement>(null);
   const [showLeftScroll, setShowLeftScroll] = useState(false);
   const [showRightScroll, setShowRightScroll] = useState(false);
+  const [searchTerm, setSearchTerm] = useState<string>("");
 
   const extractCharacterInfo = (fileName: string): CharacterInfo => {
     const nameWithoutExt = fileName.replace(/\.png$/, "");
@@ -217,16 +221,28 @@ export default function DownloadCharacterModal({
     }
   };
 
-  // 根据选中的标签筛选角色
+  // 根据选中的标签和搜索词筛选角色
   const filteredCharacters = useMemo(() => {
-    if (selectedTag === "all") {
-      return characterFiles;
-    }
     return characterFiles.filter((file) => {
-      const { tags } = extractCharacterInfo(file.name);
-      return tags.includes(selectedTag);
+      const { displayName, tags } = extractCharacterInfo(file.name);
+      // 应用标签筛选
+      const matchesTag = selectedTag === "all" || tags.includes(selectedTag);
+      // 应用搜索词筛选
+      const matchesSearch = searchTerm === "" || 
+                           displayName.toLowerCase().includes(searchTerm.toLowerCase());
+      return matchesTag && matchesSearch;
     });
-  }, [characterFiles, selectedTag]);
+  }, [characterFiles, selectedTag, searchTerm]);
+
+  // 处理搜索输入变化
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+  };
+  
+  // 清除搜索
+  const handleClearSearch = () => {
+    setSearchTerm("");
+  };
 
   if (!isOpen) return null;
 
@@ -261,7 +277,31 @@ export default function DownloadCharacterModal({
           </button>
         </div>
 
-
+        {/* 搜索框 */}
+        <div className="mb-4 relative">
+          <div className={`text-xs sm:text-sm text-[#c0a480] mb-1.5 ${fontClass}`}>
+            {t("downloadModal.searchCharacter") || "搜索角色"}
+          </div>
+          <div className="relative">
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={handleSearchChange}
+              placeholder={t("downloadModal.searchPlaceholder") || "输入角色名称..."}
+              className={`w-full px-3 py-2 sm:py-2.5 text-sm bg-[#252220] text-[#eae6db] border border-[#534741] rounded-md focus:outline-none focus:ring-1 focus:ring-[#c0a480] ${fontClass}`}
+            />
+            {searchTerm && (
+              <button
+                onClick={handleClearSearch}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#c0a480] hover:text-[#ffd475]"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+              </button>
+            )}
+          </div>
+        </div>
 
         {/* Tag Filter - 移动端可折叠版本 */}
         {allTags.length > 0 && (

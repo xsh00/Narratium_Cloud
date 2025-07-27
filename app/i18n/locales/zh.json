@@ -21,6 +21,36 @@
     "modelSettings": "模型设置",
     "restartTour": "重新开始引导"
   },
+  "profile": {
+    "title": "个人中心",
+    "subtitle": "管理您的账户设置和偏好",
+    "accountSettings": "账户设置",
+    "manageYourProfile": "管理您的个人资料和设置",
+    "username": "用户名",
+    "usernameDescription": "",
+    "enterUsername": "请输入用户名",
+    "usernameUpdated": "用户名已更新",
+    "change": "修改",
+    "accountInfo": "账户信息",
+    "email": "电子邮箱",
+    "credits": "积分管理",
+    "currentCredits": "当前积分余额",
+    "buyCredits": "积分购买",
+    "redeemCredits": "积分兑换",
+    "creditHistory": "积分历史记录",
+    "date": "日期",
+    "description": "描述",
+    "amount": "变动",
+    "noCreditsHistory": "暂无积分记录",
+    "redeemCode": "兑换码",
+    "enterRedeemCode": "请输入兑换码",
+    "redeemSuccess": "兑换成功！",
+    "redeemFailed": "兑换失败，请检查兑换码是否正确",
+    "pleaseLogin": "登录后可查看积分记录",
+    "redeemInstructions": "请输入您获得的积分兑换码，验证成功后系统将自动为您的账户充值积分。",
+    "redeemProcessing": "兑换中...",
+    "confirmRedeem": "确认兑换"
+  },
   "sidebar": {
     "home": "首页",
     "gameArea": "游戏区",
@@ -534,7 +564,9 @@
     "downloadAndImport": "下载并导入",
     "filterByTags": "按标签筛选",
     "allTags": "全部",
-    "charactersFound": "个角色"
+    "charactersFound": "个角色",
+    "searchCharacter": "搜索角色",
+    "searchPlaceholder": "输入角色名称..."
   },
   "creatorInput": {
     "title": "Creator Studio",

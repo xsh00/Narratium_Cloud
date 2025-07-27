@@ -19,6 +19,36 @@
     "importFailed": "Import failed, please try again",
     "noApisConfigured": "No APIs configured"
   },
+  "profile": {
+    "title": "Profile",
+    "subtitle": "Manage your account settings and preferences",
+    "accountSettings": "Account Settings",
+    "manageYourProfile": "Manage your profile information and preferences",
+    "username": "Username",
+    "usernameDescription": "",
+    "enterUsername": "Enter username",
+    "usernameUpdated": "Username updated",
+    "change": "Change",
+    "accountInfo": "Account Information",
+    "email": "Email",
+    "credits": "Credits Management",
+    "currentCredits": "Current Credits Balance",
+    "buyCredits": "Buy Credits",
+    "redeemCredits": "Redeem Credits",
+    "creditHistory": "Credits History",
+    "date": "Date",
+    "description": "Description",
+    "amount": "Amount",
+    "noCreditsHistory": "No credits history",
+    "redeemCode": "Redeem Code",
+    "enterRedeemCode": "Enter redeem code",
+    "redeemSuccess": "Redemption successful!",
+    "redeemFailed": "Redemption failed, please check your code",
+    "pleaseLogin": "Login to view credit history",
+    "redeemInstructions": "Please enter your redemption code. After validation, credits will be automatically added to your account.",
+    "redeemProcessing": "Processing...",
+    "confirmRedeem": "Confirm Redemption"
+  },
   "sidebar": {
     "home": "Home",
     "gameArea": "Game Area",
@@ -746,7 +776,9 @@
     "downloadAndImport": "Download and Import",
     "filterByTags": "Filter by tags",
     "allTags": "All",
-    "charactersFound": "characters found"
+    "charactersFound": "characters found",
+    "searchCharacter": "Search Character",
+    "searchPlaceholder": "Enter character name..."
   },
   "creatorInput": {
     "title": "Creator Studio",

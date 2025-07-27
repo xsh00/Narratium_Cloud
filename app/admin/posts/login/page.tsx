@@ -25,8 +25,8 @@ export default function AdminLogin() {
         localStorage.setItem("adminAuthenticated", "true");
         localStorage.setItem("adminUsername", username);
         
-        // 重定向到管理页面
-        router.push("/admin/posts");
+        // 重定向到管理首页
+        router.push("/admin/dashboard");
       } else {
         setError("用户名或密码错误");
       }
