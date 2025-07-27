@@ -190,7 +190,10 @@ async function initializeDatabase() {
     // 初始化积分相关表结构
     await initializeCreditsDatabase(connection);
     
-    console.log('✅ 索引创建完成');
+    // 初始化VIP相关字段
+    await initializeVIPFields(connection);
+    
+    console.log('✅ 数据库初始化完成');
     
   } catch (error) {
     console.error('数据库初始化失败:', error);
@@ -314,6 +317,34 @@ async function initializeCreditsDatabase(connection: PoolConnection) {
   }
 }
 
+// 初始化VIP相关字段
+async function initializeVIPFields(connection: PoolConnection) {
+  try {
+    console.log('正在初始化VIP字段...');
+    
+    // 检查users表中是否已存在vipExpiry列
+    const [checkVIPExpiryColumn] = await connection.execute(
+      `SELECT COUNT(*) as count 
+       FROM information_schema.columns 
+       WHERE table_name = 'users' AND column_name = 'vipExpiry'`
+    );
+    
+    // 如果vipExpiry列不存在，添加它
+    if ((checkVIPExpiryColumn as any[])[0]?.count === 0) {
+      console.log('添加用户表VIP过期时间字段...');
+      await connection.execute(`ALTER TABLE users ADD COLUMN vipExpiry TIMESTAMP NULL`);
+      console.log('✅ VIP过期时间字段添加成功');
+    } else {
+      console.log('✅ VIP过期时间字段已存在');
+    }
+    
+    console.log('✅ VIP字段初始化完成');
+  } catch (error) {
+    console.error('初始化VIP字段出错:', error);
+    throw error;
+  }
+}
+
 // 用户相关操作
 export const userRepository = {
   create: async (user: { id: string; email: string; password: string; username?: string }) => {
@@ -426,7 +457,7 @@ export const userRepository = {
     }
   },
 
-  update: async (id: string, updates: Partial<{ email: string; password: string; username: string }>) => {
+  update: async (id: string, updates: Partial<{ email: string; password: string; username: string; credits: number; vipExpiry: string }>) => {
     let connection: PoolConnection | null = null;
     
     try {
@@ -440,7 +471,13 @@ export const userRepository = {
         [...values, id]
       );
       
-      return (result as any).affectedRows > 0;
+      // 获取更新后的用户信息
+      const [rows] = await connection.execute(
+        'SELECT * FROM users WHERE id = ?',
+        [id]
+      );
+      
+      return (rows as any[])[0] || null;
     } catch (error) {
       console.error('更新用户失败:', error);
       throw error;

@@ -289,7 +289,8 @@
     "edit": "编辑",
     "chat": "聊天",
     "recentlyCreated": "最近创建",
-    "downloadCharacter": "社区下载角色"
+    "downloadCharacter": "社区下载角色",
+    "vipCharacterArea": "VIP角色专区"
   },
   "editCharacterModal": {
     "title": "编辑角色",
@@ -919,5 +920,40 @@
     "importSuccess": "角色已成功导入到角色库",
     "importFailed": "导入角色失败",
     "startChatNow": "角色已导入。是否立即开始对话？"
+  },
+  "vipCharacterModal": {
+    "title": "VIP角色专区",
+    "searchCharacter": "搜索角色",
+    "searchPlaceholder": "输入角色名称...",
+    "filterByTags": "按标签筛选",
+    "allTags": "全部",
+    "loading": "加载中...",
+    "importing": "导入中...",
+    "downloadAndImport": "下载并导入",
+    "importFailed": "导入角色失败",
+    "downloadFailed": "下载角色失败",
+    "charactersFound": "个VIP角色",
+    "subscribeToAccess": "订阅以获取角色卡",
+    "vipUntil": "VIP有效期至: ",
+    "nonVipUser": "非VIP用户",
+    "fetchError": "获取VIP角色列表失败",
+    "noCharactersFound": "未找到VIP角色卡",
+    "apiError": "API请求失败",
+    "tryAgain": "请重试",
+    "checkConnection": "请检查网络连接",
+    "emptyBucket": "VIP角色库暂无角色卡",
+    "errorDetail": "错误详情"
+  },
+  "subscriptionModal": {
+    "title": "订阅VIP角色专区",
+    "description": "订阅后即可下载所有VIP专区角色卡。",
+    "currentCredits": "当前积分余额",
+    "sevenDaysVIP": "7天VIP",
+    "sevenDaysDescription": "畅享7天VIP角色卡特权",
+    "thirtyDaysVIP": "30天VIP",
+    "thirtyDaysDescription": "畅享30天VIP角色卡特权",
+    "credits": "积分",
+    "cancel": "取消",
+    "confirmSubscription": "确认订阅"
   }
 }

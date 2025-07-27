@@ -30,6 +30,7 @@ import AuthGuard from "@/components/AuthGuard";
 import ImportCharacterModal from "@/components/ImportCharacterModal";
 import EditCharacterModal from "@/components/EditCharacterModal";
 import DownloadCharacterModal from "@/components/DownloadCharacterModal";
+import VIPCharacterModal from "@/components/VIPCharacterModal";
 import CharacterCardGrid from "@/components/CharacterCardGrid";
 import CharacterCardCarousel from "@/components/CharacterCardCarousel";
 import { getAllCharacters } from "@/function/character/list";
@@ -71,6 +72,7 @@ export default function CharacterCards() {
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
+  const [isVIPModalOpen, setIsVIPModalOpen] = useState(false);
   const [currentCharacter, setCurrentCharacter] = useState<Character | null>(
     null,
   );
@@ -475,6 +477,31 @@ export default function CharacterCards() {
                     {t("characterCardsPage.downloadCharacter")}
                   </span>
                 </motion.div>
+                <motion.div
+                  className={`portal-button relative overflow-hidden px-2 py-1.5 sm:px-4 sm:py-2 rounded-lg cursor-pointer ${fontClass}
+                    bg-gradient-to-b from-[#2a231c] to-[#1a1510]
+                    border border-[#534741]
+                    shadow-[0_0_15px_rgba(192,164,128,0.1)]
+                    hover:shadow-[0_0_20px_rgba(192,164,128,0.2)]
+                    before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-[rgba(192,164,128,0.1)] before:to-transparent
+                    before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-700
+                    group`}
+                  whileHover={{
+                    scale: 1.01,
+                    boxShadow: "0 0 25px rgba(192,164,128,0.3)",
+                  }}
+                  whileTap={{ scale: 0.98 }}
+                  transition={{
+                    type: "spring",
+                    stiffness: 400,
+                    damping: 10,
+                  }}
+                  onClick={() => setIsVIPModalOpen(true)}
+                >
+                  <span className="relative z-10 text-[#c0a480] group-hover:text-[#ffd475] transition-colors duration-300 text-xs sm:text-base">
+                    VIP角色专区
+                  </span>
+                </motion.div>
               </div>
             </motion.div>
 
@@ -554,6 +581,11 @@ export default function CharacterCards() {
             <DownloadCharacterModal
               isOpen={isDownloadModalOpen}
               onClose={() => setIsDownloadModalOpen(false)}
+              onImport={fetchCharacters}
+            />
+            <VIPCharacterModal
+              isOpen={isVIPModalOpen}
+              onClose={() => setIsVIPModalOpen(false)}
               onImport={fetchCharacters}
             />
             {currentCharacter && (

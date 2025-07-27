@@ -14,6 +14,9 @@ interface CreditHistory {
   description: string;
 }
 
+// 定义分页相关常量和类型
+const ITEMS_PER_PAGE = 5; // 每页显示5条记录
+
 /**
  * 个人中心页面组件
  * 包含用户名修改、账户管理和积分管理功能
@@ -21,6 +24,7 @@ interface CreditHistory {
 export default function ProfilePage() {
   const { t, fontClass, serifFontClass } = useLanguage();
   const { user, updateUsername } = useAuth();
+  // 用户相关状态
   const [mounted, setMounted] = useState(false);
   const [imagesLoaded, setImagesLoaded] = useState(false);
 
@@ -36,12 +40,31 @@ export default function ProfilePage() {
   const [isLoadingCredits, setIsLoadingCredits] = useState(false);
   const [creditError, setCreditError] = useState("");
   
+  // 分页相关状态
+  const [currentPage, setCurrentPage] = useState(1);
+  const totalPages = Math.ceil(creditHistory.length / ITEMS_PER_PAGE);
+  
+  // 获取当前页显示的记录
+  const getCurrentPageItems = () => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    return creditHistory.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  };
+  
   // 积分兑换相关状态
   const [isRedeemModalOpen, setIsRedeemModalOpen] = useState(false);
   const [redeemCode, setRedeemCode] = useState("");
   const [redeemError, setRedeemError] = useState("");
   const [redeemSuccess, setRedeemSuccess] = useState("");
   const [isRedeeming, setIsRedeeming] = useState(false);
+  
+  // VIP订阅相关状态
+  const [vipStatus, setVipStatus] = useState<{ isVIP: boolean; vipExpiry: string | null }>({ 
+    isVIP: false, 
+    vipExpiry: null 
+  });
+  const [isSubscribing, setIsSubscribing] = useState(false);
+  const [subscribeError, setSubscribeError] = useState("");
+  const [subscribeSuccess, setSubscribeSuccess] = useState("");
 
   useEffect(() => {
     setMounted(true);
@@ -66,19 +89,6 @@ export default function ProfilePage() {
   }, []);
 
   // 从API获取积分数据
-  useEffect(() => {
-    if (user) {
-      fetchCreditsData();
-    } else {
-      // 未登录用户，设置积分为0并清空历史记录
-      setCredits(0);
-      setCreditHistory([]);
-      setIsLoadingCredits(false);
-      // 不显示错误信息，只清空历史记录
-      setCreditError("");
-    }
-  }, [user]);
-
   const fetchCreditsData = async () => {
     try {
       setIsLoadingCredits(true);
@@ -108,6 +118,50 @@ export default function ProfilePage() {
       setIsLoadingCredits(false);
     }
   };
+  
+  // 获取VIP状态
+  const fetchVIPStatus = async () => {
+    try {
+      if (!user?.email) {
+        setVipStatus({ isVIP: false, vipExpiry: null });
+        return;
+      }
+      
+      const response = await fetch(`/api/user/vip-status?email=${encodeURIComponent(user.email)}`);
+      if (!response.ok) {
+        throw new Error('获取VIP状态失败');
+      }
+      
+      const result = await response.json();
+      if (result.success) {
+        setVipStatus({
+          isVIP: result.data.isVIP,
+          vipExpiry: result.data.vipExpiry
+        });
+      } else {
+        console.error('获取VIP状态失败:', result.error);
+        setVipStatus({ isVIP: false, vipExpiry: null });
+      }
+    } catch (error) {
+      console.error('获取VIP状态错误:', error);
+      setVipStatus({ isVIP: false, vipExpiry: null });
+    }
+  };
+  
+  // 从API获取数据
+  useEffect(() => {
+    if (user) {
+      fetchCreditsData();
+      fetchVIPStatus();
+    } else {
+      // 未登录用户，设置积分为0并清空历史记录
+      setCredits(0);
+      setCreditHistory([]);
+      setIsLoadingCredits(false);
+      setCreditError("");
+      setVipStatus({ isVIP: false, vipExpiry: null });
+    }
+  }, [user]);
 
   // 用户名设置相关函数
   const handleEditUsername = () => {
@@ -159,6 +213,62 @@ export default function ProfilePage() {
   // 处理积分购买
   const handleBuyCredits = () => {
     window.open('https://68n.cn/azrj5', '_blank');
+  };
+  
+  // 处理VIP订阅
+  const handleSubscribe = async (plan: string) => {
+    if (!user?.email) {
+      alert('请先登录后再订阅');
+      return;
+    }
+    
+    // 验证积分是否足够
+    const requiredCredits = plan === '7days' ? 10 : 30;
+    if (credits < requiredCredits) {
+      setSubscribeError(`积分不足，${plan === '7days' ? '7天VIP' : '30天VIP'}需要${requiredCredits}积分，您当前有${credits}积分`);
+      return;
+    }
+    
+    try {
+      setIsSubscribing(true);
+      setSubscribeError('');
+      setSubscribeSuccess('');
+      
+      const response = await fetch('/api/user/subscribe', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          email: user.email,
+          plan
+        })
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        setSubscribeSuccess(plan === '7days' ? '已成功订阅7天VIP！' : '已成功订阅30天VIP！');
+        // 更新积分和VIP状态
+        setCredits(result.data.credits);
+        setVipStatus({
+          isVIP: true,
+          vipExpiry: result.data.vipExpiry
+        });
+        // 刷新积分历史
+        fetchCreditsData();
+        
+        // 3秒后清除成功消息
+        setTimeout(() => setSubscribeSuccess(''), 3000);
+      } else {
+        setSubscribeError(result.error || '订阅失败，请稍后再试');
+      }
+    } catch (error) {
+      console.error('订阅失败:', error);
+      setSubscribeError('订阅过程中出错，请稍后再试');
+    } finally {
+      setIsSubscribing(false);
+    }
   };
   
   // 处理积分兑换
@@ -472,32 +582,172 @@ export default function ProfilePage() {
                                 {creditError}
                               </div>
                             ) : creditHistory.length > 0 ? (
-                              <table className="w-full text-sm">
-                                <thead>
-                                  <tr className="border-b border-[#333]/40">
-                                    <th className={`py-2 px-3 text-left text-[#c0a480] ${fontClass}`}>{t("profile.date")}</th>
-                                    <th className={`py-2 px-3 text-left text-[#c0a480] ${fontClass}`}>{t("profile.description")}</th>
-                                    <th className={`py-2 px-3 text-right text-[#c0a480] ${fontClass}`}>{t("profile.amount")}</th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  {creditHistory.map((item) => (
-                                    <tr key={item.id} className="border-b border-[#333]/20">
-                                      <td className={`py-2 px-3 text-[#a18d6f] ${fontClass}`}>{item.date}</td>
-                                      <td className={`py-2 px-3 text-[#f4e8c1] ${fontClass}`}>{item.description}</td>
-                                      <td className={`py-2 px-3 text-right ${item.amount > 0 ? 'text-green-400' : 'text-red-400'} ${fontClass}`}>
-                                        {item.amount > 0 ? '+' : ''}{item.amount}
-                                      </td>
+                              <>
+                                <table className="w-full text-sm">
+                                  <thead>
+                                    <tr className="border-b border-[#333]/40">
+                                      <th className={`py-2 px-3 text-left text-[#c0a480] ${fontClass}`}>{t("profile.date")}</th>
+                                      <th className={`py-2 px-3 text-left text-[#c0a480] ${fontClass}`}>{t("profile.description")}</th>
+                                      <th className={`py-2 px-3 text-right text-[#c0a480] ${fontClass}`}>{t("profile.amount")}</th>
                                     </tr>
-                                  ))}
-                                </tbody>
-                              </table>
+                                  </thead>
+                                  <tbody>
+                                    {getCurrentPageItems().map((item) => (
+                                      <tr key={item.id} className="border-b border-[#333]/20">
+                                        <td className={`py-2 px-3 text-[#a18d6f] ${fontClass}`}>{item.date}</td>
+                                        <td className={`py-2 px-3 text-[#f4e8c1] ${fontClass}`}>{item.description}</td>
+                                        <td className={`py-2 px-3 text-right ${item.amount > 0 ? 'text-green-400' : 'text-red-400'} ${fontClass}`}>
+                                          {item.amount > 0 ? '+' : ''}{item.amount}
+                                        </td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                                
+                                {/* 分页控件 */}
+                                {totalPages > 1 && (
+                                  <div className="flex justify-center items-center space-x-2 py-2 px-3 border-t border-[#333]/20">
+                                    <button
+                                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                      disabled={currentPage === 1}
+                                      className={`p-1 rounded ${currentPage === 1 ? 'text-[#534741] cursor-not-allowed' : 'text-[#c0a480] hover:text-[#ffd475]'} transition-colors`}
+                                    >
+                                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+                                      </svg>
+                                    </button>
+                                    
+                                    <div className={`text-xs text-[#c0a480] ${fontClass}`}>
+                                      第 {currentPage} 页，共 {totalPages} 页
+                                    </div>
+                                    
+                                    <button
+                                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                      disabled={currentPage === totalPages}
+                                      className={`p-1 rounded ${currentPage === totalPages ? 'text-[#534741] cursor-not-allowed' : 'text-[#c0a480] hover:text-[#ffd475]'} transition-colors`}
+                                    >
+                                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                                      </svg>
+                                    </button>
+                                  </div>
+                                )}
+                              </>
                             ) : (
                               <div className={`py-4 text-center text-[#a18d6f] ${fontClass}`}>
                                 {!user ? "登录后可查看积分记录" : t("profile.noCreditsHistory")}
                               </div>
-                            )}
+                            )
+                          }
                           </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* VIP订阅管理 */}
+                    <div className="bg-[#1c1c1c]/60 rounded-lg p-4 border border-[#333]/40">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="text-amber-400 mr-2"
+                          >
+                            <path d="M20 6L9 17l-5-5"></path>
+                            <path d="M19 10a9 9 0 1 1-7-9"></path>
+                          </svg>
+                          <span className={`text-amber-400 font-medium ${fontClass}`}>
+                            VIP角色专区订阅
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="space-y-4">
+                        {/* VIP状态显示 */}
+                        <div className="flex justify-between items-center">
+                          <span className={`text-[#c0a480] ${fontClass}`}>当前VIP状态</span>
+                          {vipStatus.isVIP ? (
+                            <span className={`text-green-400 ${fontClass}`}>
+                              有效期至: {new Date(vipStatus.vipExpiry!).toLocaleDateString()}
+                            </span>
+                          ) : (
+                            <span className={`text-[#c0a480] ${fontClass}`}>未订阅</span>
+                          )}
+                        </div>
+                        
+                        {/* 订阅计划 */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                          {/* 7天VIP */}
+                          <div className="bg-black/30 rounded-lg border border-[#534741] p-4 hover:border-amber-500/30 transition-colors">
+                            <div className="flex justify-between items-center mb-2">
+                              <h3 className={`text-[#f4e8c1] font-medium ${fontClass}`}>7天VIP</h3>
+                              <span className={`text-amber-400 font-bold ${fontClass}`}>10积分</span>
+                            </div>
+                            <p className={`text-xs text-[#a18d6f] mb-3 ${fontClass}`}>
+                              订阅7天VIP角色专区访问权限
+                            </p>
+                            <button
+                              onClick={() => handleSubscribe('7days')}
+                              disabled={isSubscribing || credits < 10}
+                              className={`w-full px-3 py-2 rounded-lg text-sm ${
+                                isSubscribing
+                                  ? 'bg-gray-600 cursor-not-allowed text-gray-300'
+                                  : credits < 10
+                                  ? 'bg-gray-700 cursor-not-allowed text-gray-400'
+                                  : 'bg-gradient-to-r from-amber-500 to-amber-400 text-black hover:from-amber-400 hover:to-amber-300'
+                              } transition-colors ${fontClass}`}
+                            >
+                              {isSubscribing ? '订阅中...' : credits < 10 ? '积分不足' : '立即订阅'}
+                            </button>
+                          </div>
+                          
+                          {/* 30天VIP */}
+                          <div className="bg-black/30 rounded-lg border border-[#534741] p-4 hover:border-amber-500/30 transition-colors">
+                            <div className="flex justify-between items-center mb-2">
+                              <h3 className={`text-[#f4e8c1] font-medium ${fontClass}`}>30天VIP</h3>
+                              <span className={`text-amber-400 font-bold ${fontClass}`}>30积分</span>
+                            </div>
+                            <p className={`text-xs text-[#a18d6f] mb-3 ${fontClass}`}>
+                              订阅30天VIP角色专区访问权限（更划算）
+                            </p>
+                            <button
+                              onClick={() => handleSubscribe('30days')}
+                              disabled={isSubscribing || credits < 30}
+                              className={`w-full px-3 py-2 rounded-lg text-sm ${
+                                isSubscribing
+                                  ? 'bg-gray-600 cursor-not-allowed text-gray-300'
+                                  : credits < 30
+                                  ? 'bg-gray-700 cursor-not-allowed text-gray-400'
+                                  : 'bg-gradient-to-r from-amber-500 to-amber-400 text-black hover:from-amber-400 hover:to-amber-300'
+                              } transition-colors ${fontClass}`}
+                            >
+                              {isSubscribing ? '订阅中...' : credits < 30 ? '积分不足' : '立即订阅'}
+                            </button>
+                          </div>
+                        </div>
+                        
+                        {/* 订阅消息 */}
+                        {subscribeError && (
+                          <div className="mt-3 text-red-400 text-sm px-3 py-2 rounded bg-red-500/10">
+                            {subscribeError}
+                          </div>
+                        )}
+                        
+                        {subscribeSuccess && (
+                          <div className="mt-3 text-green-400 text-sm px-3 py-2 rounded bg-green-500/10">
+                            {subscribeSuccess}
+                          </div>
+                        )}
+                        
+                        <div className={`text-xs text-[#a18d6f] mt-3 ${fontClass}`}>
+                          VIP会员可以下载并导入VIP角色专区中的所有角色卡
                         </div>
                       </div>
                     </div>
