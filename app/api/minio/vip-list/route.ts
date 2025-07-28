@@ -7,6 +7,7 @@ interface MinioFile {
   displayName: string;
   tags: string[]; 
   download_url: string;
+  lastModified: string; // 添加lastModified字段
 }
 
 /**
@@ -86,24 +87,30 @@ async function getMinioVIPFileList(): Promise<MinioFile[]> {
     }
 
     // 解析XML响应
-    const files = parseMinioXmlResponse(xmlText);
-    console.log(`Parsed ${files.length} files from MinIO XML response`);
+    const fileEntries = parseMinioXmlResponseWithDates(xmlText);
+    console.log(`Parsed ${fileEntries.length} files from MinIO XML response`);
     
     // 过滤出PNG文件
-    const pngFiles = files.filter(file => 
-      file.toLowerCase().endsWith('.png')
+    const pngFiles = fileEntries.filter(fileEntry => 
+      fileEntry.key.toLowerCase().endsWith('.png')
     );
     console.log(`Filtered ${pngFiles.length} PNG files`);
 
     // 转换为应用需要的格式
-    const characterFiles: MinioFile[] = pngFiles.map(fileName => {
-      const { displayName, tags } = extractCharacterInfo(fileName);
+    const characterFiles: MinioFile[] = pngFiles.map(fileEntry => {
+      const { displayName, tags } = extractCharacterInfo(fileEntry.key);
       return {
-        name: fileName,
+        name: fileEntry.key,
         displayName,
         tags,
-        download_url: `${MINIO_VIP_CONFIG.S3_API_URL}/${MINIO_VIP_CONFIG.BUCKET_NAME}/${encodeURIComponent(fileName)}`
+        download_url: `${MINIO_VIP_CONFIG.S3_API_URL}/${MINIO_VIP_CONFIG.BUCKET_NAME}/${encodeURIComponent(fileEntry.key)}`,
+        lastModified: fileEntry.lastModified
       };
+    });
+
+    // 按上传时间倒序排序（最新的排在前面）
+    characterFiles.sort((a, b) => {
+      return new Date(b.lastModified).getTime() - new Date(a.lastModified).getTime();
     });
 
     console.log(`Found ${characterFiles.length} VIP PNG files in MinIO`);
@@ -116,7 +123,43 @@ async function getMinioVIPFileList(): Promise<MinioFile[]> {
 }
 
 /**
+ * 解析MinIO ListObjects API的XML响应，包括LastModified信息
+ */
+function parseMinioXmlResponseWithDates(xmlText: string): { key: string, lastModified: string }[] {
+  const fileEntries: { key: string, lastModified: string }[] = [];
+  
+  // 查找所有的Contents标签内容
+  const contentsRegex = /<Contents>([\s\S]*?)<\/Contents>/g;
+  let contentsMatch;
+  
+  while ((contentsMatch = contentsRegex.exec(xmlText)) !== null) {
+    const contentText = contentsMatch[1];
+    
+    // 提取Key
+    const keyMatch = /<Key>([^<]+)<\/Key>/g.exec(contentText);
+    // 提取LastModified
+    const lastModifiedMatch = /<LastModified>([^<]+)<\/LastModified>/g.exec(contentText);
+    
+    if (keyMatch && lastModifiedMatch) {
+      const key = keyMatch[1];
+      const lastModified = lastModifiedMatch[1];
+      
+      // 跳过目录本身
+      if (!key.endsWith('/')) {
+        fileEntries.push({
+          key,
+          lastModified
+        });
+      }
+    }
+  }
+  
+  return fileEntries;
+}
+
+/**
  * 解析MinIO ListObjects API的XML响应
+ * 保留旧函数，以便在新方法失败时可以回退
  */
 function parseMinioXmlResponse(xmlText: string): string[] {
   const files: string[] = [];

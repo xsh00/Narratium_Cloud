@@ -330,6 +330,12 @@ export default function VIPCharacterModal({
     return `${month}/${day}`;
   };
 
+  const isVeryFarFutureDate = (dateString: string) => {
+    const date = new Date(dateString);
+    // 判断日期是否接近2038年，表示永久VIP
+    return date.getFullYear() >= 2037;
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4">
       <motion.div
@@ -365,7 +371,10 @@ export default function VIPCharacterModal({
                 </span>
               ) : vipStatus.isVIP ? (
                 <span className="px-1 py-0.5 sm:px-3 sm:py-1.5 bg-[#e0cfa0] text-[#534741] rounded border border-[#c0a480] shadow-sm text-[10px] sm:text-sm leading-tight">
-                  {isMobile ? `VIP至${formatCompactDate(vipStatus.vipExpiry!)}` : `VIP有效期至: ${new Date(vipStatus.vipExpiry!).toLocaleDateString()}`}
+                  {isVeryFarFutureDate(vipStatus.vipExpiry!) ? 
+                    "永久VIP" : 
+                    (isMobile ? `VIP至${formatCompactDate(vipStatus.vipExpiry!)}` : `VIP有效期至: ${new Date(vipStatus.vipExpiry!).toLocaleDateString()}`)
+                  }
                 </span>
               ) : (
                 <span className="px-1 py-0.5 sm:px-3 sm:py-1.5 bg-[#252220] text-[#c0a480] rounded border border-[#534741] shadow-sm text-[10px] sm:text-sm">
@@ -575,7 +584,7 @@ export default function VIPCharacterModal({
                       <img
                         src={file.download_url}
                         alt={file.name}
-                        className="w-full h-full object-cover rounded border border-[#534741]"
+                        className="w-full h-full object-cover rounded border-2 border-[#ffd475]/60 shadow-[0_0_10px_rgba(255,212,117,0.2)]"
                       />
                     </div>
                     <div

@@ -4,8 +4,12 @@ import { userRepository, creditRepository } from '@/lib/data/database';
 // VIP订阅计划和价格
 const SUBSCRIPTION_PLANS = {
   "7days": { days: 7, credits: 10 },
-  "30days": { days: 30, credits: 30 }
+  "30days": { days: 30, credits: 30 },
+  "permanent": { days: 0, credits: 199 } // 永久VIP不使用天数计算
 };
+
+// TIMESTAMP类型支持的最大日期 (接近2038年1月19日)
+const MAX_TIMESTAMP_DATE = '2038-01-01 00:00:00';
 
 export async function POST(request: NextRequest) {
   try {
@@ -49,25 +53,39 @@ export async function POST(request: NextRequest) {
     }
     
     // 计算VIP过期时间
-    let vipExpiry = new Date();
+    let formattedDate = '';
     
-    // 如果用户已经有VIP且未过期，在现有基础上增加时间
-    if (user.vipExpiry && new Date(user.vipExpiry) > new Date()) {
-      vipExpiry = new Date(user.vipExpiry);
+    if (plan === 'permanent') {
+      // 永久VIP使用TIMESTAMP支持的最大日期
+      formattedDate = MAX_TIMESTAMP_DATE;
+    } else {
+      let vipExpiry = new Date();
+      // 如果用户已经有VIP且未过期，在现有基础上增加时间
+      if (user.vipExpiry && new Date(user.vipExpiry) > new Date()) {
+        vipExpiry = new Date(user.vipExpiry);
+      }
+      
+      // 增加订阅天数
+      vipExpiry.setDate(vipExpiry.getDate() + planDetails.days);
+      
+      // 将日期格式化为MySQL兼容格式：YYYY-MM-DD HH:MM:SS
+      formattedDate = vipExpiry.toISOString().slice(0, 19).replace('T', ' ');
     }
-    
-    // 增加订阅天数
-    vipExpiry.setDate(vipExpiry.getDate() + planDetails.days);
-    
-    // 将日期格式化为MySQL兼容格式：YYYY-MM-DD HH:MM:SS
-    const formattedDate = vipExpiry.toISOString().slice(0, 19).replace('T', ' ');
     
     try {
       // 开始数据库操作
       console.log(`用户 ${user.id} 开始订阅 ${plan} VIP，价格：${planDetails.credits} 积分`);
       
       // 添加积分历史记录并扣除积分
-      const description = `订阅${plan === "7days" ? "7天" : "30天"}VIP角色专区`;
+      let description = '';
+      if (plan === "7days") {
+        description = "订阅7天VIP角色专区";
+      } else if (plan === "30days") {
+        description = "订阅30天VIP角色专区";
+      } else if (plan === "permanent") {
+        description = "订阅永久VIP角色专区";
+      }
+      
       await creditRepository.addCreditRecord(user.id, -planDetails.credits, description);
       console.log(`用户 ${user.id} 积分扣除成功，描述：${description}`);
       

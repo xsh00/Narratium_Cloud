@@ -384,9 +384,19 @@ export default function ProfilePage() {
     }
     
     // 验证积分是否足够
-    const requiredCredits = plan === '7days' ? 10 : 30;
+    let requiredCredits = 10;
+    if (plan === '30days') {
+      requiredCredits = 30;
+    } else if (plan === 'permanent') {
+      requiredCredits = 199;
+    }
+    
     if (credits < requiredCredits) {
-      setSubscribeError(`积分不足，${plan === '7days' ? '7天VIP' : '30天VIP'}需要${requiredCredits}积分，您当前有${credits}积分`);
+      let planName = '7天VIP';
+      if (plan === '30days') planName = '30天VIP';
+      else if (plan === 'permanent') planName = '永久VIP';
+      
+      setSubscribeError(`积分不足，${planName}需要${requiredCredits}积分，您当前有${credits}积分`);
       return;
     }
     
@@ -409,7 +419,12 @@ export default function ProfilePage() {
       const result = await response.json();
       
       if (result.success) {
-        setSubscribeSuccess(plan === '7days' ? '已成功订阅7天VIP！' : '已成功订阅30天VIP！');
+        let successMsg = '';
+        if (plan === '7days') successMsg = '已成功订阅7天VIP！';
+        else if (plan === '30days') successMsg = '已成功订阅30天VIP！';
+        else if (plan === 'permanent') successMsg = '已成功订阅永久VIP！';
+        
+        setSubscribeSuccess(successMsg);
         // 更新积分和VIP状态
         setCredits(result.data.credits);
         setVipStatus({
@@ -500,6 +515,13 @@ export default function ProfilePage() {
     } else if (e.key === 'Escape') {
       handleCloseRedeemModal();
     }
+  };
+
+  // 判断是否为永久VIP（VIP有效期接近数据库支持的最大日期）
+  const isVeryFarFutureDate = (dateString: string) => {
+    const date = new Date(dateString);
+    // 判断日期是否接近2038年，表示永久VIP
+    return date.getFullYear() >= 2037;
   };
 
   if (!mounted) return null;
@@ -836,7 +858,7 @@ export default function ProfilePage() {
                           <span className={`text-[#c0a480] ${fontClass}`}>当前VIP状态</span>
                           {vipStatus.isVIP ? (
                             <span className={`text-green-400 ${fontClass}`}>
-                              有效期至: {new Date(vipStatus.vipExpiry!).toLocaleDateString()}
+                              {isVeryFarFutureDate(vipStatus.vipExpiry!) ? "永久VIP" : `有效期至: ${new Date(vipStatus.vipExpiry!).toLocaleDateString()}`}
                             </span>
                           ) : (
                             <span className={`text-[#c0a480] ${fontClass}`}>未订阅</span>
@@ -890,6 +912,30 @@ export default function ProfilePage() {
                               } transition-colors ${fontClass}`}
                             >
                               {isSubscribing ? '订阅中...' : credits < 30 ? '积分不足' : '立即订阅'}
+                            </button>
+                          </div>
+                          
+                          {/* 永久VIP */}
+                          <div className="bg-black/30 rounded-lg border border-[#534741] col-span-1 sm:col-span-2 p-4 hover:border-amber-500/30 transition-colors mt-2">
+                            <div className="flex justify-between items-center mb-2">
+                              <h3 className={`text-[#f4e8c1] font-medium ${fontClass}`}>永久VIP</h3>
+                              <span className={`text-amber-400 font-bold ${fontClass}`}>199积分</span>
+                            </div>
+                            <p className={`text-xs text-[#a18d6f] mb-3 ${fontClass}`}>
+                              一次订阅，永久享有VIP角色专区访问权限（超值优惠）
+                            </p>
+                            <button
+                              onClick={() => handleSubscribe('permanent')}
+                              disabled={isSubscribing || credits < 199}
+                              className={`w-full px-3 py-2 rounded-lg text-sm ${
+                                isSubscribing
+                                  ? 'bg-gray-600 cursor-not-allowed text-gray-300'
+                                  : credits < 199
+                                  ? 'bg-gray-700 cursor-not-allowed text-gray-400'
+                                  : 'bg-gradient-to-r from-amber-500 to-amber-400 text-black hover:from-amber-400 hover:to-amber-300'
+                              } transition-colors ${fontClass}`}
+                            >
+                              {isSubscribing ? '订阅中...' : credits < 199 ? '积分不足' : '立即订阅'}
                             </button>
                           </div>
                         </div>

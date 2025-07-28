@@ -514,7 +514,7 @@ export default function CharacterCards() {
               className="mb-6 text-center"
             >
               <Link href="/profile#custom-character" 
-                className="text-[#ffd475] hover:text-[#ffebb0] transition-colors inline-flex items-center"
+                className="text-white hover:text-[#ffebb0] transition-colors inline-flex items-center"
                 onClick={() => trackButtonClick("custom_character_link", "点击角色定制链接")}
               >
                 <svg 

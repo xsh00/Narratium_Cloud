@@ -952,6 +952,8 @@
     "sevenDaysDescription": "畅享7天VIP角色卡特权",
     "thirtyDaysVIP": "30天VIP",
     "thirtyDaysDescription": "畅享30天VIP角色卡特权",
+    "permanentVIP": "永久VIP",
+    "permanentDescription": "一次订阅，永久享有VIP特权",
     "credits": "积分",
     "cancel": "取消",
     "confirmSubscription": "确认订阅"
